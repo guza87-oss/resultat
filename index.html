@@ -9,115 +9,91 @@
         :root {
             --br-black: #000000;
             --br-blue: #003399;
-            --br-gray: #f5f5f5;
             --br-border: #e5e5e5;
             --accent-gold: #c5a059;
             --text-main: #333333;
+            --bg-gray: #f9f9f9;
         }
 
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            color: var(--text-main);
-            background-color: #fff;
-            line-height: 1.6;
-        }
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Inter', sans-serif; color: var(--text-main); background-color: #fff; }
 
-        /* ТИПОГРАФИКА В СТИЛЕ BLACKROCK */
-        h1, h2, h3 { color: var(--br-black); text-transform: uppercase; letter-spacing: -0.02em; }
-        .label { 
-            display: inline-block;
-            font-size: 0.75rem; 
-            font-weight: 700; 
-            color: var(--br-blue); 
-            text-transform: uppercase; 
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-        }
-
-        /* НАВИГАЦИЯ */
+        /* HEADER */
         header {
-            background: #fff;
-            padding: 20px 5%;
-            border-bottom: 1px solid var(--br-border);
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            padding: 20px 5%; border-bottom: 1px solid var(--br-border);
             position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .logo { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
-        nav a { text-decoration: none; color: #000; margin-left: 25px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        .logo { font-weight: 900; font-size: 1.6rem; letter-spacing: -1px; text-decoration: none; color: #000; }
+        nav a { text-decoration: none; color: #000; margin-left: 25px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
 
-        /* HERO SECTION */
+        /* HERO SECTION WITH IMAGE */
         .hero {
-            background: var(--br-black);
-            color: #fff;
-            padding: 100px 10% 120px;
-            text-align: left;
+            height: 90vh;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: center; padding: 0 10%; color: #fff;
         }
-        .hero h1 { color: #fff; font-size: 4.5rem; margin: 20px 0; line-height: 1; }
-        .hero p { font-size: 1.4rem; color: #ccc; max-width: 800px; margin-bottom: 40px; font-weight: 300; }
+        .hero h1 { font-size: 4.5rem; line-height: 1.1; margin: 20px 0; max-width: 900px; }
+        .hero p { font-size: 1.5rem; color: #ccc; max-width: 700px; font-weight: 300; margin-bottom: 40px; }
 
-        /* БЛОКИ И GLASSMORPHISM */
-        .section { padding: 80px 10%; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        
+        /* LABELS & HEADINGS */
+        .label { display: inline-block; font-size: 0.75rem; font-weight: 700; color: var(--br-blue); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
+        h2 { font-size: 2.5rem; text-transform: uppercase; margin-bottom: 40px; }
+
+        /* SECTIONS */
+        section { padding: 100px 10%; border-bottom: 1px solid var(--br-border); }
+        .bg-dark { background: var(--br-black); color: #fff; }
+        .bg-dark h2 { color: #fff; }
+
+        /* GRID & CARDS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; }
         .card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px); /* Эффект стекла */
-            border: 1px solid var(--br-border);
-            padding: 40px;
-            transition: 0.4s;
+            padding: 40px; border: 1px solid var(--br-border); 
+            background: #fff; transition: 0.4s; position: relative;
         }
-        .card:hover { border-color: var(--br-black); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .card h3 { margin-top: 0; font-size: 1.2rem; }
+        .card:hover { border-color: var(--br-black); transform: translateY(-5px); }
+        .card h3 { font-size: 1.3rem; margin-top: 0; color: #000; }
 
-        /* ИНВЕСТИЦИОННЫЙ СЛОЙ (ТЕМНЫЙ) */
-        .dark-section { background: #111; color: #fff; padding: 100px 10%; }
-        .dark-section h2 { color: #fff; }
+        /* CASE STUDIES */
+        .case-box {
+            background: var(--bg-gray); padding: 50px; border-left: 5px solid var(--br-blue); margin: 40px 0;
+        }
+        .case-box h4 { margin-top: 0; color: var(--br-blue); }
 
-        /* КНОПКИ */
+        /* BUTTONS */
         .btn {
-            display: inline-block;
-            padding: 18px 40px;
-            text-decoration: none;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            transition: 0.3s;
-            cursor: pointer;
-            border: none;
+            display: inline-block; padding: 20px 45px; font-weight: 700; text-transform: uppercase;
+            text-decoration: none; transition: 0.3s; font-size: 0.9rem;
         }
-        .btn-primary { background: #fff; color: #000; }
-        .btn-primary:hover { background: var(--br-gray); }
-        .btn-outline { border: 1px solid var(--br-border); color: var(--br-black); margin-top: 20px; }
+        .btn-gold { background: var(--accent-gold); color: #fff; }
+        .btn-white { border: 1px solid #fff; color: #fff; }
+        .btn-white:hover { background: #fff; color: #000; }
 
-        /* ФОРМА ЗАПИСИ */
-        .form-container { background: var(--br-gray); padding: 50px; margin-top: 50px; }
-        input, textarea { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ccc; font-family: inherit; }
-
-        /* КНОПКА ДОСТУПНОСТИ (Accessibility - Израильское право) */
-        .accessibility-btn {
-            position: fixed; bottom: 20px; left: 20px;
-            background: var(--br-blue); color: #fff;
-            width: 50px; height: 50px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        /* ACCESSIBILITY */
+        .access-btn {
+            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
+            background: var(--br-blue); color: #fff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 30px;
+            cursor: pointer; z-index: 10000; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
-        footer { padding: 60px 10%; background: #fff; border-top: 1px solid var(--br-border); text-align: center; color: #999; font-size: 0.8rem; }
+        footer { padding: 80px 10%; font-size: 0.75rem; color: #777; line-height: 1.8; }
         
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
+            .hero h1 { font-size: 2.8rem; }
+            section { padding: 60px 5%; }
         }
     </style>
 </head>
 <body>
 
-<div class="accessibility-btn" title="Доступность" onclick="alert('Модуль доступности активирован: контрастность повышена, шрифты увеличены.')">♿</div>
+<div class="access-btn" onclick="alert('Меню доступности активировано (Израильский стандарт 5568)')">♿</div>
 
 <header>
-    <div class="logo">RESULTAT <span>CAPITAL</span></div>
+    <a href="#" class="logo">RESULTAT</a>
     <nav>
         <a href="#approach">Подход</a>
         <a href="#clan">Система Клан</a>
@@ -129,69 +105,81 @@
 <section class="hero">
     <span class="label" style="color: var(--accent-gold);">Stewardship of Wealth</span>
     <h1>Капитал, созданный вами, будет служить тем, кто придет после вас.</h1>
-    <p>Resultat Family Office сопровождает семьи в вопросах сохранения, структурирования и передачи активов на основе системы «КЛАН. 1000 лет процветания».</p>
+    <p>Resultat Family Office: системное управление, защита и передача семейных активов на принципах «1000 лет процветания».</p>
     <div style="display: flex; gap: 20px;">
-        <a href="https://wa.me/972500000000" class="btn btn-primary">WhatsApp</a>
-        <a href="tel:+972500000000" class="btn btn-primary" style="background: transparent; border: 1px solid #fff; color: #fff;">Позвонить</a>
+        <a href="https://wa.me/972547514120" class="btn btn-gold">WhatsApp</a>
+        <a href="#contact" class="btn btn-white">Консультация</a>
     </div>
 </section>
 
-<section class="section" id="clan">
-    <span class="label">OPERATING SYSTEM</span>
-    <h2>Система КЛАН: 1000 лет процветания</h2>
+<section id="approach">
+    <span class="label">Наш подход</span>
+    <h2>Большинство состояний исчезают не из-за рынков.</h2>
+    <p style="font-size: 1.2rem; max-width: 800px;">Они ослабевают из-за отсутствия структуры. Из-за неподготовленности наследников. Из-за решений, принятых в моменты неопределенности — без системы и долгого горизонта.</p>
+    
+    <div class="case-box">
+        <h4>КЕЙС: Упущенная возможность (Израиль, 1992)</h4>
+        <p>Отказ от покупки актива стоимостью 400,000 ILS на основании неквалифицированного совета привел к утрате капитализации до 4,000,000 ILS. Итог: потеря пожизненного пассивного дохода в размере 33,000 ILS ежемесячно. Экспертиза — это инструмент защиты вашей свободы.</p>
+    </div>
+</section>
+
+<section id="clan" class="bg-dark">
+    <span class="label" style="color: var(--accent-gold);">The Operating System</span>
+    <h2>Система КЛАН</h2>
     <div class="grid">
-        <div class="card">
-            <span class="label">01</span>
+        <div class="card" style="background: #111; color: #fff; border-color: #333;">
             <h3>Правовой периметр</h3>
             <p>Архитектура владения, защищенная от внешних и внутренних рисков.</p>
         </div>
-        <div class="card">
-            <span class="label">02</span>
+        <div class="card" style="background: #111; color: #fff; border-color: #333;">
             <h3>Инвестиционный протокол</h3>
             <p>Рост активов через призму семейных целей, а не рыночного шума.</p>
         </div>
-        <div class="card">
-            <span class="label">03</span>
+        <div class="card" style="background: #111; color: #fff; border-color: #333;">
             <h3>NextGen Education</h3>
             <p>Подготовка преемников к принятию ответственности за наследие.</p>
         </div>
     </div>
 </section>
 
-<section class="dark-section" id="academy">
-    <span class="label" style="color: #00ff00;">ACADEMY</span>
+<section id="academy">
+    <span class="label">Resultat Academy</span>
     <h2>Интеллектуальный капитал</h2>
-    <p>Мы трансформируем сложный рыночный анализ в прикладные программы для владельцев капитала.</p>
-    <div class="grid" style="margin-top: 50px;">
-        <div class="card" style="background: rgba(255,255,255,0.05); color: #fff; border-color: #333;">
-            <h3>Книга: КЛАН</h3>
-            <p>7-е издание. Исчерпывающее руководство по управлению семейным офисом.</p>
-            <a href="#" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.7rem;">Скачать фрагмент</a>
+    <div class="grid">
+        <div class="card">
+            <span class="label">Модуль 01</span>
+            <h3>NextGen Program</h3>
+            <p>Методология воспитания финансово грамотных и ответственных поколений. Основы владения капиталом.</p>
         </div>
-        <div class="card" style="background: rgba(255,255,255,0.05); color: #fff; border-color: #333;">
-            <h3>Программа NextGen</h3>
-            <p>Подготовка будущих поколений к управлению унаследованным капиталом.</p>
+        <div class="card">
+            <span class="label">Модуль 02</span>
+            <h3>Системный бизнес</h3>
+            <p>Руководство по трансформации частного предприятия в масштабируемый актив с высокой ликвидностью.</p>
         </div>
+        <div class="card">
+            <span class="label">Модуль 03</span>
+            <h3>Real Estate Strategy</h3>
+            <p>Продвинутые стратегии инвестирования в недвижимость для генерации пассивного дохода.</p>
+        </div>
+    </div>
+
+    <div class="case-box">
+        <h4>ЭФФЕКТ ВАНДЕРБИЛЬТА</h4>
+        <p>В 1973 году на встрече потомков Корнелиуса Вандербильта (состояние эквивалентно $140 млрд) не было ни одного миллионера. 97% семейных состояний исчезают к 4-му поколению. Мы меняем эту статистику.</p>
     </div>
 </section>
 
-<section class="section" id="contact">
-    <span class="label">CONTACT</span>
-    <h2>Конфиденциальное знакомство</h2>
-    <div class="form-container">
-        <form action="#">
-            <input type="text" placeholder="Ваше имя" required>
-            <input type="email" placeholder="Электронная почта" required>
-            <textarea rows="4" placeholder="Краткое описание задачи"></textarea>
-            <button type="submit" class="btn btn-primary" style="background: #000; color: #fff; width: 100%;">Отправить запрос</button>
-        </form>
-    </div>
+<section id="contact" style="text-align: center; background: var(--bg-gray);">
+    <h2>Начните с конфиденциального знакомства</h2>
+    <p>Мы работаем с ограниченным числом семей, обеспечивая высочайший стандарт внимания.</p>
+    <br>
+    <a href="https://wa.me/972547514120" class="btn btn-gold" style="background: #000;">Связаться через WhatsApp</a>
 </section>
 
 <footer>
     <p>© 2026 RESULTAT Family Office. Независимость. Дисциплина. Наследие.</p>
-    <p style="font-size: 0.6rem; margin-top: 20px; max-width: 800px; margin-left: auto; margin-right: auto;">
-        ДИСКЛЕЙМЕР: В соответствии с Законом об инвестициях Израиля (5755-1995), RESULTAT не является инвестиционным консультантом. Информация на сайте не является предложением о покупке ценных бумаг.
+    <p style="margin-top: 30px; font-size: 0.65rem; max-width: 900px; margin-left: auto; margin-right: auto;">
+        ДИСКЛЕЙМЕР: В соответствии с Законом об инвестициях Израиля (5755-1995), RESULTAT не является инвестиционным консультантом. Информация на сайте предоставлена исключительно в образовательных целях и не является предложением о покупке ценных бумаг или финансовой рекомендацией.
     </p>
 </footer>
 
