@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RESULTAT Family Office | Stewardship of Wealth</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --br-black: #000000;
@@ -12,15 +12,15 @@
             --br-border: #e5e5e5;
             --accent-gold: #c5a059;
             --text-main: #333333;
-            --bg-gray: #f9f9f9;
+            --bg-gray: #f4f4f4;
         }
 
         * { box-sizing: border-box; scroll-behavior: smooth; }
-        body { margin: 0; font-family: 'Inter', sans-serif; color: var(--text-main); background-color: #fff; }
+        body { margin: 0; font-family: 'Inter', sans-serif; color: var(--text-main); background-color: #fff; line-height: 1.6; }
 
         /* HEADER */
         header {
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(15px);
             padding: 20px 5%; border-bottom: 1px solid var(--br-border);
             position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
@@ -28,74 +28,84 @@
         .logo { font-weight: 900; font-size: 1.6rem; letter-spacing: -1px; text-decoration: none; color: #000; }
         nav a { text-decoration: none; color: #000; margin-left: 25px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
 
-        /* HERO SECTION WITH IMAGE */
+        /* HERO SECTION */
         .hero {
-            height: 90vh;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                        url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070');
+            height: 95vh;
+            background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), 
+                        url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop');
             background-size: cover; background-position: center;
             display: flex; flex-direction: column; justify-content: center; padding: 0 10%; color: #fff;
         }
-        .hero h1 { font-size: 4.5rem; line-height: 1.1; margin: 20px 0; max-width: 900px; }
-        .hero p { font-size: 1.5rem; color: #ccc; max-width: 700px; font-weight: 300; margin-bottom: 40px; }
+        .hero h1 { font-size: 4.5rem; line-height: 1.1; margin: 20px 0; max-width: 900px; text-transform: uppercase; font-weight: 900; }
+        .hero p { font-size: 1.4rem; color: #ddd; max-width: 750px; font-weight: 300; margin-bottom: 40px; }
 
-        /* LABELS & HEADINGS */
+        /* LABELS */
         .label { display: inline-block; font-size: 0.75rem; font-weight: 700; color: var(--br-blue); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
-        h2 { font-size: 2.5rem; text-transform: uppercase; margin-bottom: 40px; }
+        
+        section { padding: 120px 10%; border-bottom: 1px solid var(--br-border); }
+        h2 { font-size: 2.8rem; text-transform: uppercase; margin-bottom: 50px; line-height: 1.2; }
 
-        /* SECTIONS */
-        section { padding: 100px 10%; border-bottom: 1px solid var(--br-border); }
-        .bg-dark { background: var(--br-black); color: #fff; }
-        .bg-dark h2 { color: #fff; }
-
-        /* GRID & CARDS */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; }
+        /* GRID & CARDS (Glassmorphism) */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
         .card {
-            padding: 40px; border: 1px solid var(--br-border); 
-            background: #fff; transition: 0.4s; position: relative;
+            padding: 50px; border: 1px solid var(--br-border); 
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);
+            transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
-        .card:hover { border-color: var(--br-black); transform: translateY(-5px); }
-        .card h3 { font-size: 1.3rem; margin-top: 0; color: #000; }
+        .card:hover { border-color: var(--br-black); transform: translateY(-10px); background: #fff; }
+        .card h3 { font-size: 1.4rem; margin-top: 0; color: var(--br-black); text-transform: uppercase; }
 
-        /* CASE STUDIES */
+        /* CASE STUDY BOX */
         .case-box {
-            background: var(--bg-gray); padding: 50px; border-left: 5px solid var(--br-blue); margin: 40px 0;
+            background: var(--bg-gray); padding: 60px; border-left: 6px solid var(--br-blue); margin: 60px 0;
         }
-        .case-box h4 { margin-top: 0; color: var(--br-blue); }
+        .case-box h4 { margin-top: 0; color: var(--br-blue); font-size: 1.2rem; text-transform: uppercase; }
+        .case-box p { font-size: 1.1rem; color: #444; }
+
+        /* DARK SECTION (CLAN) */
+        .bg-dark { 
+            background: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), 
+                        url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop');
+            background-size: cover; color: #fff; 
+        }
+        .bg-dark h2 { color: #fff; }
+        .bg-dark .card { background: rgba(255,255,255,0.05); color: #fff; border-color: #333; }
+        .bg-dark .card h3 { color: #fff; }
 
         /* BUTTONS */
         .btn {
-            display: inline-block; padding: 20px 45px; font-weight: 700; text-transform: uppercase;
-            text-decoration: none; transition: 0.3s; font-size: 0.9rem;
+            display: inline-block; padding: 22px 50px; font-weight: 700; text-transform: uppercase;
+            text-decoration: none; transition: 0.3s; font-size: 0.85rem; letter-spacing: 1px;
         }
-        .btn-gold { background: var(--accent-gold); color: #fff; }
-        .btn-white { border: 1px solid #fff; color: #fff; }
-        .btn-white:hover { background: #fff; color: #000; }
+        .btn-primary { background: #fff; color: #000; }
+        .btn-whatsapp { background: #25D366; color: #fff; margin-left: 20px; }
+        .btn-primary:hover { background: var(--br-gray); }
 
-        /* ACCESSIBILITY */
-        .access-btn {
-            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
+        /* ACCESSIBILITY (Israel Standard) */
+        .access-trigger {
+            position: fixed; bottom: 30px; left: 30px; width: 65px; height: 65px;
             background: var(--br-blue); color: #fff; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 30px;
-            cursor: pointer; z-index: 10000; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center; font-size: 32px;
+            cursor: pointer; z-index: 10000; box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
 
-        footer { padding: 80px 10%; font-size: 0.75rem; color: #777; line-height: 1.8; }
-        
+        footer { padding: 80px 10%; font-size: 0.75rem; color: #888; text-align: center; border-top: 1px solid var(--br-border); }
+
         @media (max-width: 768px) {
             .hero h1 { font-size: 2.8rem; }
-            section { padding: 60px 5%; }
+            .btn { width: 100%; text-align: center; margin: 10px 0; }
+            .btn-whatsapp { margin-left: 0; }
         }
     </style>
 </head>
 <body>
 
-<div class="access-btn" onclick="alert('Меню доступности активировано (Израильский стандарт 5568)')">♿</div>
+<div class="access-trigger" title="Меню доступности" onclick="alert('Модуль доступности активирован (WCAG 2.1)')">♿</div>
 
 <header>
     <a href="#" class="logo">RESULTAT</a>
     <nav>
-        <a href="#approach">Подход</a>
+        <a href="#about">Подход</a>
         <a href="#clan">Система Клан</a>
         <a href="#academy">Академия</a>
         <a href="#contact">Контакты</a>
@@ -103,84 +113,85 @@
 </header>
 
 <section class="hero">
-    <span class="label" style="color: var(--accent-gold);">Stewardship of Wealth</span>
+    <span class="label" style="color: var(--accent-gold);">Stewardship of Wealth Across Generations</span>
     <h1>Капитал, созданный вами, будет служить тем, кто придет после вас.</h1>
-    <p>Resultat Family Office: системное управление, защита и передача семейных активов на принципах «1000 лет процветания».</p>
-    <div style="display: flex; gap: 20px;">
-        <a href="https://wa.me/972547514120" class="btn btn-gold">WhatsApp</a>
-        <a href="#contact" class="btn btn-white">Консультация</a>
+    <p>Resultat Family Office: независимая архитектура управления, защиты и передачи семейных активов.</p>
+    <div>
+        <a href="tel:+972547514120" class="btn btn-primary">Позвонить</a>
+        <a href="https://wa.me/972547514120" class="btn btn-whatsapp">WhatsApp</a>
     </div>
 </section>
 
-<section id="approach">
-    <span class="label">Наш подход</span>
-    <h2>Большинство состояний исчезают не из-за рынков.</h2>
-    <p style="font-size: 1.2rem; max-width: 800px;">Они ослабевают из-за отсутствия структуры. Из-за неподготовленности наследников. Из-за решений, принятых в моменты неопределенности — без системы и долгого горизонта.</p>
+<section id="about">
+    <span class="label">Context & Strategy</span>
+    <h2>97% состояний исчезают к 4-му поколению.</h2>
+    <p style="font-size: 1.3rem; max-width: 850px; font-weight: 300;">Это не рыночный закон. Это результат отсутствия правил, неготовности наследников и размытой архитектуры владения. Мы трансформируем «случайное богатство» в «институциональное наследие».</p>
     
     <div class="case-box">
-        <h4>КЕЙС: Упущенная возможность (Израиль, 1992)</h4>
-        <p>Отказ от покупки актива стоимостью 400,000 ILS на основании неквалифицированного совета привел к утрате капитализации до 4,000,000 ILS. Итог: потеря пожизненного пассивного дохода в размере 33,000 ILS ежемесячно. Экспертиза — это инструмент защиты вашей свободы.</p>
+        <h4>АНАЛИТИКА: Цена экспертной ошибки</h4>
+        <p>Кейс (Израиль, 1992): Отказ от приобретения актива за 400,000 ILS привел к потере капитализации до 4,000,000 ILS сегодня. Итог: утрата пассивного дохода в размере 33,000 ILS ежемесячно. Мы здесь, чтобы исключить такие сценарии.</p>
     </div>
 </section>
 
 <section id="clan" class="bg-dark">
-    <span class="label" style="color: var(--accent-gold);">The Operating System</span>
-    <h2>Система КЛАН</h2>
+    <span class="label" style="color: var(--accent-gold);">Operating System</span>
+    <h2>Система КЛАН: 1000 лет процветания</h2>
     <div class="grid">
-        <div class="card" style="background: #111; color: #fff; border-color: #333;">
+        <div class="card">
             <h3>Правовой периметр</h3>
-            <p>Архитектура владения, защищенная от внешних и внутренних рисков.</p>
+            <p>Создание защищенной структуры владения, устойчивой к внешним и внутренним рискам.</p>
         </div>
-        <div class="card" style="background: #111; color: #fff; border-color: #333;">
+        <div class="card">
             <h3>Инвестиционный протокол</h3>
-            <p>Рост активов через призму семейных целей, а не рыночного шума.</p>
+            <p>Управление ростом активов через призму целей семьи, а не краткосрочного шума рынков.</p>
         </div>
-        <div class="card" style="background: #111; color: #fff; border-color: #333;">
-            <h3>NextGen Education</h3>
-            <p>Подготовка преемников к принятию ответственности за наследие.</p>
+        <div class="card">
+            <h3>Семейный устав</h3>
+            <p>Внедрение правил и ролей, исключающих конфликты при принятии стратегических решений.</p>
         </div>
     </div>
 </section>
 
 <section id="academy">
-    <span class="label">Resultat Academy</span>
-    <h2>Интеллектуальный капитал</h2>
+    <span class="label">Intelligence & Legacy</span>
+    <h2>Академия Resultat</h2>
     <div class="grid">
-        <div class="card">
-            <span class="label">Модуль 01</span>
-            <h3>NextGen Program</h3>
-            <p>Методология воспитания финансово грамотных и ответственных поколений. Основы владения капиталом.</p>
+        <div class="card" style="border-top: 4px solid var(--br-blue);">
+            <span class="label">MODULE 01</span>
+            <h3>NextGen Education</h3>
+            <p>Подготовка преемников к принятию владельческой ответственности и управлению капиталом.</p>
         </div>
-        <div class="card">
-            <span class="label">Модуль 02</span>
+        <div class="card" style="border-top: 4px solid var(--br-blue);">
+            <span class="label">MODULE 02</span>
             <h3>Системный бизнес</h3>
-            <p>Руководство по трансформации частного предприятия в масштабируемый актив с высокой ликвидностью.</p>
+            <p>Методология трансформации частных компаний в масштабируемые активы с прозрачным управлением.</p>
         </div>
-        <div class="card">
-            <span class="label">Модуль 03</span>
-            <h3>Real Estate Strategy</h3>
-            <p>Продвинутые стратегии инвестирования в недвижимость для генерации пассивного дохода.</p>
+        <div class="card" style="border-top: 4px solid var(--br-blue);">
+            <span class="label">MODULE 03</span>
+            <h3>Real Estate Portfolio</h3>
+            <p>Стратегии глубокого анализа и приобретения недвижимости для долгосрочного дохода.</p>
         </div>
     </div>
 
-    <div class="case-box">
+    <div class="case-box" style="border-left-color: var(--accent-gold);">
         <h4>ЭФФЕКТ ВАНДЕРБИЛЬТА</h4>
-        <p>В 1973 году на встрече потомков Корнелиуса Вандербильта (состояние эквивалентно $140 млрд) не было ни одного миллионера. 97% семейных состояний исчезают к 4-му поколению. Мы меняем эту статистику.</p>
+        <p>Состояние Корнелиуса Вандербильта ($140 млрд в эквиваленте) было полностью утрачено к 1973 году. На семейной встрече 120 потомков не было ни одного миллионера. Система КЛАН — это вакцина против эрозии капитала.</p>
     </div>
 </section>
 
-<section id="contact" style="text-align: center; background: var(--bg-gray);">
-    <h2>Начните с конфиденциального знакомства</h2>
-    <p>Мы работаем с ограниченным числом семей, обеспечивая высочайший стандарт внимания.</p>
-    <br>
-    <a href="https://wa.me/972547514120" class="btn btn-gold" style="background: #000;">Связаться через WhatsApp</a>
+<section id="contact" style="background: var(--bg-gray); text-align: center;">
+    <span class="label">Contact</span>
+    <h2>Начните конфиденциальный диалог</h2>
+    <p style="margin-bottom: 40px;">Мы работаем с ограниченным числом семей, гарантируя уровень внимания, которого заслуживает ваш капитал.</p>
+    <a href="https://wa.me/972547514120" class="btn btn-primary" style="background: #000; color: #fff;">Записаться на консультацию</a>
 </section>
 
 <footer>
-    <p>© 2026 RESULTAT Family Office. Независимость. Дисциплина. Наследие.</p>
-    <p style="margin-top: 30px; font-size: 0.65rem; max-width: 900px; margin-left: auto; margin-right: auto;">
-        ДИСКЛЕЙМЕР: В соответствии с Законом об инвестициях Израиля (5755-1995), RESULTAT не является инвестиционным консультантом. Информация на сайте предоставлена исключительно в образовательных целях и не является предложением о покупке ценных бумаг или финансовой рекомендацией.
+    <p>RESULTAT Family Office | Stewardship of Wealth Across Generations</p>
+    <p style="margin-top: 30px; font-size: 0.65rem; max-width: 800px; margin: 30px auto;">
+        ДИСКЛЕЙМЕР: В соответствии с Законом об инвестициях Израиля (5755-1995), RESULTAT не является инвестиционным консультантом. Информация на сайте предоставлена исключительно в образовательных целях и не является публичной офертой или рекомендацией к покупке ценных бумаг.
     </p>
+    <p>© 2026. Конфиденциально. Независимо. Долгосрочно.</p>
 </footer>
 
 </body>
