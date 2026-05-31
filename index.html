@@ -1146,7 +1146,7 @@ async function callAPI(agentN, userMsg){
   const statusEl=document.getElementById('a'+agentN+'-status');
   statusEl.textContent='⏳ Работает...';statusEl.style.background='rgba(245,158,11,.3)';
   try{
-    const r=await fetch('/api/chat',{
+    const r=await fetch('https://mba-api.guza87.workers.dev',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model,max_tokens:1000,system:SP[agentN],messages:[{role:'user',content:userMsg}]})
