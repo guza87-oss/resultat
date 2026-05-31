@@ -719,7 +719,9 @@ textarea{resize:vertical;min-height:60px;}
 // ═══ STATE ═══
 const S={xp:0,weeks:0,cash:12000,mods:{1:'crisis',2:'warn',3:'crisis',4:'warn',5:'crisis',6:'empty',7:'warn'},fixed:0,crises:3,case:1,apiKey:'',model:'claude-sonnet-4-6',agent1out:'',agent2out:''};
 
-// ═══ TERMS DB (from MBA RESULTAT{title:'Реестр Распределения (Financial Planning)',en:'Financial Planning & Allocation System',
+// ═══ TERMS DB ═══
+const TERMS={
+  finplan:{title:'Реестр Распределения (Financial Planning)',en:'Financial Planning & Allocation System',
     body:'<strong>MBA RESULTAT</strong> «Financial planning ensures that only monies which are so designated and authorized are allocated out of org accounts; policing reserves to ensure that the org never spends more than it makes, and that it builds up substantial reserves through excellent control of its income-outgo flows.» I<br><br>Современный эквивалент: протокол распределения операционных квантов по приоритетам.'},
   reserve:{title:'Стабилизационный Буфер (Security Reserve)',en:'Security Reserve / Stabilization Buffer',
     body:'<strong>MBA RESULTAT</strong> Резерв, формируемый ДО распределения остальных средств. Защищает систему от кризисов ликвидности. Принцип: «the org never spends more than it makes.»<br><br>Три приоритета: (1) операционная жизнеспособность, (2) Стаб. Буфер, (3) внешние обязательства.'},
