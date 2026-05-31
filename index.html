@@ -147,7 +147,7 @@ textarea{resize:vertical;min-height:60px;}
       <div class="hsub">Тренажёр Управления · MBA RESULTAT</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-    <button id="auth-btn" onclick="showAuthModal('login')" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">🔑 Войти</button>
+    <button id="auth-btn" onclick="(function(){var m=document.getElementById('auth-modal');m.style.display='flex';m.dataset.mode='login';document.getElementById('auth-mode').textContent='Вход';document.getElementById('auth-name-wrap').style.display='none';document.getElementById('auth-mode-link').textContent='Нет аккаунта? Зарегистрироваться';document.getElementById('auth-error').textContent='';})()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">🔑 Войти</button>
     <div id="user-info" style="display:none;align-items:center;"></div>
   </div>
   <div class="hrole" id="player-role">🚨 КРИЗИС-МЕНЕДЖЕР</div>
@@ -1521,7 +1521,7 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
     <div id="auth-error" style="font-size:12px;color:#dc2626;margin-bottom:10px;min-height:18px;"></div>
     <button id="auth-submit" onclick="submitAuth()" style="width:100%;background:#1e3a8a;color:#fff;border:none;padding:11px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;">Войти</button>
     <div style="text-align:center;">
-      <button id="auth-mode-link" onclick="toggleAuthMode()" style="background:none;border:none;color:#2563eb;font-size:12px;cursor:pointer;text-decoration:underline;">Нет аккаунта? Зарегистрироваться</button>
+      <button id="auth-mode-link" onclick="(function(){var m=document.getElementById('auth-modal');var cur=m.dataset.mode||'login';var next=cur==='login'?'register':'login';m.dataset.mode=next;document.getElementById('auth-mode').textContent=next==='login'?'Вход':'Регистрация';document.getElementById('auth-name-wrap').style.display=next==='register'?'block':'none';document.getElementById('auth-submit').textContent=next==='login'?'Войти':'Зарегистрироваться';document.getElementById('auth-mode-link').textContent=next==='login'?'Нет аккаунта? Зарегистрироваться':'Уже есть аккаунт? Войти';document.getElementById('auth-error').textContent='';})()"  style="background:none;border:none;color:#2563eb;font-size:12px;cursor:pointer;text-decoration:underline;">Нет аккаунта? Зарегистрироваться</button>
     </div>
   </div>
 </div>
