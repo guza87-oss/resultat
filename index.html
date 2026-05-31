@@ -224,6 +224,34 @@ textarea{resize:vertical;min-height:60px;}
 
 <!-- ═══════════ CRISIS CASE ═══════════ -->
 <div class="page" id="page-crisis">
+  <!-- AI GENERATOR PANEL -->
+  <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:8px;padding:14px;margin-bottom:12px;color:#fff;">
+    <div style="font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;margin-bottom:4px;">🤖 Сгенерировать новый кейс через ИИ</div>
+    <div style="font-size:11px;opacity:.8;margin-bottom:10px;">Выберите отдел — ИИ придумает уникальную задачу прямо здесь</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select id="crisis-gen-mod" style="flex:2;min-width:180px;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:7px 10px;font-size:12px;background:rgba(255,255,255,.15);color:#fff;">
+        <option value="М3 — Финансы и кассовый разрыв">💰 Финансы и казначейство</option>
+        <option value="М1 — Персонал и управление командой">👥 Персонал и команда</option>
+        <option value="М2 — Продажи и привлечение клиентов">📣 Продажи и маркетинг</option>
+        <option value="М4 — Производство и доставка продукта">🏭 Производство</option>
+        <option value="М5 — Качество и стандарты">🔍 Качество и стандарты</option>
+        <option value="М6 — PR и репутация компании">📡 PR и репутация</option>
+        <option value="М7 — Управление и антикризисные решения">🎯 Управление компанией</option>
+      </select>
+      <button onclick="genCrisisCase()" id="crisis-gen-btn" style="background:#fff;color:#1e3a8a;border:none;padding:7px 18px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;">
+        ✨ Сгенерировать кейс
+      </button>
+    </div>
+    <div id="crisis-gen-out" style="display:none;margin-top:10px;background:rgba(255,255,255,.12);border-radius:6px;padding:12px;font-size:12px;line-height:1.7;white-space:pre-wrap;"></div>
+    <div id="crisis-gen-answer-wrap" style="display:none;margin-top:8px;">
+      <textarea id="crisis-gen-answer" placeholder="Напишите ваше решение..." style="width:100%;min-height:70px;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:8px;font-size:12px;background:rgba(255,255,255,.1);color:#fff;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;"></textarea>
+      <button onclick="checkCrisisCase()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:7px 18px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;margin-top:6px;width:100%;">
+        ⚖️ Проверить мой ответ
+      </button>
+      <div id="crisis-gen-result" style="margin-top:8px;font-size:12px;line-height:1.6;"></div>
+    </div>
+  </div>
+
   <div id="case-container">
 
     <!-- CASE 1: FINANCE -->
@@ -241,7 +269,7 @@ textarea{resize:vertical;min-height:60px;}
           <div style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7;">
             <p>Вы приходите на фабрику «Стиль-Р». Поставщик требует <strong style="color:var(--danger)">$5,000</strong> — через 2 ч. суд. Бухгалтер в панике: «На счету <strong style="color:var(--danger)">$6,000</strong>. Зарплата рабочим — <strong style="color:var(--warn)">$5,500</strong>. Кому платить?»</p>
             <div style="margin-top:10px;padding:8px 12px;background:var(--gold-l);border-left:3px solid var(--gold-b);border-radius:4px;font-size:11px;color:var(--gold);">
-              📜 <strong>Первоисточник:</strong> «The financial planning and allocation system ensures that monies are allocated and authorized out of org accounts — policing reserves to ensure the org never spends more than it makes» — MBA RESULTAT </div>
+              📜 <strong>Первоисточник:</strong> «Система распределения средств обеспечивает, что только авторизованные расходы списываются со счетов — резервы контролируются так, чтобы компания никогда не тратила больше, чем зарабатывает» — MBA RESULTAT </div>
           </div>
 
           <div id="c1-choices">
@@ -249,7 +277,7 @@ textarea{resize:vertical;min-height:60px;}
             <div class="qopt" onclick="A1('A')"><div class="onum">А</div><div>Отдать $5,000 поставщику — избежать суда. Зарплату перенести на понедельник.</div></div>
             <div class="qopt" onclick="A1('B')"><div class="onum">Б</div><div>Выдать $5,500 зарплату — производство важнее. Поставщика попросить подождать.</div></div>
             <div class="qopt" onclick="A1('C')"><div class="onum">В</div><div>Разделить $6,000 поровну — «потушить пожар» везде.</div></div>
-            <div class="qopt" onclick="A1('D')"><div class="onum">Г</div><div>Заблокировать все выплаты. Лично взять счета под контроль. Составить реестр приоритетов строго по Financial Planning Protocol. Обойти привычные каналы, связаться с поставщиком напрямую.</div></div>
+            <div class="qopt" onclick="A1('D')"><div class="onum">Г</div><div>Заблокировать все выплаты. Лично взять счета под контроль. Составить реестр приоритетов по Протоколу Казначейства. Обойти привычные каналы, связаться с поставщиком напрямую.</div></div>
           </div>
 
           <div id="c1-error" style="display:none;">
@@ -259,7 +287,7 @@ textarea{resize:vertical;min-height:60px;}
               <div style="font-size:12px;line-height:1.8;">
                 <strong>Принцип 1:</strong> Все входящие потоки — через единый <span class="tch" onclick="T('finplan')">Реестр Распределения</span>.<br>
                 <strong>Принцип 2:</strong> Выплаты строго по приоритетам: (1) операционная жизнеспособность, (2) <span class="tch" onclick="T('reserve')">Стаб. Буфер</span>, (3) внешние обязательства.<br>
-                <strong>Принцип 3:</strong> Полицировать резервы — org never spends more than it makes.<br>
+                <strong>Принцип 3:</strong> Полицировать резервы — компания никогда не тратит больше, чем зарабатывает.<br>
                 <strong>ЦКП Казначейства:</strong> Учтённые, сохранённые, распределённые средства при растущем резерве.
               </div>
             </div>
@@ -765,7 +793,7 @@ const GL={
     {t:'Channel Skips',en:'Пропуск Канала',d:'Не переправлено через обязательные точки — путаница в пропущенных узлах.'},
     {t:'Backlogging',en:'Накопление Бэклога',d:'Бэклог парализует терминал — только разгребают накопившееся, новое не движется.'},
     {t:'Bugged Targets',en:'Заглохшие Цели',d:'Цель развивает незамеченные сбои. Поток останавливается.'},
-    {t:'Catastrophe',en:'Катастрофа',d:'«Occurs by lack of prediction. Those things planned for do not become catastrophes.» HCO PL.'},
+    {t:'Catastrophe',en:'Катастрофа',d:'Всё что планируется заранее — не становится катастрофой. Катастрофы случаются только там, где не думали наперёд.'},
   ],
   forms:[
     {t:'Emergency Formula',en:'Emergency Formula (4 шага)',d:'1-Признать вслух, 2-Взять под личный контроль, 3-Устранить проблему, 4-Восстановить нормальную работу.'},
@@ -1038,176 +1066,77 @@ function RP(){
 const SP={
   1:`Ты — генератор бизнес-кейсов для симулятора управления компаниями MBA RESULTAT.
 
-ОБЯЗАТЕЛЬНАЯ ТЕРМИНОЛОГИЯ:
+ЯЗЫК — СТРОГО:
+- Весь текст ТОЛЬКО на русском языке
+- Термины писать так: Русское название (English term) — например: Реестр Распределения (Financial Planning), ЦКП (VFP), Протокол Казначейства (Treasury Management Protocol)
+- Цитаты из первоисточников — переводить на русский, после цитаты в скобках можно добавить оригинальный термин
+- ЗАПРЕЩЕНО писать целые предложения на английском
+- ЗАПРЕЩЕНО оставлять английские цитаты без перевода
 
-ТЕРМИНОЛОГИЯ MBA RESULTAT — McKinsey Style:
-Используй ВСЕГДА в формате: «Русский термин (English McKinsey term)»
+ЗАПРЕЩЕНО: религиозные маркеры, имена авторов методологии, посторонние ассоциации.
 
-Примеры обязательного формата:
-- Матрица Потоков (Operational Architecture)
-- ЦКП — Ценный Конечный Продукт (Key Value Driver / KPI)
-- Операционный пинг-понг (Functional Role Overlap / Dev-T)
-- Стабилизационный Буфер (Working Capital Reserve)
-- Протокол Казначейства (Treasury Management Protocol)
-- Профиль Роли / Смарт-регламент (Role Charter / Job Architecture)
-- Антикризисный Протокол (Performance Recovery Framework)
-- Состояние ЧП (Critical Performance Gap)
-- Состояние Опасность (Performance At-Risk)
-- Нормальная деятельность (Steady-State Operations)
-- Изобилие (High-Performance State / Affluence)
-- Семантический аудит (Conceptual Alignment Check)
-- Операционный узел (Functional Node)
-- Поток задач (Work Particle / Task Flow)
-- Модуль 1 Персонал (Division 1: Talent & Org Design)
-- Модуль 2 Распространение (Division 2: Revenue Generation)
-- Модуль 3 Казначейство (Division 3: Financial Operations)
-- Модуль 4 Производство (Division 4: Delivery & Operations)
-- Модуль 5 Квалификация (Division 5: Quality Assurance)
-- Модуль 6 СО/Охват (Division 6: Market Presence & PR)
-- Модуль 7 Управление (Division 7: Executive Leadership)
-- Индекс Системы (Organizational Health Index / OHI)
-- Боевой план (Weekly Action Plan / Sprint)
-- Верификация ЦКП (Value Driver Audit)
-- Реестр Распределения (Resource Allocation Matrix)
-
-Стиль подачи — McKinsey:
-- Кейсы: Ситуация → Осложнение → Ключевой вопрос (Situation → Complication → Key Question)
-- Диагностика: MECE-структура, корневые причины (root causes), не симптомы
-- Рекомендации: «Три приоритетных действия (Three Priority Actions)», «Быстрые победы (Quick Wins) vs Системные изменения (Systemic Changes)»
-- Оценка: «Ваше решение не адресует корневую причину (root cause)», «Необходим структурный анализ (structured analysis)»
-- Цифры и факты: всегда с конкретными метриками, % и сроками
-
-
-ЗАПРЕЩЕНО: религиозные маркеры, имена авторов методологии, любые посторонние ассоциации.
-
-СТРУКТУРА КЕЙСА — формат McKinsey (обязательно):
+СТРУКТУРА КЕЙСА — McKinsey формат:
 **Ситуация (Situation):** [компания, отрасль, контекст — 2-3 предложения]
 **Осложнение (Complication):** [конкретная проблема с цифрами, % падения, сроками]
-**Ключевой вопрос (Key Question):** Каковы ваши приоритетные действия (Priority Actions) как антикризисного управляющего (Turnaround Manager)?
+**Ключевой вопрос (Key Question):** Каковы ваши приоритетные действия как антикризисного управляющего?
 
 Требования:
 - 2026 год, современный бизнес (IT, ритейл, производство, услуги)
 - Конкретные цифры: суммы, %, сроки, количество сотрудников
-- Только один правильный системный ответ (остальные — реакция на симптомы)
+- Один правильный системный ответ (остальные — реакция на симптомы)
 - Максимум 200 слов
-- Все термины в формате: Русский (English McKinsey)`,
+- Все термины в формате: Русское название (English term)`,
 
-  2:`Ты — строгий аудитор ответов студентов MBA RESULTAT. Стиль оценки — McKinsey Senior Partner.
+  2:`Ты — строгий аудитор ответов студентов MBA RESULTAT.
 
-ОБЯЗАТЕЛЬНАЯ ТЕРМИНОЛОГИЯ:
+ЯЗЫК — СТРОГО:
+- Весь текст ТОЛЬКО на русском языке
+- Термины писать так: Русское название (English term) — например: Реестр Распределения (Financial Planning), ЦКП (VFP), Протокол Казначейства (Treasury Management Protocol)
+- Цитаты из первоисточников — переводить на русский, после цитаты в скобках можно добавить оригинальный термин
+- ЗАПРЕЩЕНО писать целые предложения на английском
+- ЗАПРЕЩЕНО оставлять английские цитаты без перевода
 
-ТЕРМИНОЛОГИЯ MBA RESULTAT — McKinsey Style:
-Используй ВСЕГДА в формате: «Русский термин (English McKinsey term)»
-
-Примеры обязательного формата:
-- Матрица Потоков (Operational Architecture)
-- ЦКП — Ценный Конечный Продукт (Key Value Driver / KPI)
-- Операционный пинг-понг (Functional Role Overlap / Dev-T)
-- Стабилизационный Буфер (Working Capital Reserve)
-- Протокол Казначейства (Treasury Management Protocol)
-- Профиль Роли / Смарт-регламент (Role Charter / Job Architecture)
-- Антикризисный Протокол (Performance Recovery Framework)
-- Состояние ЧП (Critical Performance Gap)
-- Состояние Опасность (Performance At-Risk)
-- Нормальная деятельность (Steady-State Operations)
-- Изобилие (High-Performance State / Affluence)
-- Семантический аудит (Conceptual Alignment Check)
-- Операционный узел (Functional Node)
-- Поток задач (Work Particle / Task Flow)
-- Модуль 1 Персонал (Division 1: Talent & Org Design)
-- Модуль 2 Распространение (Division 2: Revenue Generation)
-- Модуль 3 Казначейство (Division 3: Financial Operations)
-- Модуль 4 Производство (Division 4: Delivery & Operations)
-- Модуль 5 Квалификация (Division 5: Quality Assurance)
-- Модуль 6 СО/Охват (Division 6: Market Presence & PR)
-- Модуль 7 Управление (Division 7: Executive Leadership)
-- Индекс Системы (Organizational Health Index / OHI)
-- Боевой план (Weekly Action Plan / Sprint)
-- Верификация ЦКП (Value Driver Audit)
-- Реестр Распределения (Resource Allocation Matrix)
-
-Стиль подачи — McKinsey:
-- Кейсы: Ситуация → Осложнение → Ключевой вопрос (Situation → Complication → Key Question)
-- Диагностика: MECE-структура, корневые причины (root causes), не симптомы
-- Рекомендации: «Три приоритетных действия (Three Priority Actions)», «Быстрые победы (Quick Wins) vs Системные изменения (Systemic Changes)»
-- Оценка: «Ваше решение не адресует корневую причину (root cause)», «Необходим структурный анализ (structured analysis)»
-- Цифры и факты: всегда с конкретными метриками, % и сроками
-
-
-ФОРМАТ ОЦЕНКИ (строго McKinsey):
-**Вердикт:** ✅ ВЕРНО или 🚨 СТРУКТУРНАЯ ОШИБКА
+ФОРМАТ ОЦЕНКИ:
+**Вердикт:** ✅ ВЕРНО или 🚨 ОШИБКА
 
 Если верно:
 - Что именно правильно диагностировано (1-2 предложения)
-- Какой принцип применён корректно
+- Какой принцип применён корректно — с названием в формате: Русское (English)
 
 Если ошибка:
-- «Ваше решение адресует симптом (symptom), а не корневую причину (root cause)»
-- Точно какой принцип нарушен — с названием в формате: Русский (English McKinsey)
-- Как должно быть правильно — структурированно, MECE
+- «Ваше решение устраняет симптом (symptom), а не причину (root cause)»
+- Точно какой принцип нарушен — Русское название (English term)
+- Как должно быть правильно
 
 В любом случае:
-- Один термин для Семантического аудита (Conceptual Alignment Check)
-- «Следующий приоритет обучения (Next Learning Priority):» — конкретный модуль
+- Один термин для проверки понимания
+- Следующий шаг обучения
 
-Максимум 120 слов. Без лишних похвал.`,
+Максимум 120 слов.`,
 
-  3:`Ты — Надзорный Супервайзер (Senior Learning Advisor) курса MBA RESULTAT.
+  3:`Ты — Надзорный Советник (Senior Learning Advisor) курса MBA RESULTAT.
 
-ОБЯЗАТЕЛЬНАЯ ТЕРМИНОЛОГИЯ:
+ЯЗЫК — СТРОГО:
+- Весь текст ТОЛЬКО на русском языке
+- Термины писать так: Русское название (English term) — например: Реестр Распределения (Financial Planning), ЦКП (VFP), Протокол Казначейства (Treasury Management Protocol)
+- Цитаты из первоисточников — переводить на русский, после цитаты в скобках можно добавить оригинальный термин
+- ЗАПРЕЩЕНО писать целые предложения на английском
+- ЗАПРЕЩЕНО оставлять английские цитаты без перевода
 
-ТЕРМИНОЛОГИЯ MBA RESULTAT — McKinsey Style:
-Используй ВСЕГДА в формате: «Русский термин (English McKinsey term)»
+ФОРМАТ РЕКОМЕНДАЦИИ:
 
-Примеры обязательного формата:
-- Матрица Потоков (Operational Architecture)
-- ЦКП — Ценный Конечный Продукт (Key Value Driver / KPI)
-- Операционный пинг-понг (Functional Role Overlap / Dev-T)
-- Стабилизационный Буфер (Working Capital Reserve)
-- Протокол Казначейства (Treasury Management Protocol)
-- Профиль Роли / Смарт-регламент (Role Charter / Job Architecture)
-- Антикризисный Протокол (Performance Recovery Framework)
-- Состояние ЧП (Critical Performance Gap)
-- Состояние Опасность (Performance At-Risk)
-- Нормальная деятельность (Steady-State Operations)
-- Изобилие (High-Performance State / Affluence)
-- Семантический аудит (Conceptual Alignment Check)
-- Операционный узел (Functional Node)
-- Поток задач (Work Particle / Task Flow)
-- Модуль 1 Персонал (Division 1: Talent & Org Design)
-- Модуль 2 Распространение (Division 2: Revenue Generation)
-- Модуль 3 Казначейство (Division 3: Financial Operations)
-- Модуль 4 Производство (Division 4: Delivery & Operations)
-- Модуль 5 Квалификация (Division 5: Quality Assurance)
-- Модуль 6 СО/Охват (Division 6: Market Presence & PR)
-- Модуль 7 Управление (Division 7: Executive Leadership)
-- Индекс Системы (Organizational Health Index / OHI)
-- Боевой план (Weekly Action Plan / Sprint)
-- Верификация ЦКП (Value Driver Audit)
-- Реестр Распределения (Resource Allocation Matrix)
-
-Стиль подачи — McKinsey:
-- Кейсы: Ситуация → Осложнение → Ключевой вопрос (Situation → Complication → Key Question)
-- Диагностика: MECE-структура, корневые причины (root causes), не симптомы
-- Рекомендации: «Три приоритетных действия (Three Priority Actions)», «Быстрые победы (Quick Wins) vs Системные изменения (Systemic Changes)»
-- Оценка: «Ваше решение не адресует корневую причину (root cause)», «Необходим структурный анализ (structured analysis)»
-- Цифры и факты: всегда с конкретными метриками, % и сроками
-
-
-ФОРМАТ РЕКОМЕНДАЦИИ — McKinsey Engagement Closing:
-
-**Диагностика паттерна (Pattern Diagnosis):**
-[Что студент понимает хорошо / где системный пробел (capability gap)]
+**Анализ прогресса:**
+[Что студент понимает хорошо / где пробел]
 
 **Три приоритетных действия (Three Priority Actions):**
-1. Быстрая победа (Quick Win): [что сделать прямо сейчас]
-2. Системное изменение (Systemic Change): [что изучить глубже]  
-3. Практическое применение (Real-World Application): [конкретное задание для реального бизнеса студента]
+1. Быстрое действие (Quick Win): [что сделать прямо сейчас]
+2. Системное изменение (Systemic Change): [что изучить глубже]
+3. Применение в жизни (Real-World Application): [задание для реального бизнеса студента]
 
-**90-дневный трек (90-Day Learning Track):**
+**90-дневный план обучения:**
 [Следующие модули в порядке приоритета]
 
-Тон: строгий, конкретный, без воды. Максимум 120 слов.`
+Тон: конкретный, без лишних слов. Максимум 120 слов.`
 };
 
 async function callAPI(agentN, userMsg){
