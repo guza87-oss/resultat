@@ -1479,10 +1479,51 @@ async function genCrisisCase() {
   
   if (result && !result.startsWith('❌')) {
     crisisCaseText = result;
-    out.textContent = result;
-    ansWrap.style.display = 'block';
-    document.getElementById('crisis-gen-answer').value = '';
+    // Parse options А Б В Г
+    const lines = result.split('\n');
+    let caseLines = [];
+    let opts = [];
+    let inOpts = false;
+    for (const line of lines) {
+      const t = line.trim();
+      if (t.includes('Варианты ответа')) { inOpts = true; continue; }
+      if (inOpts && /^[АБВГабвг][).]/.test(t)) { opts.push(t); }
+      else if (!inOpts) { caseLines.push(line); }
+    }
+    out.style.display = 'block';
+    out.innerHTML = '';
+    // Case text
+    const cd = document.createElement('div');
+    cd.style.cssText = 'white-space:pre-wrap;margin-bottom:10px;font-size:12px;line-height:1.7;';
+    cd.textContent = caseLines.join('\n').trim();
+    out.appendChild(cd);
+    // Options
+    if (opts.length >= 2) {
+      const od = document.createElement('div');
+      od.innerHTML = '<div style="font-size:11px;font-weight:700;text-transform:uppercase;opacity:.8;margin-bottom:6px;">Выберите ваш ответ:</div>';
+      opts.forEach((opt, i) => {
+        const b = document.createElement('div');
+        b.style.cssText = 'background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:9px 12px;margin-bottom:5px;cursor:pointer;font-size:12px;line-height:1.5;transition:all .15s;';
+        b.textContent = opt;
+        b.onmouseover = () => { if(!b.dataset.sel) b.style.background='rgba(255,255,255,.22)'; };
+        b.onmouseout = () => { if(!b.dataset.sel) b.style.background='rgba(255,255,255,.12)'; };
+        b.onclick = () => {
+          od.querySelectorAll('[data-opt]').forEach(x => { x.style.background='rgba(255,255,255,.12)'; x.style.border='1px solid rgba(255,255,255,.25)'; delete x.dataset.sel; });
+          b.style.background='rgba(255,255,255,.3)'; b.style.border='1px solid rgba(255,255,255,.6)'; b.dataset.sel='1';
+          document.getElementById('crisis-gen-answer').value = opt;
+        };
+        b.dataset.opt = i;
+        od.appendChild(b);
+      });
+      out.appendChild(od);
+      ansWrap.style.display = 'block';
+      document.getElementById('crisis-gen-answer').value = '';
+    } else {
+      ansWrap.style.display = 'block';
+      document.getElementById('crisis-gen-answer').value = '';
+    }
   } else {
+    out.style.display = 'block';
     out.textContent = result || '❌ Ошибка. Попробуйте ещё раз.';
   }
   btn.disabled = false;
