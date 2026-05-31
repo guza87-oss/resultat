@@ -144,7 +144,7 @@ textarea{resize:vertical;min-height:60px;}
   <div class="hl">
     <div>
       <div class="hlogo">MBA RESULTAT <span style="opacity:.7;font-size:11px;font-weight:400;font-family:var(--font)">Тренажёр Управления</span></div>
-      <div class="hsub">Тренажёр Управления · MBA RESULTAT</div>
+      <div class="hsub">Тренажёр MBA RESULTAT</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
     <button id="auth-btn" onclick="(function(){var m=document.getElementById('auth-modal');m.style.display='flex';m.dataset.mode='login';document.getElementById('auth-mode').textContent='Вход';document.getElementById('auth-name-wrap').style.display='none';document.getElementById('auth-mode-link').textContent='Нет аккаунта? Зарегистрироваться';document.getElementById('auth-error').textContent='';})()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;">🔑 Войти</button>
@@ -162,9 +162,9 @@ textarea{resize:vertical;min-height:60px;}
 
 <div style="background:linear-gradient(135deg,#0f172a,#1e293b);padding:12px 18px;">
   <div style="max-width:900px;margin:0 auto;font-family:var(--serif);font-size:clamp(12px,2vw,15px);color:#e2e8f0;line-height:1.5">
-    Вас наняли <em style="color:#f59e0b;font-style:normal;font-weight:700">спасти компанию</em> от банкротства.
-    Каждое решение меняет <em style="color:#f59e0b;font-style:normal;font-weight:700">статистики отделений.</em>
-    Три ИИ-агента проверяют ваши решения строго по первоисточникам.
+    Вас позвали <em style="color:#f59e0b;font-style:normal;font-weight:700">спасти компанию</em> от банкротства.
+    Каждое ваше решение влияет на <em style="color:#f59e0b;font-style:normal;font-weight:700">показатели отделов.</em>
+    Три ИИ помощника проверяют каждый ваш шаг.
     <span style="font-size:10px;color:#475569;display:block;margin-top:3px;">Источники: MBA RESULTAT — Модуль 7 Vols 1–3 (базе знаний MBA RESULTAT)</span>
   </div>
 </div>
@@ -184,7 +184,7 @@ textarea{resize:vertical;min-height:60px;}
   <div class="g4" style="margin-bottom:10px;">
     <div class="mc red"><label>Индекс Системы</label><div class="val" id="d-idx">23%</div><div class="sub" id="d-state">🔴 ЧП</div></div>
     <div class="mc"><label>Запас Прочности</label><div class="val" id="d-cash">$12,000</div><div class="sub">Нед. до краха: <strong id="d-wl" style="color:var(--danger)">2</strong></div></div>
-    <div class="mc gold"><label>⚡ XP Архитектора</label><div class="val" id="d-xp">0</div><div class="sub" id="d-rank">🔍 Стажёр</div></div>
+    <div class="mc gold"><label>⚡ XP Архитектора</label><div class="val" id="d-xp">0</div><div class="sub" id="d-rank">🔍 Новичок</div></div>
     <div class="mc"><label>Модулей Починено</label><div class="val" id="d-fixed">0 / 7</div><div class="sub">Кризисов: <span id="d-cr" style="color:var(--danger);font-weight:700">3</span></div></div>
   </div>
 
@@ -199,16 +199,16 @@ textarea{resize:vertical;min-height:60px;}
       <div class="panel"><h2>📊 Пульс Системы (нед.)</h2><div class="cw"><canvas id="pulseChart"></canvas></div></div>
       <div class="panel" style="background:linear-gradient(135deg,var(--pdark),var(--plight));border:none;text-align:center;padding:16px;">
         <div style="font-family:var(--serif);font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;">🚨 Начать Кейс: Модуль 3 — Казначейство</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px;">Кассовый разрыв. Источник: MBA RESULTAT</div>
-        <button class="btn" onclick="P('crisis')" style="background:#fff;color:#1e3a8a;font-weight:700;padding:9px 22px;border-radius:8px;font-size:13px;">Принять Управление →</button>
+        <div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px;">Кассовый разрыв на фабрике</div>
+        <button class="btn" onclick="P('crisis')" style="background:#fff;color:#1e3a8a;font-weight:700;padding:9px 22px;border-radius:8px;font-size:13px;">Начать →</button>
       </div>
     </div>
     <div>
       <div class="panel"><h2>🔔 Сигналы Системы</h2><div id="sig-feed">
-        <div class="sig r"><div>📛 <strong>Модуль 3 (Казначейство)</strong> — Выплаты идут «кто громче кричит», а не по регламенту. Требуется Протокол Казначейства.</div></div>
-        <div class="sig r"><div>📛 <strong>Модуль 1 (Персонал)</strong> — 2 ключевых поста пусты. Поток заблокирован.</div></div>
-        <div class="sig y"><div>⚠️ <strong>Модуль 2 (Распространение)</strong> — конверсия лидов ниже нормы. ЦКП модуля не верифицирован.</div></div>
-        <div class="sig g"><div>✅ Система запущена. ИИ-агенты готовы. Начните с Кризис-Кейса.</div></div>
+        <div class="sig r"><div>📛 <strong>Модуль 3 (Казначейство)</strong> — Деньги платят тому, кто громче кричит — не по плану. Нужно навести порядок в финансах.</div></div>
+        <div class="sig r"><div>📛 <strong>Модуль 1 (Персонал)</strong> — Два важных места в команде пусты. Работа стоит.</div></div>
+        <div class="sig y"><div>⚠️ <strong>Модуль 2 (Распространение)</strong> — Клиенты приходят, но не покупают. Нужно разобраться почему.</div></div>
+        <div class="sig g"><div>✅ Всё готово. Начните с первого кейса.</div></div>
       </div></div>
       <div class="panel"><h2>🤖 Статус ИИ-Агентов</h2>
         <div style="margin-bottom:6px;">
@@ -245,7 +245,7 @@ textarea{resize:vertical;min-height:60px;}
           </div>
 
           <div id="c1-choices">
-            <h3 style="margin-bottom:8px;">📋 Ваш вектор антикризисного управления:</h3>
+            <h3 style="margin-bottom:8px;">📋 Что вы будете делать?</h3>
             <div class="qopt" onclick="A1('A')"><div class="onum">А</div><div>Отдать $5,000 поставщику — избежать суда. Зарплату перенести на понедельник.</div></div>
             <div class="qopt" onclick="A1('B')"><div class="onum">Б</div><div>Выдать $5,500 зарплату — производство важнее. Поставщика попросить подождать.</div></div>
             <div class="qopt" onclick="A1('C')"><div class="onum">В</div><div>Разделить $6,000 поровну — «потушить пожар» везде.</div></div>
@@ -253,7 +253,7 @@ textarea{resize:vertical;min-height:60px;}
           </div>
 
           <div id="c1-error" style="display:none;">
-            <div class="alert danger"><strong>🚨 Аудит Агента 3:</strong> Нарушен MBA RESULTATrding to who yells the loudest» — классическая причина банкротства. Система не пропускает без верификации.</div>
+            <div class="alert danger"><strong>🚨 Аудит Агента 3:</strong> Нарушен Протокол Казначейства (Treasury Management Protocol). Выплаты «кому громче» — классическая причина банкротства. Система не пропускает без верификации.</div>
             <div style="background:var(--gold-l);border:1px solid var(--gold-b);border-radius:6px;padding:13px;margin-bottom:10px;">
               <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">📜 Архивный Свод — MBA RESULTAT</div>
               <div style="font-size:12px;line-height:1.8;">
@@ -458,13 +458,13 @@ textarea{resize:vertical;min-height:60px;}
       <!-- CHECKLIST -->
       <div class="panel">
         <h2>📋 Чеклист «Четверга» (Weekly Review)</h2>
-        <div class="alert info" style="margin-bottom:8px;font-size:11px;">Каждый четверг — фиксация статистик всех модулей. Методология MBA RESULTAT.</div>
-        <div class="iitem"><div style="flex:3">Все 7 статистик модулей зафиксированы?</div><div><select id="ck1" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
+        <div class="alert info" style="margin-bottom:8px;font-size:11px;">Заполняйте каждую неделю — проверяйте состояние всех отделов.</div>
+        <div class="iitem"><div style="flex:3">Показатели всех 7 отделов записаны?</div><div><select id="ck1" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
         <div class="iitem"><div style="flex:3">Состояния всех 7 модулей определены?</div><div><select id="ck2" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
         <div class="iitem"><div style="flex:3">Для ЧП/Опасности запущены формулы?</div><div><select id="ck3" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
-        <div class="iitem"><div style="flex:3">ЦКП каждого поста верифицированы?</div><div><select id="ck4" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
-        <div class="iitem"><div style="flex:3">Стабилизационный буфер пополнен?</div><div><select id="ck5" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
-        <div class="iitem"><div style="flex:3">Боевой план следующей недели составлен?</div><div><select id="ck6" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
+        <div class="iitem"><div style="flex:3">Каждый сотрудник знает свой результат?</div><div><select id="ck4" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
+        <div class="iitem"><div style="flex:3">Финансовый резерв пополнен?</div><div><select id="ck5" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
+        <div class="iitem"><div style="flex:3">План на следующую неделю готов?</div><div><select id="ck6" onchange="CK()" style="width:auto"><option value="">—</option><option value="1">✅</option><option value="0">❌</option></select></div></div>
         <div id="ck-res" style="margin-top:8px;"></div>
       </div>
     </div>
@@ -475,7 +475,7 @@ textarea{resize:vertical;min-height:60px;}
 <div class="page" id="page-orgmatrix">
   <div class="panel">
     <h2>🗂️ Матрица Потоков — Organizing Board (7 Divisions · 21 Departments)</h2>
-    <div class="alert info">Источник: MBA RESULTAT — Матрица Потоков. Каждый модуль — отдельный том. Кликните на модуль для просмотра ЦКП и Профилей Ролей.</div>
+    <div class="alert info">Источник: MBA RESULTAT — Матрица Потоков. Каждый модуль — отдельный том. Нажмите на блок — увидите описание.</div>
     <div class="og" id="org-matrix-grid"></div>
   </div>
   <div id="mod-detail" class="panel" style="display:none;"></div>
@@ -537,8 +537,8 @@ textarea{resize:vertical;min-height:60px;}
       <div>
         <label class="fl">Модель</label>
         <select id="api-model">
-          <option value="claude-sonnet-4-6">claude-sonnet-4-6 (рекомендован)</option>
-          <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001 (быстрый/дешёвый)</option>
+          <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+          <option value="claude-haiku-4-5-20251001" selected>claude-haiku-4-5 (быстрый, экономный)-20251001 (быстрый/дешёвый)</option>
         </select>
         <button class="btn btn-p btn-sm" style="margin-top:6px;width:100%;" onclick="TestAPI()">🧪 Проверить соединение</button>
         <div id="api-status" style="margin-top:6px;font-size:11px;"></div>
@@ -565,7 +565,7 @@ textarea{resize:vertical;min-height:60px;}
           <input type="text" id="a1-topic" placeholder="напр: Финансовый кризис, Модуль 3, Dev-T в отделе продаж...">
         </div>
         <div class="fg">
-          <label class="fl">Уровень сложности</label>
+          <label class="fl">Сложность</label>
           <select id="a1-level">
             <option value="beginner">Базовый (1 модуль, 1 проблема)</option>
             <option value="intermediate" selected>Средний (2 модуля, взаимосвязь)</option>
@@ -653,7 +653,7 @@ textarea{resize:vertical;min-height:60px;}
       <div>
         <div class="ai-msg" id="chain-out" style="min-height:120px;">Здесь появится живой кейс, сгенерированный и отфильтрованный тремя агентами...</div>
         <div id="chain-answer-wrap" style="display:none;margin-top:8px;">
-          <div class="fg"><label class="fl">Ваш ответ на кейс</label><textarea id="chain-answer" placeholder="Ваше управленческое решение..."></textarea></div>
+          <div class="fg"><label class="fl">Ваш ответ на кейс</label><textarea id="chain-answer" placeholder="Напишите ваше решение..."></textarea></div>
           <button class="btn btn-ok btn-sm" onclick="ChainAudit()" style="width:100%;">⚖️ Проверить ответ Агентом 3</button>
         </div>
         <div class="ai-msg" id="chain-audit-out" style="display:none;margin-top:8px;"></div>
@@ -671,7 +671,7 @@ textarea{resize:vertical;min-height:60px;}
     <div class="panel"><h2>🔄 Формулы и состояния</h2><div id="gl-forms"></div></div>
   </div>
   <div class="panel">
-    <h2>🔤 Семантический Аудит — Тест</h2>
+    <h2>🔤 Проверьте себя — тест на понимание терминов</h2>
     <div id="gl-quiz"></div><div id="gl-qr" style="margin-top:8px;"></div>
   </div>
 </div>
@@ -683,19 +683,19 @@ textarea{resize:vertical;min-height:60px;}
       <div class="panel" style="background:linear-gradient(135deg,var(--pdark),var(--plight));color:#fff;border:none;">
         <div style="text-align:center;padding:10px 0;">
           <div style="font-size:52px;margin-bottom:8px;" id="p-icon">🔍</div>
-          <div style="font-family:var(--serif);font-size:22px;font-weight:700;" id="p-rank">Стажёр Архитектуры</div>
+          <div style="font-family:var(--serif);font-size:22px;font-weight:700;" id="p-rank">Новичок</div>
           <div style="font-size:12px;opacity:.7;margin-top:4px;" id="p-xp">0 XP</div>
           <div style="margin-top:12px;background:rgba(255,255,255,.1);border-radius:8px;padding:10px;display:inline-block;min-width:220px;">
             <div style="font-size:10px;opacity:.7;margin-bottom:4px;">До следующего ранга</div>
             <div class="pw"><div class="pb blue" id="p-prog" style="width:0%"></div></div>
-            <div style="font-size:10px;margin-top:4px;" id="p-next">→ 🏗️ Основатель (100 XP)</div>
+            <div style="font-size:10px;margin-top:4px;" id="p-next">→ 🏗️ Стажёр (100 XP)</div>
           </div>
         </div>
       </div>
-      <div class="panel"><h2>📊 Матрица Компетенций</h2><div id="p-comp"></div></div>
+      <div class="panel"><h2>📊 Ваши навыки</h2><div id="p-comp"></div></div>
     </div>
     <div>
-      <div class="panel"><h2>🏆 Лидерборд Архитекторов</h2><div id="p-lb"></div></div>
+      <div class="panel"><h2>🏆 Таблица лидеров</h2><div id="p-lb"></div></div>
       <div class="panel"><h2>🏅 Достижения</h2><div id="p-ach"></div></div>
     </div>
   </div>
@@ -722,13 +722,13 @@ const S={xp:0,weeks:0,cash:12000,mods:{1:'crisis',2:'warn',3:'crisis',4:'warn',5
 // ═══ TERMS DB ═══
 const TERMS={
   finplan:{title:'Реестр Распределения (Financial Planning)',en:'Financial Planning & Allocation System',
-    body:'<strong>MBA RESULTAT</strong> «Financial planning ensures that only monies which are so designated and authorized are allocated out of org accounts; policing reserves to ensure that the org never spends more than it makes, and that it builds up substantial reserves through excellent control of its income-outgo flows.» I<br><br>Современный эквивалент: протокол распределения операционных квантов по приоритетам.'},
+    body:'<strong>Реестр Распределения</strong> — протокол, обеспечивающий что только авторизованные статьи расходов списываются со счетов. Организация никогда не тратит больше, чем зарабатывает, и наращивает резервы.<br><br>Три функции:<br>1. Все входящие потоки — через единый реестр<br>2. Только регламентированные расходы<br>3. Стабилизационный Буфер формируется первым<br><br><em style="color:#64748b;font-size:11px;">EN: Financial Planning & Allocation System (Treasury Management Protocol)</em>'},
   reserve:{title:'Стабилизационный Буфер (Security Reserve)',en:'Security Reserve / Stabilization Buffer',
-    body:'<strong>MBA RESULTAT</strong> Резерв, формируемый ДО распределения остальных средств. Защищает систему от кризисов ликвидности. Принцип: «the org never spends more than it makes.»<br><br>Три приоритета: (1) операционная жизнеспособность, (2) Стаб. Буфер, (3) внешние обязательства.'},
+    body:'<strong>Стабилизационный Буфер</strong> — резерв, формируемый <em>до</em> любых прочих выплат. Защищает систему от кассовых разрывов и внешних шоков.<br><br>Приоритеты выплат:<br>1. Операционная жизнеспособность (зарплата = поток производства)<br>2. Стабилизационный Буфер<br>3. Внешние обязательства — строго по реестру<br><br><em style="color:#64748b;font-size:11px;">EN: Security Reserve / Working Capital Reserve</em>'},
   vfp:{title:'ЦКП — Ценный Конечный Продукт (VFP)',en:'Valuable Final Product (VFP)',
-    body:'<strong>MBA RESULTAT:</strong> «Each member and unit of an organization has a product which, if different, contributes to the whole product of an organization.»<br><br><strong>MBA RESULTAT</strong> «ability is measured not by opinion, but by the person\'s ability to raise statistics and produce the product of the particular post.» MBA RESULTAT<br><br>Без верифицированного ЦКП невозможно оценить эффективность поста.'},
+    body:'<strong>ЦКП — Ценный Конечный Продукт</strong> — точный измеримый результат, который должен производить каждый пост или модуль. Без верифицированного ЦКП невозможно оценить эффективность сотрудника.<br><br>Принцип: способность измеряется не мнением, а способностью поднимать метрики эффективности (KPI) и производить продукт своей роли.<br><br><em style="color:#64748b;font-size:11px;">EN: Valuable Final Product (VFP) / Key Value Driver</em>'},
   hat:{title:'Профиль Роли — Шляпа (Hat)',en:'Hat / Role Profile',
-    body:'<strong>MBA RESULTAT</strong> «A hat must contain: (a) a purpose of the post; (b) its relative position on the organizing board; (c) a write-up of the post; (d) a checksheet of all the policy letters, bulletins, advices, manuals, books and drills applicable to the post; (e) a full pack of the written materials plus tapes.»<br><br>Без шляпы — терминал не знает своего ЦКП.'},
+    body:'<strong>Профиль Роли / Смарт-регламент</strong> — полный набор документов для каждого поста, включающий:<br>(a) цель функциональной роли<br>(b) позицию в Матрице Потоков<br>(c) описание обязанностей<br>(d) чеклист применимых протоколов<br>(e) полный пакет рабочих материалов<br><br>Без Профиля Роли — операционный узел не знает своего ЦКП и не может быть оценён.<br><br><em style="color:#64748b;font-size:11px;">EN: Role Charter / Hat / Job Architecture</em>'},
   altered:{title:'Altered Compliance (Изменённое Соответствие)',en:'Altered Compliance — Dev-T type',
     body:'<strong>MBA RESULTAT</strong> «Altered compliance — a type of dev-t where something was introduced or changed in the orders which made them non-optimum. This sometimes wastes and repeats all earlier traffic.»<br><br>Тип операционного пинг-понга, где приказы выполняются, но с несанкционированными изменениями.'},
   chanskip:{title:'Channel Skips (Пропуск Канала)',en:'Channel Skips — Dev-T type',
@@ -945,7 +945,7 @@ function GR(xp){
   if(xp>=400)return{ic:'🛡️',lb:'Хранитель',nxt:'Архитектор (600)',nxp:600};
   if(xp>=200)return{ic:'🧱',lb:'Строитель',nxt:'Хранитель (400)',nxp:400};
   if(xp>=100)return{ic:'🏗️',lb:'Основатель',nxt:'Строитель (200)',nxp:200};
-  return{ic:'🔍',lb:'Стажёр Архитектуры',nxt:'Основатель (100)',nxp:100};
+  return{ic:'🔍',lb:'Новичок',nxt:'Основатель (100)',nxp:100};
 }
 function UD(){
   const idx=Math.min(23+S.fixed*11+S.xp/18,100);const r=GR(S.xp);
@@ -1000,9 +1000,9 @@ function RP(){
   document.getElementById('p-prog').style.width=prog+'%';
   document.getElementById('p-next').textContent=nx?'→ Следующий: '+r.nxt:'👑 Максимальный ранг!';
   document.getElementById('p-comp').innerHTML=[
-    {l:'Финансовые протоколы (М3)',s:S.mods[3]==='ok'?85:20},
+    {l:'Финансы и казначейство',s:S.mods[3]==='ok'?85:20},
     {l:'Dev-T диагностика (М1)',s:S.mods[1]==='ok'?80:15},
-    {l:'Верификация ЦКП (М5)',s:S.mods[5]==='ok'?75:10},
+    {l:'Контроль качества',s:S.mods[5]==='ok'?75:10},
     {l:'Маршрутизация частиц',s:Math.min(S.xp/8+5,90)},
     {l:'Формулы состояний',s:Math.min(S.xp/6,85)},
     {l:'MBA RESULTAT',s:Math.min(S.xp/5+10,90)},
@@ -1204,7 +1204,7 @@ const SP={
 
 async function callAPI(agentN, userMsg){
   const key=document.getElementById('api-key').value.trim();
-  const model=document.getElementById('api-model').value;
+  const model=(document.getElementById('api-model') && document.getElementById('api-model').value) || 'claude-sonnet-4-6';
   if(!key){alert('Введите API ключ на вкладке 🤖 ИИ-Лаборатория');return null;}
   const statusEl=document.getElementById('a'+agentN+'-status');
   statusEl.textContent='⏳ Работает...';statusEl.style.background='rgba(245,158,11,.3)';
