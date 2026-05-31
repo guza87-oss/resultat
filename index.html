@@ -1419,42 +1419,76 @@ function toggleAuthMode() {
 }
 
 async function submitAuth() {
-  const mode = document.getElementById('auth-modal').dataset.mode;
+  const modal = document.getElementById('auth-modal');
+  const mode = modal.dataset.mode || 'login';
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const name = document.getElementById('auth-name').value.trim();
   const btn = document.getElementById('auth-submit');
   const err = document.getElementById('auth-error');
   
-  if (!email || !password) { err.textContent = 'Введите email и пароль'; return; }
-  if (password.length < 6) { err.textContent = 'Пароль минимум 6 символов'; return; }
+  // Validation
+  if (!email || !password) { err.style.color='#dc2626'; err.textContent = 'Введите email и пароль'; return; }
+  if (password.length < 6) { err.style.color='#dc2626'; err.textContent = 'Пароль минимум 6 символов'; return; }
   
   btn.disabled = true;
   btn.textContent = '⏳ Загрузка...';
   err.textContent = '';
   
   try {
-    let result;
     if (mode === 'register') {
-      result = await supa.signUp(email, password, name || email.split('@')[0]);
-      if (result.error) { err.textContent = result.error.message || 'Ошибка регистрации'; btn.disabled=false; btn.textContent='Зарегистрироваться'; return; }
-      err.style.color = '#16a34a';
-      err.textContent = '✅ Проверьте email для подтверждения, затем войдите.';
-      setTimeout(() => showAuthModal('login'), 2000);
+      // REGISTER
+      const r = await fetch('https://ejabiluscxahbiceievs.supabase.co/auth/v1/signup', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYWJpbHVzY3hhaGJpY2VpZXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzk0NjgsImV4cCI6MjA5NTc1NTQ2OH0.PFvxPVJhBc1QFUwxWGD_TxpoFRt4mKMH2vo-hKkvqP0'},
+        body: JSON.stringify({email, password, data:{full_name: name || email.split('@')[0]}})
+      });
+      const d = await r.json();
+      if (d.error) {
+        err.style.color='#dc2626';
+        err.textContent = d.error.message || 'Ошибка регистрации';
+        btn.disabled=false; btn.textContent='Зарегистрироваться'; return;
+      }
+      // Auto-login after register (no email confirm needed)
+      if (d.access_token) {
+        saveSession({id:d.user.id, email:d.user.email, name:name||email.split('@')[0], token:d.access_token});
+        modal.style.display='none';
+        updateAuthUI();
+        loadProgress();
+        err.textContent='';
+      } else {
+        err.style.color='#16a34a';
+        err.textContent='✅ Аккаунт создан! Теперь войдите.';
+        modal.dataset.mode='login';
+        document.getElementById('auth-mode').textContent='Вход';
+        document.getElementById('auth-name-wrap').style.display='none';
+        btn.textContent='Войти';
+        document.getElementById('auth-mode-link').textContent='Нет аккаунта? Зарегистрироваться';
+      }
     } else {
-      result = await supa.signIn(email, password);
-      if (result.error) { err.textContent = result.error.message || 'Неверный email или пароль'; btn.disabled=false; btn.textContent='Войти'; return; }
-      saveSession({ id: result.user.id, email: result.user.email, name: result.user.user_metadata?.full_name || email.split('@')[0], token: result.access_token });
-      hideAuthModal();
+      // LOGIN
+      const r = await fetch('https://ejabiluscxahbiceievs.supabase.co/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYWJpbHVzY3hhaGJpY2VpZXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzk0NjgsImV4cCI6MjA5NTc1NTQ2OH0.PFvxPVJhBc1QFUwxWGD_TxpoFRt4mKMH2vo-hKkvqP0'},
+        body: JSON.stringify({email, password})
+      });
+      const d = await r.json();
+      if (d.error) {
+        err.style.color='#dc2626';
+        err.textContent = d.error.message || 'Неверный email или пароль';
+        btn.disabled=false; btn.textContent='Войти'; return;
+      }
+      saveSession({id:d.user.id, email:d.user.email, name:d.user.user_metadata?.full_name||email.split('@')[0], token:d.access_token});
+      modal.style.display='none';
       updateAuthUI();
-      await loadProgress();
+      loadProgress();
     }
   } catch(e) {
-    err.textContent = 'Ошибка соединения';
+    err.style.color='#dc2626';
+    err.textContent = 'Ошибка соединения: ' + e.message;
   }
   btn.disabled = false;
-  btn.textContent = mode === 'login' ? 'Войти' : 'Зарегистрироваться';
-  document.getElementById('auth-submit').textContent = mode === 'login' ? 'Войти' : 'Зарегистрироваться';
+  btn.textContent = (modal.dataset.mode||'login') === 'login' ? 'Войти' : 'Зарегистрироваться';
 }
 
 async function logout() {
