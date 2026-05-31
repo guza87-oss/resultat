@@ -1481,21 +1481,27 @@ async function genCrisisCase() {
     const lines = result.split('\n');
     let caseLines = [];
     let opts = [];
-    let inOpts = false;
     let correctAnswer = '';
     for (const line of lines) {
       const t = line.trim();
       // Extract hidden correct answer marker
-      if (t.startsWith('CORRECT:')) {
-        const m = t.match(/CORRECT:\[([АБВГабвг])\]/);
+      if (t.startsWith('CORRECT:') || t.startsWith('CORRECT :')) {
+        const m = t.match(/CORRECT\s*:\s*\[?([АБВГабвгABCDabcd])\]?/);
         if (m) correctAnswer = m[1].toUpperCase();
-        continue; // hide from display
+        continue;
       }
-      if (t.includes('Варианты ответа')) { inOpts = true; continue; }
-      if (inOpts && /^[АБВГабвг][).]/.test(t)) { opts.push(t); }
-      else if (!inOpts) { caseLines.push(line); }
+      // Skip section headers
+      if (t.includes('Варианты ответа') || t === '---' || t === '**Варианты:**') continue;
+      // Catch options: А) Б) В) Г) or А. Б. В. Г. or **А)** etc
+      const optMatch = t.match(/^\*{0,2}([АБВГабвгABCDabcd])[).:]\*{0,2}\s+(.+)/);
+      if (optMatch) {
+        opts.push(optMatch[1].toUpperCase() + ') ' + optMatch[2]);
+      } else if (opts.length === 0) {
+        caseLines.push(line);
+      }
     }
     window._correctAnswer = correctAnswer;
+    console.log('Options found:', opts, 'Correct:', correctAnswer);
     out.style.display = 'block';
     out.innerHTML = '';
     // Case text
