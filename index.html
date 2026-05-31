@@ -1453,7 +1453,7 @@ async function submitAuth() {
       }
       // Auto-login after register (no email confirm needed)
       if (d.access_token) {
-        saveSession({id:d.user.id, email:d.user.email, name:name||email.split('@')[0], token:d.access_token});
+        const ru=d.user||d; saveSession({id:ru.id||ru.sub||email, email:ru.email||email, name:name||email.split('@')[0], token:d.access_token});
         modal.style.display='none';
         updateAuthUI();
         loadProgress();
@@ -1480,7 +1480,11 @@ async function submitAuth() {
         err.textContent = d.error.message || 'Неверный email или пароль';
         btn.disabled=false; btn.textContent='Войти'; return;
       }
-      saveSession({id:d.user.id, email:d.user.email, name:d.user.user_metadata?.full_name||email.split('@')[0], token:d.access_token});
+      // Supabase can return user at different levels
+      const u = d.user || d;
+      const userId = u.id || u.sub || email;
+      const userName = (u.user_metadata && u.user_metadata.full_name) || u.email || email.split('@')[0];
+      saveSession({id: userId, email: u.email || email, name: userName, token: d.access_token});
       modal.style.display='none';
       updateAuthUI();
       loadProgress();
