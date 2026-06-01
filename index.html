@@ -1596,57 +1596,74 @@ async function checkCrisisCase() {
     if (note) result.innerHTML += `<div style="background:rgba(255,255,255,.1);border-radius:6px;padding:10px;margin-top:6px;border-left:3px solid #60a5fa;font-size:12px;">💡 ${note}</div>`;
 
   } else {
-    // WRONG path — show Archive Svod like pre-loaded cases
-    // Agent 2 extracts the violated principle and generates Archive Svod block
-    const archivePrompt = `Кейс:\n${crisisCaseText}\n\nОтвет студента (НЕВЕРНЫЙ):\n${answer}\n\nСформируй блок "Архивный Свод" в СТРОГО таком формате (без отступлений):
-ПРИНЦИП_1: [название принципа и объяснение одним предложением]
-ПРИНЦИП_2: [второй принцип одним предложением]
-ПРИНЦИП_3: [третий принцип одним предложением]
-ЦКП: [ЦКП нарушенного отдела одним предложением]
-ТЕРМИН: [один ключевой термин для семантического аудита — только само слово/словосочетание]
-ВОПРОС: [вопрос студенту для верификации понимания этого термина]`;
+    // WRONG path — show Archive Svod + Word Clearing (fixed colors)
+    result.innerHTML = '<div style="opacity:.7;color:#e2e8f0;">⏳ Формирую Архивный Свод...</div>';
 
-    const archive = await callAPI(2, archivePrompt);
-    
-    // Parse archive block
+    const archivePrompt = `Ты — генератор обучающих блоков MBA RESULTAT. Отвечай ТОЛЬКО в указанном формате, строго 6 строк, без вступлений.
+
+Кейс: ${crisisCaseText}
+
+Неверный ответ студента: ${answer}
+
+Выдай ровно 6 строк:
+ПРИНЦИП_1: один нарушенный принцип одним предложением
+ПРИНЦИП_2: второй принцип одним предложением
+ПРИНЦИП_3: третий принцип одним предложением
+ЦКП: ЦКП нарушенного отдела одним предложением
+ТЕРМИН: один ключевой термин (2-4 слова)
+ВОПРОС: конкретный вопрос студенту для проверки понимания термина`;
+
+    const archive = await callAPI(1, archivePrompt);
+
+    // Parse — strip markdown bold markers
     let p1='', p2='', p3='', vfp='', term='', question='';
     if (archive) {
-      const lines = archive.split('\n');
-      for (const l of lines) {
-        if (l.startsWith('ПРИНЦИП_1:')) p1 = l.replace('ПРИНЦИП_1:','').trim();
-        else if (l.startsWith('ПРИНЦИП_2:')) p2 = l.replace('ПРИНЦИП_2:','').trim();
-        else if (l.startsWith('ПРИНЦИП_3:')) p3 = l.replace('ПРИНЦИП_3:','').trim();
-        else if (l.startsWith('ЦКП:')) vfp = l.replace('ЦКП:','').trim();
-        else if (l.startsWith('ТЕРМИН:')) term = l.replace('ТЕРМИН:','').trim();
-        else if (l.startsWith('ВОПРОС:')) question = l.replace('ВОПРОС:','').trim();
+      for (const raw of archive.split('\n')) {
+        const l = raw.replace(/\*\*/g,'').trim();
+        if      (l.startsWith('ПРИНЦИП_1:')) p1       = l.slice(10).trim();
+        else if (l.startsWith('ПРИНЦИП_2:')) p2       = l.slice(10).trim();
+        else if (l.startsWith('ПРИНЦИП_3:')) p3       = l.slice(10).trim();
+        else if (l.startsWith('ЦКП:'))       vfp      = l.slice(4).trim();
+        else if (l.startsWith('ТЕРМИН:'))    term     = l.slice(7).trim();
+        else if (l.startsWith('ВОПРОС:'))    question = l.slice(7).trim();
       }
     }
-    
-    // Fallback if parsing fails
-    if (!p1) { p1='Решения принимаются по системе, а не по принципу «кто громче»'; p2='Приоритеты расходования средств определяются заранее по Реестру Распределения'; p3='Руководитель лично берёт контроль при кризисе — обходит привычные каналы'; vfp='Учтённые, сохранённые средства при растущем резерве'; term='Реестр Распределения'; question='Что такое Реестр Распределения и как он предотвращает кассовый разрыв?'; }
+
+    // Solid fallback
+    if (!p1) p1 = 'Решения принимаются по системе, а не по принципу «кто громче кричит»';
+    if (!p2) p2 = 'Приоритеты расходов определяются заранее через Реестр Распределения (Financial Planning)';
+    if (!p3) p3 = 'При кризисе руководитель лично берёт контроль и обходит привычные каналы';
+    if (!vfp) vfp = 'Учтённые, сохранённые средства при растущем Стаб. Буфере, ноль долгов';
+    if (!term) term = 'Реестр Распределения';
+    if (!question) question = 'Что такое Реестр Распределения и почему без него компания всегда в кассовом разрыве?';
 
     const wcId = 'wc_gen_' + Date.now();
-    
+    const safeterm = term.replace(/'/g, '&apos;');
+
     result.innerHTML = `
-      <div class="alert danger" style="margin-bottom:8px;"><strong>🚨 Аудит Агента 3:</strong> ${check.replace('🚨 ОШИБКА','').replace('**Вердикт:**','').trim()}</div>
-      
-      <div style="background:var(--gold-l);border:1px solid var(--gold-b);border-radius:6px;padding:13px;margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">📜 Архивный Свод — MBA RESULTAT</div>
-        <div style="font-size:12px;line-height:1.9;">
-          <strong>Принцип 1:</strong> ${p1}<br>
-          <strong>Принцип 2:</strong> ${p2}<br>
-          <strong>Принцип 3:</strong> ${p3}<br>
-          <strong>ЦКП отдела:</strong> ${vfp}
+      <div style="background:#fef2f2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:6px;padding:12px;margin-bottom:10px;">
+        <strong style="color:#dc2626;font-size:12px;">🚨 Аудит Агента 3:</strong>
+        <div style="margin-top:5px;font-size:12px;line-height:1.7;color:#1e293b;">${check.replace(/🚨\s*ОШИБКА/g,'').replace(/\*\*Вердикт:\*\*/g,'').trim()}</div>
+      </div>
+
+      <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:14px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:8px;letter-spacing:.04em;">📜 Архивный Свод — MBA RESULTAT</div>
+        <div style="font-size:12px;line-height:2;color:#1e293b;">
+          <strong style="color:#0f172a;">Принцип 1:</strong> ${p1}<br>
+          <strong style="color:#0f172a;">Принцип 2:</strong> ${p2}<br>
+          <strong style="color:#0f172a;">Принцип 3:</strong> ${p3}<br>
+          <strong style="color:#0f172a;">ЦКП отдела:</strong> ${vfp}
         </div>
       </div>
-      
-      <div style="margin-bottom:6px;">
-        <label style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:4px;">🔤 Семантический аудит — что такое «${term}»?</label>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;">${question}</div>
-        <textarea id="${wcId}" placeholder="Своими словами: объясните термин и как его применить в данной ситуации..." 
-          style="width:100%;min-height:65px;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);"></textarea>
-        <button onclick="verifyCrisisWC('${wcId}', '${term}')" 
-          style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:7px 18px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;margin-top:6px;">
+
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:14px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1d4ed8;margin-bottom:4px;letter-spacing:.04em;">🔤 Семантический аудит — что такое «${term}»?</div>
+        <div style="font-size:12px;color:#1e40af;margin-bottom:8px;">${question}</div>
+        <textarea id="${wcId}"
+          placeholder="Своими словами: объясните термин и как его применить в данной ситуации..."
+          style="width:100%;min-height:70px;border:1px solid #93c5fd;border-radius:6px;padding:9px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;background:#fff;color:#0f172a;"></textarea>
+        <button onclick="verifyCrisisWC('${wcId}', '${safeterm}', this)"
+          style="background:#1e3a8a;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;margin-top:8px;width:100%;">
           Верифицировать +30 XP →
         </button>
         <div id="${wcId}-fb" style="margin-top:6px;font-size:12px;"></div>
@@ -1655,18 +1672,16 @@ async function checkCrisisCase() {
   }
 }
 
-function verifyCrisisWC(inputId, term) {
+function verifyCrisisWC(inputId, term, btnEl) {
   const ans = document.getElementById(inputId).value.trim();
   const fb = document.getElementById(inputId + '-fb');
   if (ans.length < 15) {
-    fb.innerHTML = '<div style="color:#fcd34d;">⚠️ Ответ слишком короткий. Минимум 15 символов.</div>';
+    fb.innerHTML = '<div style="color:#dc2626;font-size:11px;">⚠️ Ответ слишком короткий. Минимум 15 символов.</div>';
     return;
   }
-  fb.innerHTML = '<div style="color:#4ade80;">✅ Семантический аудит пройден. Термин «' + term + '» верифицирован. +30 XP — попробуйте кейс снова!</div>';
+  fb.innerHTML = '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:5px;padding:8px;color:#15803d;font-size:12px;">✅ Семантический аудит пройден. Термин «' + term + '» верифицирован. +30 XP — теперь попробуйте ответить на кейс снова!</div>';
   XP(30, '📖 Термин верифицирован: ' + term);
-  // Disable the button
-  const btn = document.getElementById(inputId).nextElementSibling;
-  if (btn) btn.disabled = true;
+  if (btnEl) { btnEl.disabled = true; btnEl.style.opacity = '0.5'; }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
