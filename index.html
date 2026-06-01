@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title> MBA RESULTAT — Тренажёр Управления</title>
+<title>MBA RESULTAT — Тренажёр Управления</title>
 <!-- v2.1 white-cards -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -351,7 +351,7 @@ textarea{resize:vertical;min-height:60px;}
           <div style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7;">
             <p>ИД лично проверяет каждый счёт, сам пишет посты в соцсети, управляет логистикой склада. Стратегические задачи стоят. Статистика: <strong style="color:var(--danger)">−18% за неделю</strong>. Руководители отделов: «ИД лезет в наши функции».</p>
             <div style="margin-top:10px;padding:8px 12px;background:var(--gold-l);border-left:3px solid var(--gold-b);border-radius:4px;font-size:11px;color:var(--gold);">
-              📜 <strong>MBA RESULTAT</strong> «...the people all around him will have to wear the hat of Qual Sec» — Esto 3. <strong>Hat definition:</strong> A hat must contain: (a) purpose of the post, (b) its relative position on the organizing board, (c) a write-up of the post...
+              📜 <strong>MBA RESULTAT</strong> «...the people all around him will have to wear the hat of Qual Sec» — <strong>Hat definition:</strong> A hat must contain: (a) purpose of the post, (b) its relative position on the organizing board, (c) a write-up of the post...
             </div>
           </div>
           <div id="c2-choices">
@@ -690,7 +690,7 @@ textarea{resize:vertical;min-height:60px;}
         <div class="fg"><label class="fl">Модуль для кейса</label>
           <select id="chain-mod">
             <option value="m3">М3 — Казначейство (MBA RESULTAT</option>
-            <option value="m1">М1 — Персонал (Esto Series)</option>
+            <option value="m1">М1 — Персонал (MBA RESULTAT)</option>
             <option value="m2">М2 — Распространение (Dissemination)</option>
             <option value="m4">М4 — Производство (Production)</option>
             <option value="m5">М5 — Квалификация (Qualifications)</option>
@@ -1602,7 +1602,7 @@ async function genCrisisCase() {
   // ── Render source block ──
   const sourceTexts = {
     'М3': '📜 <strong>Первоисточник:</strong> «Система распределения средств обеспечивает, что только авторизованные расходы списываются со счетов — резервы контролируются так, чтобы компания никогда не тратила больше, чем зарабатывает» — MBA RESULTAT',
-    'М1': '📜 <strong>Первоисточник:</strong> «Шляпа должна содержать: (a) цель поста, (b) позицию в Оргсхеме, (c) описание поста, (d) чеклист всех релевантных директив. Без этого терминал не знает свой ЦКП» — MBA RESULTAT, Серия Esto',
+    'М1': '📜 <strong>Первоисточник:</strong> «Шляпа должна содержать: (a) цель поста, (b) позицию в Оргсхеме, (c) описание поста, (d) чеклист всех релевантных директив. Без этого терминал не знает свой ЦКП» — MBA RESULTAT',
     'М2': '📜 <strong>Первоисточник:</strong> «Огромный поток клиентов, конвертированных в сделки — это ЦКП (VFP) Отдела распространения. Распространение без конверсии — это Dev-T, а не поток» — MBA RESULTAT',
     'М4': '📜 <strong>Первоисточник:</strong> «Своевременно и качественно доставленный продукт клиенту — единственный ЦКП производства. Всё остальное — вспомогательные потоки» — MBA RESULTAT',
     'М5': '📜 <strong>Первоисточник:</strong> «Ability is measured not by opinion, but by the ability to raise statistics and produce the product of the particular post» — MBA RESULTAT',
@@ -1738,8 +1738,12 @@ async function checkCrisisCase() {
       </div>
 
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:14px;">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1d4ed8;margin-bottom:4px;letter-spacing:.04em;">🔤 Семантический аудит — что такое «${term}»?</div>
-        <div style="font-size:12px;color:#1e40af;margin-bottom:8px;">${question}</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1d4ed8;margin-bottom:6px;letter-spacing:.04em;">🔤 Семантический аудит</div>
+        <div style="font-size:12px;color:#1e40af;margin-bottom:8px;">
+          Нажмите на термин для подсказки, затем ответьте своими словами:<br>
+          <span class="tch" style="font-size:13px;padding:3px 12px;margin-top:5px;display:inline-block;" onclick="openTermModal('${safeterm}')">${term} →</span>
+        </div>
+        <div style="font-size:11px;color:#374151;background:#dbeafe;border-radius:5px;padding:7px 10px;margin-bottom:8px;">${question}</div>
         <textarea id="${wcId}"
           placeholder="Своими словами: объясните термин и как его применить в данной ситуации..."
           style="width:100%;min-height:70px;border:1px solid #93c5fd;border-radius:6px;padding:9px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;background:#fff;color:#0f172a;"></textarea>
@@ -1751,6 +1755,52 @@ async function checkCrisisCase() {
       </div>
     `;
   }
+}
+
+// Open term modal for AI-generated cases — fuzzy match term to TERMS keys
+function openTermModal(termStr) {
+  if (!termStr) return;
+  const s = termStr.toLowerCase();
+  // Try direct key match first
+  const keyMap = {
+    'реестр распределения': 'finplan',
+    'финансовое планирование': 'finplan',
+    'стабилизационный буфер': 'reserve',
+    'стаб. буфер': 'reserve',
+    'резервный фонд': 'reserve',
+    'цкп': 'vfp',
+    'ценный конечный продукт': 'vfp',
+    'профиль роли': 'hat',
+    'шляпа': 'hat',
+    'hat': 'hat',
+    'dev-t': 'altered',
+    'операционный пинг-понг': 'altered',
+    'altered compliance': 'altered',
+    'channel skips': 'chanskip',
+    'пропуск канала': 'chanskip',
+    'backlog': 'backlog',
+    'бэклог': 'backlog',
+  };
+  // Find matching key
+  let key = null;
+  for (const [k, v] of Object.entries(keyMap)) {
+    if (s.includes(k)) { key = v; break; }
+  }
+  if (key && TERMS[key]) {
+    T(key);
+    return;
+  }
+  // Fallback: create inline tooltip in modal with the term itself
+  const t = termStr;
+  document.getElementById('t-title').textContent = t;
+  document.getElementById('t-body').innerHTML = 
+    '<div style="background:#eff6ff;border-radius:6px;padding:10px;margin-bottom:8px;font-size:12px;color:#1e40af;">' +
+    '💡 Изучите этот термин в контексте кейса, который вы только что решали. ' +
+    'Опишите своими словами: что означает <strong>' + t + '</strong> и почему это важно для управления компанией.</div>' +
+    '<div style="font-size:11px;color:#64748b;">EN: ' + t + '</div>';
+  document.getElementById('t-ans').value = '';
+  document.getElementById('t-res').innerHTML = '';
+  document.getElementById('tmod').classList.add('open');
 }
 
 function verifyCrisisWC(inputId, term, btnEl) {
