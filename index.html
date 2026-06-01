@@ -1258,7 +1258,7 @@ const SP={
 
 // ═══ KNOWLEDGE BASE SEARCH ═══
 const KB_URL = 'https://ejabiluscxahbiceievs.supabase.co';
-const KB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYWJpbHVzY3hhaGJpY2VpZXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzk0NjgsImV4cCI6MjA5NTc1NTQ2OH0.PFvxPVJhBc1QFUwxWGD_TxpoFRt4mKMH2vo-hKkvqP0';
+const KB_KEY = 'sb_publishable__ldZEsHUB_jsBZfiLjhIBA_0J-VxvTz';
 
 async function searchKnowledge(module, keywords) {
   try {
@@ -1417,7 +1417,7 @@ function IC(){
 
 // ═══ SUPABASE CONFIG ═══
 const SUPA_URL = 'https://ejabiluscxahbiceievs.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYWJpbHVzY3hhaGJpY2VpZXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzk0NjgsImV4cCI6MjA5NTc1NTQ2OH0.PFvxPVJhBc1QFUwxWGD_TxpoFRt4mKMH2vo-hKkvqP0';
+const SUPA_KEY = 'sb_publishable__ldZEsHUB_jsBZfiLjhIBA_0J-VxvTz';
 
 // Supabase client (lightweight fetch-based)
 const supa = {
@@ -1593,7 +1593,7 @@ async function submitAuth() {
       // REGISTER
       const r = await fetch('https://ejabiluscxahbiceievs.supabase.co/auth/v1/signup', {
         method: 'POST',
-        headers: {'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYWJpbHVzY3hhaGJpY2VpZXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzk0NjgsImV4cCI6MjA5NTc1NTQ2OH0.PFvxPVJhBc1QFUwxWGD_TxpoFRt4mKMH2vo-hKkvqP0'},
+        headers: {'Content-Type':'application/json','apikey':'sb_publishable__ldZEsHUB_jsBZfiLjhIBA_0J-VxvTz'},
         body: JSON.stringify({email, password, data:{full_name: name || email.split('@')[0]}})
       });
       const d = await r.json();
@@ -1622,7 +1622,7 @@ async function submitAuth() {
       // LOGIN
       const r = await fetch('https://ejabiluscxahbiceievs.supabase.co/auth/v1/token?grant_type=password', {
         method: 'POST',
-        headers: {'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYWJpbHVzY3hhaGJpY2VpZXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzk0NjgsImV4cCI6MjA5NTc1NTQ2OH0.PFvxPVJhBc1QFUwxWGD_TxpoFRt4mKMH2vo-hKkvqP0'},
+        headers: {'Content-Type':'application/json','apikey':'sb_publishable__ldZEsHUB_jsBZfiLjhIBA_0J-VxvTz'},
         body: JSON.stringify({email, password})
       });
       const d = await r.json();
