@@ -1115,30 +1115,30 @@ const SP={
 
 Максимум 120 слов.`,
 
-  3:`Ты — Надзорный Советник (Senior Learning Advisor) курса MBA RESULTAT.
+  3:`Ты — Строгий Аудитор (Senior Auditor) курса MBA RESULTAT.
 
 ЯЗЫК — СТРОГО:
 - Весь текст ТОЛЬКО на русском языке
 - Термины писать так: Русское название (English term) — например: Реестр Распределения (Financial Planning), ЦКП (VFP), Протокол Казначейства (Treasury Management Protocol)
-- Цитаты из первоисточников — переводить на русский, после цитаты в скобках можно добавить оригинальный термин
 - ЗАПРЕЩЕНО писать целые предложения на английском
-- ЗАПРЕЩЕНО оставлять английские цитаты без перевода
 - ВСЯ ВАЛЮТА ТОЛЬКО В ДОЛЛАРАХ США ($)
 
-ФОРМАТ РЕКОМЕНДАЦИИ:
+ФОРМАТ ОТВЕТА — СТРОГО:
 
-**Анализ прогресса:**
-[Что студент понимает хорошо / где пробел]
+Первая строка ВСЕГДА: ✅ ВЕРНО или 🚨 ОШИБКА
 
-**Три приоритетных действия (Three Priority Actions):**
-1. Быстрое действие (Quick Win): [что сделать прямо сейчас]
-2. Системное изменение (Systemic Change): [что изучить глубже]
-3. Применение в жизни (Real-World Application): [задание для реального бизнеса студента]
+Если ✅ ВЕРНО:
+- Что именно правильно диагностировано (1-2 предложения)
+- Какой принцип применён корректно: Русское (English)
 
-**90-дневный план обучения:**
-[Следующие модули в порядке приоритета]
+Если 🚨 ОШИБКА:
+- Ваше решение устраняет симптом, а не причину
+- Точно какой принцип нарушен: Русское название (English term)
+- Как должно быть правильно (1 предложение)
 
-Тон: конкретный, без лишних слов. Максимум 120 слов.`
+В любом случае — один термин для следующего изучения.
+
+Максимум 100 слов. Тон: жёсткий, конкретный.`
 };
 
 async function callAPI(agentN, userMsg){
@@ -1313,12 +1313,38 @@ async function saveProgress() {
 // Load progress from Supabase
 async function loadProgress() {
   if (!currentUser) return;
-  const data = await supa.query('profiles', 'GET', null, `?id=eq.${currentUser.id}&select=*`);
-  if (data && data[0]) {
-    const p = data[0];
-    S.xp = p.xp || 0;
-    S.fixed = p.modules_fixed || 0;
-    UD();
+  try {
+    const data = await supa.query('profiles', 'GET', null, `?id=eq.${currentUser.id}&select=*`);
+    if (data && data[0]) {
+      const p = data[0];
+      S.xp = p.xp || 0;
+      S.fixed = p.modules_fixed || 0;
+      UD();
+    } else {
+      // Profile doesn't exist yet — create it silently
+      await fetch(`${SUPA_URL}/rest/v1/profiles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + (currentUser?.token || SUPA_KEY),
+          'Prefer': 'return=minimal,resolution=ignore-duplicates'
+        },
+        body: JSON.stringify({
+          id: currentUser.id,
+          email: currentUser.email,
+          name: currentUser.name || currentUser.email,
+          xp: 0,
+          modules_fixed: 0,
+          cases_completed: 0,
+          rank: 'Новичок',
+          updated_at: new Date().toISOString()
+        })
+      });
+    }
+  } catch(e) {
+    // Silent fail — progress just won't load, not critical
+    console.warn('loadProgress error:', e.message);
   }
 }
 
@@ -1549,25 +1575,98 @@ async function checkCrisisCase() {
   if (!answer) {
     result.innerHTML = '<div style="color:#fcd34d;">⚠️ Выберите вариант ответа</div>'; return;
   }
-  if (false) { // disabled min length
-    result.innerHTML = '<div style="color:#fcd34d;">⚠️ Напишите ответ подробнее (минимум 20 символов)</div>';
+  
+  result.innerHTML = '<div style="opacity:.7;">⏳ Агент 3 проверяет ваш ответ...</div>';
+  
+  // Agent 3 checks the answer strictly
+  const check = await callAPI(3, `Кейс:\n${crisisCaseText}\n\nОтвет студента:\n${answer}\n\nПроверь ответ строго. Выдай вердикт ✅ ВЕРНО или 🚨 ОШИБКА. Если ошибка — укажи нарушенный принцип и как должно быть правильно.`);
+  
+  if (!check) return;
+  
+  const isCorrect = check.includes('✅');
+
+  if (isCorrect) {
+    // CORRECT path
+    result.innerHTML = `
+      <div style="background:rgba(22,163,74,.2);border-radius:6px;padding:12px;border-left:3px solid #4ade80;margin-bottom:8px;font-size:12px;line-height:1.7;">${check}</div>
+    `;
+    XP(100);
+    // Agent 3 supervisor note for correct answer
+    const note = await callAPI(3, `Студент верно решил кейс:\n${crisisCaseText}\n\nОтвет:\n${answer}\n\nДай рекомендацию: что изучить дальше, какой следующий модуль. Максимум 60 слов.`);
+    if (note) result.innerHTML += `<div style="background:rgba(255,255,255,.1);border-radius:6px;padding:10px;margin-top:6px;border-left:3px solid #60a5fa;font-size:12px;">💡 ${note}</div>`;
+
+  } else {
+    // WRONG path — show Archive Svod like pre-loaded cases
+    // Agent 2 extracts the violated principle and generates Archive Svod block
+    const archivePrompt = `Кейс:\n${crisisCaseText}\n\nОтвет студента (НЕВЕРНЫЙ):\n${answer}\n\nСформируй блок "Архивный Свод" в СТРОГО таком формате (без отступлений):
+ПРИНЦИП_1: [название принципа и объяснение одним предложением]
+ПРИНЦИП_2: [второй принцип одним предложением]
+ПРИНЦИП_3: [третий принцип одним предложением]
+ЦКП: [ЦКП нарушенного отдела одним предложением]
+ТЕРМИН: [один ключевой термин для семантического аудита — только само слово/словосочетание]
+ВОПРОС: [вопрос студенту для верификации понимания этого термина]`;
+
+    const archive = await callAPI(2, archivePrompt);
+    
+    // Parse archive block
+    let p1='', p2='', p3='', vfp='', term='', question='';
+    if (archive) {
+      const lines = archive.split('\n');
+      for (const l of lines) {
+        if (l.startsWith('ПРИНЦИП_1:')) p1 = l.replace('ПРИНЦИП_1:','').trim();
+        else if (l.startsWith('ПРИНЦИП_2:')) p2 = l.replace('ПРИНЦИП_2:','').trim();
+        else if (l.startsWith('ПРИНЦИП_3:')) p3 = l.replace('ПРИНЦИП_3:','').trim();
+        else if (l.startsWith('ЦКП:')) vfp = l.replace('ЦКП:','').trim();
+        else if (l.startsWith('ТЕРМИН:')) term = l.replace('ТЕРМИН:','').trim();
+        else if (l.startsWith('ВОПРОС:')) question = l.replace('ВОПРОС:','').trim();
+      }
+    }
+    
+    // Fallback if parsing fails
+    if (!p1) { p1='Решения принимаются по системе, а не по принципу «кто громче»'; p2='Приоритеты расходования средств определяются заранее по Реестру Распределения'; p3='Руководитель лично берёт контроль при кризисе — обходит привычные каналы'; vfp='Учтённые, сохранённые средства при растущем резерве'; term='Реестр Распределения'; question='Что такое Реестр Распределения и как он предотвращает кассовый разрыв?'; }
+
+    const wcId = 'wc_gen_' + Date.now();
+    
+    result.innerHTML = `
+      <div class="alert danger" style="margin-bottom:8px;"><strong>🚨 Аудит Агента 3:</strong> ${check.replace('🚨 ОШИБКА','').replace('**Вердикт:**','').trim()}</div>
+      
+      <div style="background:var(--gold-l);border:1px solid var(--gold-b);border-radius:6px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">📜 Архивный Свод — MBA RESULTAT</div>
+        <div style="font-size:12px;line-height:1.9;">
+          <strong>Принцип 1:</strong> ${p1}<br>
+          <strong>Принцип 2:</strong> ${p2}<br>
+          <strong>Принцип 3:</strong> ${p3}<br>
+          <strong>ЦКП отдела:</strong> ${vfp}
+        </div>
+      </div>
+      
+      <div style="margin-bottom:6px;">
+        <label style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:4px;">🔤 Семантический аудит — что такое «${term}»?</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;">${question}</div>
+        <textarea id="${wcId}" placeholder="Своими словами: объясните термин и как его применить в данной ситуации..." 
+          style="width:100%;min-height:65px;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);"></textarea>
+        <button onclick="verifyCrisisWC('${wcId}', '${term}')" 
+          style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:7px 18px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;margin-top:6px;">
+          Верифицировать +30 XP →
+        </button>
+        <div id="${wcId}-fb" style="margin-top:6px;font-size:12px;"></div>
+      </div>
+    `;
+  }
+}
+
+function verifyCrisisWC(inputId, term) {
+  const ans = document.getElementById(inputId).value.trim();
+  const fb = document.getElementById(inputId + '-fb');
+  if (ans.length < 15) {
+    fb.innerHTML = '<div style="color:#fcd34d;">⚠️ Ответ слишком короткий. Минимум 15 символов.</div>';
     return;
   }
-  
-  result.innerHTML = '<div style="opacity:.7;">⏳ Проверяю ваш ответ...</div>';
-  
-  const check = await callAPI(2, `Кейс:\n${crisisCaseText}\n\nОтвет студента:\n${answer}`);
-  
-  if (check) {
-    const isCorrect = check.includes('✅');
-    result.innerHTML = `<div style="background:${isCorrect?'rgba(22,163,74,.2)':'rgba(220,38,38,.2)'};border-radius:6px;padding:10px;border-left:3px solid ${isCorrect?'#4ade80':'#f87171'}">${check}</div>`;
-    if (isCorrect) {
-      XP(100);
-      // Get supervisor note
-      const note = await callAPI(3, `Кейс:\n${crisisCaseText}\n\nОтвет:\n${answer}\n\nРезультат проверки:\n${check}`);
-      if (note) result.innerHTML += `<div style="background:rgba(255,255,255,.1);border-radius:6px;padding:10px;margin-top:6px;border-left:3px solid #60a5fa;">💡 ${note}</div>`;
-    }
-  }
+  fb.innerHTML = '<div style="color:#4ade80;">✅ Семантический аудит пройден. Термин «' + term + '» верифицирован. +30 XP — попробуйте кейс снова!</div>';
+  XP(30, '📖 Термин верифицирован: ' + term);
+  // Disable the button
+  const btn = document.getElementById(inputId).nextElementSibling;
+  if (btn) btn.disabled = true;
 }
 
 window.addEventListener('DOMContentLoaded', () => {
