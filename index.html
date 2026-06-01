@@ -33,6 +33,12 @@ nav{display:flex;gap:2px;background:#f1f5f9;padding:6px 16px;flex-wrap:wrap;bord
 .nb{padding:6px 11px;background:transparent;color:#64748b;border:none;border-radius:6px;font-family:var(--font);font-weight:600;font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .nb:hover{background:#fff;color:var(--primary);}
 .nb.active{background:var(--primary);color:#fff;box-shadow:0 2px 6px rgba(30,58,138,.3);}
+select option{background:#1e3a8a;color:#fff;}
+select option:hover{background:#2563eb;}
+.cmd-item{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.08);transition:background .15s;}
+.cmd-item:last-child{border-bottom:none;}
+.cmd-item:hover{background:rgba(59,130,246,.3);}
+.cmd-item.active{background:rgba(37,99,235,.4);}
 .page{display:none;padding:16px;max-width:1400px;margin:0 auto;}
 .page.active{display:block;}
 h2{font-family:var(--serif);font-size:.85rem;color:var(--primary);font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
@@ -231,15 +237,82 @@ textarea{resize:vertical;min-height:60px;}
     <div style="font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;margin-bottom:4px;">🤖 Сгенерировать новый кейс через ИИ</div>
     <div style="font-size:11px;opacity:.8;margin-bottom:10px;">Выберите отдел — ИИ придумает уникальную задачу прямо здесь</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <select id="crisis-gen-mod" style="flex:2;min-width:180px;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:7px 10px;font-size:12px;background:rgba(255,255,255,.15);color:#fff;">
-        <option value="М3 — Финансы и кассовый разрыв">💰 Финансы и казначейство</option>
-        <option value="М1 — Персонал и управление командой">👥 Персонал и команда</option>
-        <option value="М2 — Продажи и привлечение клиентов">📣 Продажи и маркетинг</option>
-        <option value="М4 — Производство и доставка продукта">🏭 Производство</option>
-        <option value="М5 — Качество и стандарты">🔍 Качество и стандарты</option>
-        <option value="М6 — PR и репутация компании">📡 PR и репутация</option>
-        <option value="М7 — Управление и антикризисные решения">🎯 Управление компанией</option>
+      <!-- Скрытый select для совместимости с JS -->
+      <select id="crisis-gen-mod" style="display:none;">
+        <option value="RANDOM">Случайный модуль</option>
+        <option value="М1 — Персонал и организационная структура">Отд. 1 — Персонал</option>
+        <option value="М2 — Продажи и распространение">Отд. 2 — Продажи</option>
+        <option value="М3 — Финансы и казначейство">Отд. 3 — Финансы</option>
+        <option value="М4 — Производство и доставка">Отд. 4 — Производство</option>
+        <option value="М5 — Квалификация и качество">Отд. 5 — Квалификация</option>
+        <option value="М6 — Связи с общественностью">Отд. 6 — PR</option>
+        <option value="М7 — Исполнительное управление">Отд. 7 — Управление</option>
       </select>
+      <!-- Кастомный dropdown -->
+      <div id="custom-mod-dropdown" style="flex:2;min-width:200px;position:relative;user-select:none;">
+        <div id="cmd-selected" onclick="toggleModDropdown()" style="
+          background:rgba(255,255,255,.15);
+          border:1px solid rgba(255,255,255,.4);
+          border-radius:8px;
+          padding:8px 14px;
+          font-size:12px;
+          color:#fff;
+          cursor:pointer;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:8px;
+          font-weight:600;
+        ">
+          <span id="cmd-label">🎲 Случайный модуль</span>
+          <span id="cmd-arrow" style="transition:transform .2s;font-size:10px;">▼</span>
+        </div>
+        <div id="cmd-list" style="
+          display:none;
+          position:absolute;
+          top:calc(100% + 6px);
+          left:0;right:0;
+          background:#0f172a;
+          border:1px solid #3b82f6;
+          border-radius:10px;
+          overflow:hidden;
+          z-index:1000;
+          box-shadow:0 8px 32px rgba(0,0,0,.5);
+        ">
+          <div class="cmd-item" data-value="RANDOM" data-label="🎲 Случайный модуль" onclick="selectMod(this)" style="background:linear-gradient(90deg,#1e3a8a,#1d4ed8);">
+            <span style="font-size:16px;">🎲</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Случайный модуль</div><div style="font-size:10px;color:#93c5fd;">Рекомендуется для обучения</div></div>
+          </div>
+          <div class="cmd-item" data-value="М1 — Персонал и организационная структура" data-label="👥 Отд. 1 — Персонал" onclick="selectMod(this)">
+            <span style="font-size:16px;">👥</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Отделение 1 — Персонал</div><div style="font-size:10px;color:#94a3b8;">Найм, шляпы, оргструктура, ЦКП постов</div></div>
+          </div>
+          <div class="cmd-item" data-value="М2 — Продажи и распространение" data-label="📣 Отд. 2 — Продажи" onclick="selectMod(this)">
+            <span style="font-size:16px;">📣</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Отделение 2 — Продажи</div><div style="font-size:10px;color:#94a3b8;">Воронка, конверсия, маркетинг</div></div>
+          </div>
+          <div class="cmd-item" data-value="М3 — Финансы и казначейство" data-label="💰 Отд. 3 — Финансы" onclick="selectMod(this)">
+            <span style="font-size:16px;">💰</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Отделение 3 — Финансы</div><div style="font-size:10px;color:#94a3b8;">Финплан, резервы, дебиторка, бюджет</div></div>
+          </div>
+          <div class="cmd-item" data-value="М4 — Производство и доставка" data-label="🏭 Отд. 4 — Производство" onclick="selectMod(this)">
+            <span style="font-size:16px;">🏭</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Отделение 4 — Производство</div><div style="font-size:10px;color:#94a3b8;">Сроки, качество, логистика, доставка</div></div>
+          </div>
+          <div class="cmd-item" data-value="М5 — Квалификация и качество" data-label="🔍 Отд. 5 — Квалификация" onclick="selectMod(this)">
+            <span style="font-size:16px;">🔍</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Отделение 5 — Квалификация</div><div style="font-size:10px;color:#94a3b8;">Обучение, инспекция, стандарты</div></div>
+          </div>
+          <div class="cmd-item" data-value="М6 — Связи с общественностью" data-label="📡 Отд. 6 — PR" onclick="selectMod(this)">
+            <span style="font-size:16px;">📡</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Отделение 6 — PR</div><div style="font-size:10px;color:#94a3b8;">Репутация, опросы, новые клиенты</div></div>
+          </div>
+          <div class="cmd-item" data-value="М7 — Исполнительное управление" data-label="🎯 Отд. 7 — Управление" onclick="selectMod(this)">
+            <span style="font-size:16px;">🎯</span>
+            <div><div style="font-weight:700;font-size:12px;color:#fff;">Отделение 7 — Управление</div><div style="font-size:10px;color:#94a3b8;">Статистики, формулы, стратегия</div></div>
+          </div>
+        </div>
+      </div>
       <button onclick="genCrisisCase()" id="crisis-gen-btn" style="background:#fff;color:#1e3a8a;border:none;padding:7px 18px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;">
         ✨ Сгенерировать кейс
       </button>
@@ -842,7 +915,8 @@ let gqI=0,gqS=0;
 function P(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  const target=document.getElementById('page-'+id);
+  if(target)target.classList.add('active');
   const b=document.getElementById('btn-'+id);if(b)b.classList.add('active');
   if(id==='profile')RP();
   if(id==='glossary')RG();
@@ -1091,6 +1165,15 @@ function RP(){
 const SP={
   1:`Ты — генератор бизнес-кейсов для симулятора управления компаниями MBA RESULTAT.
 
+ТЕМЫ ПО МОДУЛЯМ (выбирай СЛУЧАЙНУЮ тему каждый раз):
+М1 — Персонал: найм/увольнение, ввод в должность, профиль роли (Hat), конфликты, пустые посты, дублирование функций
+М2 — Продажи: воронка продаж, конверсия, скрипты, потеря клиентов, демпинг, работа с возражениями
+М3 — Финансы: кассовый разрыв, финплан по четвергам, резервный фонд, дебиторка, распределение доходов, бюджет, контроль расходов
+М4 — Производство: срыв сроков, брак, логистика, перегруз, нехватка сырья, контроль качества
+М5 — Квалификация: низкое качество работы, обучение, стандарты, инспекция, исправление ошибок
+М6 — PR: репутация, негативные отзывы, привлечение новых клиентов, опросы рынка, партнёрства
+М7 — Управление: стратегия, статистики, формулы состояний, координация отделов, масштабирование
+
 ЯЗЫК — СТРОГО: всё на русском. Термины: Русское (English). Валюта: только $ (доллары США).
 
 СТРУКТУРА КЕЙСА:
@@ -1110,7 +1193,13 @@ const SP={
 - Не указывай в тексте вариантов какой правильный
 - После всех 4 вариантов на отдельной строке напиши метку: CORRECT:[X] где X — буква правильного варианта
 - Максимум 230 слов
-- ЗАПРЕЩЕНО религиозные маркеры, имена авторов`,
+- ЗАПРЕЩЕНО религиозные маркеры, имена авторов
+
+ПЕРВОИСТОЧНИК (ОБЯЗАТЕЛЬНО — последняя строка ответа):
+Из КОНТЕКСТА ИЗ БАЗЫ ЗНАНИЙ выбери 1-2 предложения, которые наиболее точно описывают проблему кейса.
+Переведи их на русский язык. Убери религиозную терминологию. Адаптируй под бизнес-язык.
+ВСЕГДА заканчивай ответ строкой (даже если контекст пустой — придумай принцип сам):
+ИСТОЧНИК: «[цитата на русском языке, 1-2 предложения]»`,
 
   2:`Ты — строгий аудитор ответов студентов MBA RESULTAT.
 
@@ -1165,6 +1254,78 @@ const SP={
 
 Максимум 100 слов. Тон: жёсткий, конкретный.`
 };
+
+
+// ═══ KNOWLEDGE BASE SEARCH ═══
+const KB_URL = 'https://ejabiluscxahbiceievs.supabase.co';
+const KB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYWJpbHVzY3hhaGJpY2VpZXZzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDE3OTQ2OCwiZXhwIjoyMDk1NzU1NDY4fQ.vMFniQ8lIOxiITUZZNFLYjdJoMtrGr3ffhqX_nmLJl8';
+
+async function searchKnowledge(module, keywords) {
+  try {
+    // Ключевые слова по модулям
+    const kwMap = {
+      'М1': ['recruitment','hire','dismissal','duties','responsibility','hat','personnel'],
+      'М2': ['advertisement','prospect','dissemination','campaign','sales','market'],
+      'М3': ['gross income','allocation','disbursement','invoice','debt','payroll','reserve'],
+      'М4': ['delivery','manufacture','schedule','backlog','production','supplier'],
+      'М5': ['cramming','inspector','correction','certificate','examination','competence'],
+      'М6': ['survey','reputation','community','opinion','image','advertisement'],
+      'М7': ['formula','expansion','emergency','danger','normal','statistic']
+    };
+    // Ограничиваем offset реальными числами чанков
+    const maxOffsets = {
+      'М1': 100, 'М2': 80, 'М3': 60,
+      'М4': 80, 'М5': 60, 'М6': 100, 'М7': 100
+    };
+    const kws = kwMap[module.substring(0,2)] || ['management'];
+    const kw = kws[Math.floor(Math.random() * kws.length)];
+    const mk2 = module.substring(0,2);
+    const maxOff = maxOffsets[mk2] || 15;
+    const randomOffset = Math.floor(Math.random() * maxOff);
+    
+    console.log('[KB] Searching:', kw, 'offset:', randomOffset);
+    const url = `${KB_URL}/rest/v1/knowledge_base?` + 
+      `select=title,date_pl,division,content` +
+      `&content=ilike.*${encodeURIComponent(kw)}*` +
+      `&limit=3` +
+      `&offset=${randomOffset}` +
+      `&order=id`;
+    
+    console.log('[KB] Searching:', url.substring(0,100));
+    const r = await fetch(url, {
+      headers: {
+        'apikey': KB_KEY,
+        'Authorization': 'Bearer ' + KB_KEY
+      }
+    });
+    
+    console.log('[KB] Response status:', r.status);
+    if (!r.ok) {
+      console.warn('[KB] Failed:', r.status, r.statusText);
+      return '';
+    }
+    const data = await r.json();
+    console.log('[KB] Got chunks:', data ? data.length : 0);
+    if (!data || !data.length) return '';
+    
+    // Форматируем для промпта
+    const chunks = data.map(c => 
+      `[Источник: ${c.title || c.date_pl} | ${c.division}]\n${(c.content||'').substring(0,600)}`
+    ).join('\n\n---\n\n');
+    
+    // Сохраняем глобально для использования в sourceDiv
+    const firstChunk = data[0];
+    const firstTitle = firstChunk ? (firstChunk.title || firstChunk.date_pl || '') : '';
+    const firstContent = firstChunk ? (firstChunk.content || '').substring(0, 200) : '';
+    window._lastKBTitle = firstTitle;
+    window._lastKBContent = firstContent;
+    
+    return chunks;
+  } catch(e) {
+    console.warn('KB search error:', e.message);
+    return '';
+  }
+}
 
 async function callAPI(agentN, userMsg){
   const model='claude-haiku-4-5-20251001';
@@ -1221,7 +1382,9 @@ async function RunChain(){
   const outEl=document.getElementById('chain-out');
   outEl.textContent='⏳ Агент 1 генерирует сценарий...';outEl.className='ai-msg thinking';
   
-  const case1=await callAPI(1,`Создай кейс для модуля ${mod}. Контекст бизнеса: ${ctx||'производственная компания'}. Уровень: intermediate.`);
+  const kbCtx = await searchKnowledge(mod, '');
+  const kbPfx = kbCtx ? `КОНТЕКСТ ИЗ БАЗЫ ЗНАНИЙ:\n${kbCtx}\n\n` : '';
+  const case1=await callAPI(1,kbPfx+`Создай кейс для модуля ${mod}. Контекст бизнеса: ${ctx||'производственная компания'}. Уровень: intermediate.`);
   if(!case1||case1.startsWith('❌')){outEl.textContent=case1||'Ошибка';outEl.className='ai-msg';return;}
   
   outEl.textContent='⏳ Агент 2 фильтрует терминологию...';
@@ -1512,7 +1675,18 @@ setInterval(() => { if(currentUser && S.xp > 0) saveProgress(); }, 30000);
 let crisisCaseText = '';
 
 async function genCrisisCase() {
-  const mod = document.getElementById('crisis-gen-mod').value;
+  // Если выбран случайный модуль — берём случайный
+  const allMods = [
+    'М1 — Персонал и организационная структура',
+    'М2 — Продажи и распространение', 
+    'М3 — Финансы и казначейство',
+    'М4 — Производство и доставка',
+    'М5 — Квалификация и качество',
+    'М6 — Связи с общественностью',
+    'М7 — Исполнительное управление'
+  ];
+  const rawMod = document.getElementById('crisis-gen-mod').value;
+  const mod = rawMod === 'RANDOM' ? allMods[Math.floor(Math.random() * allMods.length)] : rawMod;
   const btn = document.getElementById('crisis-gen-btn');
   const card = document.getElementById('crisis-gen-card');
   const out = document.getElementById('crisis-gen-out');
@@ -1547,7 +1721,31 @@ async function genCrisisCase() {
   hdr.style.background = `linear-gradient(135deg,${cols[0]},${cols[1]})`;
   document.getElementById('crisis-gen-modlabel').textContent = `🗂️ ${mod} · ИИ-КЕЙС · MBA RESULTAT`;
 
-  const result = await callAPI(1, `Создай кейс для отдела: ${mod}. Уровень: средний. Контекст: современный бизнес 2026 года.`);
+  // Поиск релевантных чанков из базы знаний
+  const kbContext = await searchKnowledge(mod, '');
+  // Формируем контекст для промпта с инструкцией перевода
+  const kbBlock = kbContext ? `\n\nКОНТЕКСТ ИЗ БАЗЫ ЗНАНИЙ MBA RESULTAT:\n${kbContext}\n\nВАЖНО: Используй принципы из этого контекста в кейсе. Если цитируешь первоисточник — переводи на русский язык и адаптируй под современный бизнес-язык (замени религиозную терминологию на корпоративную).\n\n` : '';
+  
+  // Переводим excerpt для отображения через простую замену терминов
+  if (window._lastKBContent) {
+    window._lastKBContent = window._lastKBContent
+      .replace(/\bHat\b/gi, 'Профиль роли')
+      .replace(/\bpost\b/gi, 'должность')
+      .replace(/\bfinancial planning\b/gi, 'финансовое планирование')
+      .replace(/\btreasury\b/gi, 'казначейство')
+      .replace(/\bincome\b/gi, 'доход')
+      .replace(/\bexpenses\b/gi, 'расходы')
+      .replace(/\breserve fund\b/gi, 'резервный фонд')
+      .replace(/\bstatistics\b/gi, 'статистики')
+      .replace(/\bproduction\b/gi, 'производство')
+      .replace(/\borganization\b/gi, 'организация')
+      .replace(/\bexecutive\b/gi, 'руководитель')
+      .replace(/\bmanager\b/gi, 'менеджер')
+      .replace(/\bstaff\b/gi, 'сотрудники')
+      .replace(/\bpolicy\b/gi, 'политика управления');
+  }
+
+  const result = await callAPI(1, kbBlock + `Создай кейс для отдела: ${mod}. Уровень: средний. Контекст: современный бизнес 2026 года.`);
 
   btn.disabled = false;
   btn.textContent = '✨ Сгенерировать кейс';
@@ -1601,25 +1799,34 @@ async function genCrisisCase() {
 
   // ── Render source block ──
   const sourceTexts = {
-    'М3': '📜 <strong>Первоисточник:</strong> «Система распределения средств обеспечивает, что только авторизованные расходы списываются со счетов — резервы контролируются так, чтобы компания никогда не тратила больше, чем зарабатывает» — MBA RESULTAT',
-    'М1': '📜 <strong>Первоисточник:</strong> «Шляпа должна содержать: (a) цель поста, (b) позицию в Оргсхеме, (c) описание поста, (d) чеклист всех релевантных директив. Без этого терминал не знает свой ЦКП» — MBA RESULTAT',
-    'М2': '📜 <strong>Первоисточник:</strong> «Огромный поток клиентов, конвертированных в сделки — это ЦКП (VFP) Отдела распространения. Распространение без конверсии — это Dev-T, а не поток» — MBA RESULTAT',
-    'М4': '📜 <strong>Первоисточник:</strong> «Своевременно и качественно доставленный продукт клиенту — единственный ЦКП производства. Всё остальное — вспомогательные потоки» — MBA RESULTAT',
-    'М5': '📜 <strong>Первоисточник:</strong> «Ability is measured not by opinion, but by the ability to raise statistics and produce the product of the particular post» — MBA RESULTAT',
-    'М6': '📜 <strong>Первоисточник:</strong> «Высокая репутация + постоянный поток новых контактов — ЦКП Отдела по связям с общественностью. Репутация строится действиями, а не словами» — MBA RESULTAT',
-    'М7': '📜 <strong>Первоисточник:</strong> «Жизнеспособная, расширяющаяся организация, которая производит свои продукты без судорожных усилий со стороны высшего руководства» — MBA RESULTAT'
+    'М3': '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы финансового управления',
+    'М1': '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы управления персоналом',
+    'М2': '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы продаж и распространения',
+    'М4': '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы производства',
+    'М5': '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы квалификации',
+    'М6': '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы PR',
+    'М7': '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы управления'
   };
-  const srcText = sourceTexts[mk] || '📜 <strong>Первоисточник:</strong> MBA RESULTAT — Принципы системного управления';
+  // Первоисточник будет извлечён из ответа ИИ
+  let srcText = '📜 <em style="opacity:.6;">⏳ Загружаем первоисточник из базы знаний...</em>';
   sourceDiv.innerHTML = srcText;
   sourceDiv.style.display = 'block';
 
   // ── Render case text (clean markdown) ──
   const caseText = caseLines.join('\n').trim()
+    .replace(/ИСТОЧНИК:.*$/gm, '')  // убираем строку ИСТОЧНИК из текста кейса
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
   out.innerHTML = '<p>' + caseText + '</p>';
   out.style.color = '';
+  
+  // Извлекаем ИСТОЧНИК: из ответа ИИ и обновляем sourceDiv
+  const srcMatch = result.match(/ИСТОЧНИК:\s*[«"]([^»"]+)[»"]/);
+  if (srcMatch) {
+    sourceDiv.innerHTML = `📜 <strong>Первоисточник (MBA RESULTAT):</strong> «${srcMatch[1]}»`;
+    sourceDiv.style.display = 'block';
+  }
 
   // ── Render options as white qopt cards ──
   optsDiv.innerHTML = '';
@@ -1814,6 +2021,38 @@ function verifyCrisisWC(inputId, term, btnEl) {
   XP(30, '📖 Термин верифицирован: ' + term);
   if (btnEl) { btnEl.disabled = true; btnEl.style.opacity = '0.5'; }
 }
+
+function toggleModDropdown() {
+  const list = document.getElementById('cmd-list');
+  const arrow = document.getElementById('cmd-arrow');
+  const isOpen = list.style.display !== 'none';
+  list.style.display = isOpen ? 'none' : 'block';
+  arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function selectMod(el) {
+  const value = el.dataset.value;
+  const label = el.dataset.label;
+  // Обновляем скрытый select
+  document.getElementById('crisis-gen-mod').value = value;
+  // Обновляем отображение
+  document.getElementById('cmd-label').textContent = label;
+  // Снимаем активный класс со всех
+  document.querySelectorAll('.cmd-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  // Закрываем dropdown
+  document.getElementById('cmd-list').style.display = 'none';
+  document.getElementById('cmd-arrow').style.transform = '';
+}
+
+// Закрываем dropdown при клике вне его
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('custom-mod-dropdown');
+  if (dd && !dd.contains(e.target)) {
+    document.getElementById('cmd-list').style.display = 'none';
+    document.getElementById('cmd-arrow').style.transform = '';
+  }
+});
 
 window.addEventListener('DOMContentLoaded', () => {
   RO('dash-org');
