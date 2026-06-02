@@ -142,7 +142,73 @@ textarea{resize:vertical;min-height:60px;}
 .sbl{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;font-weight:600;}
 .iitem{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;}
 .iitem:last-child{border-bottom:none;}
-@media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr;}.og{grid-template-columns:repeat(4,1fr);}.hstats{display:none;}}
+@media(max-width:768px){
+  /* Сетки */
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .og{grid-template-columns:repeat(2,1fr);}
+  .hstats{display:none;}
+  
+  /* Навигация — горизонтальный скролл */
+  nav{
+    display:flex;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    gap:4px;
+    padding:6px 8px;
+    scrollbar-width:none;
+  }
+  nav::-webkit-scrollbar{display:none;}
+  .nb{
+    font-size:10px;
+    padding:5px 8px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  
+  /* Header */
+  .hl{flex-wrap:wrap;gap:6px;padding:8px 12px;}
+  .hlogo{font-size:14px;}
+  
+  /* Страницы */
+  .page{padding:10px 8px;}
+  
+  /* Карточки статистик */
+  .panel{padding:12px;}
+  
+  /* Оргсхема */
+  .og{grid-template-columns:repeat(2,1fr);gap:6px;}
+  
+  /* Кризис-кейс dropdown */
+  #custom-mod-dropdown{min-width:140px;}
+  #cmd-selected{font-size:11px;padding:6px 10px;}
+  
+  /* ИИ-Лаборатория — агенты */
+  .ai-agent-card{margin-bottom:12px;padding:12px;}
+  
+  /* Кнопки генерации */
+  button[onclick="genCrisisCase()"]{
+    font-size:11px;
+    padding:7px 12px;
+  }
+  
+  /* Блок генератора */
+  div[style*="display:flex"][style*="gap:8px"]{
+    flex-wrap:wrap;
+  }
+  
+  /* Модальные окна */
+  .modal-content{
+    width:95vw;
+    padding:16px;
+  }
+  
+  /* Кейс текст */
+  #crisis-output{font-size:13px;line-height:1.6;}
+  
+  /* Формулы */
+  .formula-card{padding:12px;}
+}
 </style>
 </head>
 <body>
@@ -176,7 +242,7 @@ textarea{resize:vertical;min-height:60px;}
   </div>
 </div>
 
-<nav>
+<nav style="display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px;padding:6px 8px;scrollbar-width:none;">
   <button class="nb active" onclick="P('dashboard')" id="btn-dashboard">🏠 Пульт</button>
   <button class="nb" onclick="P('crisis')" id="btn-crisis">🚨 Кризис-Кейс</button>
   <button class="nb" onclick="P('formulas')" id="btn-formulas">📐 Формулы Состояний</button>
@@ -1814,8 +1880,10 @@ async function genCrisisCase() {
 
   // ── Render case text (clean markdown) ──
   const caseText = caseLines.join('\n').trim()
-    .replace(/ИСТОЧНИК:.*$/gm, '')  // убираем строку ИСТОЧНИК из текста кейса
+    .replace(/ИСТОЧНИК:.*$/gm, '')
+    .replace(/^#{1,3}\s*(.+)$/gm, '<strong style="font-size:14px;">$1</strong>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
   out.innerHTML = '<p>' + caseText + '</p>';
