@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MBA RESULTAT — Калькулятор Продаж</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ── RESULTAT DESIGN TOKENS ── */
+:root{
+  --bg-main:#f8fafc;--panel-bg:#fff;--text-main:#0f172a;--text-muted:#64748b;
+  --border-color:#e2e8f0;--primary:#1e3a8a;--primary-dark:#172d6e;--primary-light:#2563eb;
+  --accent:#2563eb;--gold:#b45309;--gold-light:#fffbeb;--gold-border:#fcd34d;
+  --success:#16a34a;--warning:#ea580c;--danger:#dc2626;--founder:#7c3aed;
+  --font-body:'DM Sans',sans-serif;--font-serif:'Frank Ruhl Libre',serif;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);
+}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-body);background:var(--bg-main);color:var(--text-main);font-size:13px;line-height:1.5;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:#f1f5f9;}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px;}
+
+/* ── HEADER ── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,var(--primary-light) 100%);
+  color:#fff;padding:0 18px;height:52px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:8px;box-shadow:0 2px 12px rgba(30,58,138,.25);
+}
+.header-left{display:flex;align-items:center;gap:12px;}
+.header-logo{font-family:var(--font-serif);font-size:14px;font-weight:700;letter-spacing:.04em;}
+.header-sub{font-size:10px;opacity:.65;margin-top:1px;}
+.header-role{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;}
+.header-stats{display:flex;gap:6px;flex-wrap:wrap;}
+.hstat{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:4px 10px;text-align:center;min-width:88px;}
+.hstat label{display:block;font-size:9px;text-transform:uppercase;opacity:.7;margin-bottom:1px;}
+.hstat span{font-size:13px;font-weight:700;}
+.hstat.gold{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.4);}
+
+/* ── NAV ── */
+.main-nav{
+  display:flex;gap:2px;background:#f1f5f9;padding:6px 16px;
+  border-bottom:1px solid var(--border-color);overflow-x:auto;-webkit-overflow-scrolling:touch;
+  flex-wrap:nowrap;
+}
+.nav-btn{
+  padding:6px 11px;background:transparent;color:#64748b;border:none;border-radius:6px;
+  font-family:var(--font-body);font-weight:600;font-size:11px;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.nav-btn:hover{background:#fff;color:var(--primary);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.nav-btn.active{background:var(--primary);color:#fff;box-shadow:0 2px 6px rgba(30,58,138,.3);}
+
+/* ── PAGES ── */
+.page{display:none;padding:14px 16px;max-width:1400px;margin:0 auto;}
+.page.active{display:block;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── TYPOGRAPHY ── */
+h2{font-family:var(--font-serif);font-size:.85rem;color:var(--primary);font-weight:700;
+   margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border-color);}
+h3{font-size:.8rem;font-weight:700;color:var(--text-main);margin-bottom:6px;}
+
+/* ── PANEL ── */
+.panel{background:var(--panel-bg);border:1px solid var(--border-color);border-radius:var(--radius);
+       padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+
+/* ── GRIDS ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+@media(max-width:900px){.grid3{grid-template-columns:1fr 1fr;}.grid4{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr;}}
+
+/* ── METRIC CARDS ── */
+.metric-card{background:#fff;border:1px solid var(--border-color);border-radius:var(--radius);
+             padding:12px 14px;text-align:center;box-shadow:var(--shadow);}
+.metric-card label{display:block;font-size:9px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:4px;letter-spacing:.04em;}
+.metric-card .val{font-family:var(--font-serif);font-size:1.3rem;font-weight:700;color:var(--primary);}
+.metric-card .sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.metric-card.gold-card{border-color:var(--gold-border);background:var(--gold-light);}
+.metric-card.gold-card .val{color:var(--gold);}
+.metric-card.danger-card{border-color:#fca5a5;background:#fef2f2;}
+.metric-card.danger-card .val{color:var(--danger);}
+.metric-card.success-card{border-color:#86efac;background:#f0fdf4;}
+.metric-card.success-card .val{color:var(--success);}
+.metric-card.blue-card{border-color:#bfdbfe;background:#eff6ff;}
+.metric-card.blue-card .val{color:var(--accent);}
+
+/* ── KPI BAR ── */
+.kpi-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;}
+.badge.green{background:#dcfce7;color:#15803d;}.badge.yellow{background:#fef9c3;color:#92400e;}
+.badge.red{background:#fee2e2;color:#b91c1c;}.badge.blue{background:#dbeafe;color:#1d4ed8;}
+.badge.purple{background:#ede9fe;color:#6d28d9;}.badge.gold{background:var(--gold-light);color:var(--gold);}
+.badge.orange{background:#ffedd5;color:#c2410c;}
+
+/* ── PROGRESS ── */
+.progress-wrap{background:#e2e8f0;border-radius:3px;height:5px;overflow:hidden;margin-top:4px;}
+.progress-bar{height:100%;border-radius:3px;transition:width .5s;}
+.progress-bar.blue{background:var(--accent);}.progress-bar.green{background:var(--success);}
+.progress-bar.orange{background:var(--warning);}.progress-bar.red{background:var(--danger);}.progress-bar.gold{background:#f59e0b;}
+
+/* ── FORMS ── */
+input[type=number],input[type=text],select,textarea{
+  border:1px solid var(--border-color);border-radius:6px;padding:6px 10px;
+  font-size:12px;font-family:var(--font-body);width:100%;background:#fff;
+  color:var(--text-main);outline:none;transition:border .15s;
+}
+input[type=number]:focus,input[type=text]:focus,select:focus,textarea:focus{
+  border-color:var(--primary-light);background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+input[type=range]{width:100%;accent-color:var(--primary);cursor:pointer;padding:0;}
+label.field-label{display:block;font-size:10px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:3px;letter-spacing:.04em;}
+.field-group{margin-bottom:10px;}
+.field-row{display:flex;align-items:center;gap:8px;}
+.range-val{font-family:var(--font-serif);font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;min-width:44px;}
+.field-hint{font-size:10px;color:var(--text-muted);margin-top:3px;}
+
+/* ── BUTTONS ── */
+.btn{padding:7px 14px;border:none;border-radius:6px;font-family:var(--font-body);font-weight:700;font-size:12px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
+.btn-accent{background:var(--accent);color:#fff;}.btn-accent:hover{opacity:.9;}
+.btn-success{background:var(--success);color:#fff;}.btn-success:hover{opacity:.9;}
+.btn-gold{background:#f59e0b;color:#fff;}.btn-gold:hover{opacity:.9;}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn-outline{background:#fff;border:1px solid var(--border-color);color:var(--text-main);}.btn-outline:hover{background:#f1f5f9;}
+
+/* ── ALERTS / INSIGHT BLOCKS ── */
+.alert{border-radius:6px;padding:9px 13px;font-size:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.alert.info{background:#eff6ff;border-left:3px solid var(--accent);color:#1e40af;}
+.alert.warn{background:#fffbeb;border-left:3px solid #f59e0b;color:#92400e;}
+.alert.danger{background:#fef2f2;border-left:3px solid var(--danger);color:#b91c1c;}
+.alert.success{background:#f0fdf4;border-left:3px solid var(--success);color:#15803d;}
+.alert.gold{background:var(--gold-light);border-left:3px solid var(--gold-border);color:var(--gold);}
+.alert.purple{background:#f5f3ff;border-left:3px solid var(--founder);color:#5b21b6;}
+.alert-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.alert-title{font-weight:700;margin-bottom:2px;}
+
+/* ── DATA TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px;}
+.data-table th{background:var(--primary);color:#fff;padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+.data-table td{padding:7px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+.data-table tr:hover td{background:#f8fafc;}
+.data-table input{border:1px solid transparent;border-radius:4px;padding:3px 7px;font-size:12px;background:transparent;width:100%;min-width:65px;}
+.data-table input:focus{border-color:var(--primary-light);background:#eff6ff;outline:none;}
+
+/* ── WATERFALL / FUNNEL ── */
+.waterfall{display:flex;flex-direction:column;gap:4px;}
+.wf-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;background:#f8fafc;border:1px solid var(--border-color);cursor:default;}
+.wf-label{flex:2;font-size:12px;font-weight:700;}
+.wf-val{font-family:var(--font-serif);font-size:13px;font-weight:900;min-width:90px;text-align:right;}
+.wf-pct{font-size:10px;color:var(--text-muted);min-width:40px;text-align:right;}
+.wf-bar-wrap{flex:3;background:#e2e8f0;border-radius:3px;height:7px;overflow:hidden;}
+.wf-bar{height:100%;border-radius:3px;transition:width .5s;}
+.wf-row.tier-1{background:#eff6ff;border-color:#bfdbfe;}.wf-row.tier-1 .wf-val{color:var(--accent);}
+.wf-row.tier-2{background:#f5f3ff;border-color:#c4b5fd;}.wf-row.tier-2 .wf-val{color:var(--founder);}
+.wf-row.tier-3{background:#f0fdf4;border-color:#86efac;}.wf-row.tier-3 .wf-val{color:var(--success);}
+.wf-row.tier-gold{background:var(--gold-light);border-color:var(--gold-border);}.wf-row.tier-gold .wf-val{color:var(--gold);}
+.wf-row.tier-danger{background:#fef2f2;border-color:#fca5a5;}.wf-row.tier-danger .wf-val{color:var(--danger);}
+
+/* ── SIGNAL / DIAGNOSIS ── */
+.signal-item{padding:8px 12px;border-radius:6px;margin-bottom:5px;font-size:12px;display:flex;align-items:flex-start;gap:8px;cursor:pointer;}
+.signal-item.green{background:#f0fdf4;border-left:3px solid var(--success);}
+.signal-item.yellow{background:#fffbeb;border-left:3px solid #f59e0b;}
+.signal-item.red{background:#fef2f2;border-left:3px solid var(--danger);}
+.signal-item.grey{background:#f8fafc;border-left:3px solid #94a3b8;}
+.signal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.signal-dot.green{background:var(--success);}.signal-dot.yellow{background:#f59e0b;}
+.signal-dot.red{background:var(--danger);}.signal-dot.grey{background:#94a3b8;}
+.signal-text{flex:1;line-height:1.4;}
+.signal-note{font-size:10px;color:var(--text-muted);margin-top:2px;}
+
+/* ── FOLLOW-UP CARDS ── */
+.fu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-bottom:12px;}
+.fu-card{background:#fff;border:1px solid var(--border-color);border-radius:var(--radius);padding:11px 13px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);}
+.fu-card:hover{border-color:var(--accent);background:#eff6ff;}
+.fu-card.active{border-color:var(--success);background:#f0fdf4;}
+.fu-icon{font-size:18px;margin-bottom:5px;}
+.fu-name{font-size:11px;font-weight:700;color:var(--text-main);margin-bottom:3px;}
+.fu-desc{font-size:10px;color:var(--text-muted);line-height:1.4;}
+.fu-stat{font-size:10px;color:var(--primary);font-weight:700;margin-top:5px;}
+
+/* ── PRODUCT MATRIX ── */
+.matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.matrix-cell{padding:12px;border-radius:var(--radius);border:1px solid var(--border-color);background:#fff;}
+.matrix-cell.best{border-color:var(--gold-border);background:var(--gold-light);}
+.matrix-cell.ok{border-color:#86efac;background:#f0fdf4;}
+.matrix-cell.bad{border-color:#fca5a5;background:#fef2f2;}
+.matrix-cell.warn{border-color:#fed7aa;background:#fff7ed;}
+.mc-title{font-weight:700;font-size:12px;margin-bottom:4px;color:var(--text-main);}
+.mc-desc{font-size:10px;color:var(--text-muted);line-height:1.5;}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:180px;margin-top:10px;}
+.chart-wrap-sm{position:relative;height:140px;margin-top:8px;}
+
+/* ── HEALTH RING ── */
+.ring-center{display:flex;flex-direction:column;align-items:center;padding:8px 0;}
+
+/* ── AI BOX ── */
+.ai-box{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
+.ai-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.ai-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--founder),var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ai-name{font-weight:700;font-size:12px;color:var(--text-main);}
+.ai-role{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;}
+.ai-messages{max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.ai-msg{padding:10px 13px;border-radius:8px;font-size:12px;line-height:1.6;}
+.ai-msg.user{background:#dbeafe;border:1px solid #bfdbfe;align-self:flex-end;max-width:85%;color:var(--text-main);}
+.ai-msg.assistant{background:#fff;border:1px solid #e9d5ff;align-self:flex-start;max-width:92%;color:var(--text-muted);}
+.ai-input-row{display:flex;gap:8px;}
+.ai-input{flex:1;background:#fff;border:1px solid var(--border-color);border-radius:6px;
+  padding:8px 12px;color:var(--text-main);font-family:var(--font-body);font-size:12px;resize:none;outline:none;}
+.ai-input:focus{border-color:var(--founder);}
+.btn-send{background:linear-gradient(135deg,var(--founder),var(--accent));color:#fff;border:none;
+  border-radius:6px;padding:8px 16px;cursor:pointer;font-weight:700;font-size:12px;white-space:nowrap;}
+.btn-send:hover{opacity:.88;}
+.btn-send:disabled{opacity:.4;cursor:not-allowed;}
+.ai-quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.ai-quick{background:#fff;border:1px solid #ddd6fe;border-radius:20px;
+  padding:4px 11px;font-size:10px;cursor:pointer;color:#5b21b6;font-weight:600;transition:all .15s;}
+.ai-quick:hover{background:#ede9fe;border-color:var(--founder);}
+.live-dot{display:inline-block;width:6px;height:6px;background:var(--success);border-radius:50%;animation:pulse 2s infinite;margin-right:4px;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── SCORE BAR ── */
+.score-track{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--danger),#f59e0b,var(--success));position:relative;margin:10px 0;}
+.score-ptr{position:absolute;top:-4px;width:18px;height:18px;background:#fff;border-radius:50%;border:2px solid var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.2);transition:left .5s;transform:translateX(-50%);}
+
+/* ── STREAKS / GAMIFICATION ── */
+.streak-bar{display:flex;align-items:center;gap:10px;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;}
+.streak-fire{font-size:22px;}
+.streak-text{flex:1;font-size:12px;color:var(--gold);font-weight:700;}
+.streak-sub{font-size:10px;color:var(--text-muted);font-weight:400;}
+
+/* ── CHANNELS ── */
+.ch-group-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:8px 10px 3px;background:#f8fafc;}
+
+/* ── PROCESS FLOW ── */
+.process-flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:10px 0;}
+.pf-box{background:#f8fafc;border:1px solid var(--border-color);border-radius:6px;padding:6px 11px;font-size:11px;font-weight:600;color:var(--text-muted);text-align:center;min-width:80px;}
+.pf-box.active{border-color:var(--accent);color:var(--primary);background:#eff6ff;}
+.pf-arrow{color:#cbd5e1;font-size:12px;}
+
+/* ── RESP ── */
+@media(max-width:768px){
+  .header-stats{display:none;}
+  .main-nav{padding:4px 10px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="header-left">
+    <div>
+      <div class="header-logo">MBA RESULTAT <span style="opacity:.6;font-size:11px;font-weight:400;font-family:var(--font-body)">Sales System</span></div>
+      <div class="header-sub">Калькулятор продаж & ИИ-советник</div>
+    </div>
+    <div class="header-role">📊 МЕНЕДЖЕР</div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat"><label>Лидов / мес</label><span id="hd-leads">—</span></div>
+    <div class="hstat"><label>Продаж</label><span id="hd-sales">—</span></div>
+    <div class="hstat"><label>Выручка</label><span id="hd-rev">—</span></div>
+    <div class="hstat gold"><label>ROI</label><span id="hd-roi">—</span></div>
+  </div>
+</header>
+
+<!-- ══ NAV ══ -->
+<div class="main-nav">
+  <button class="nav-btn active" onclick="showPage('funnel',this)">📊 Воронка</button>
+  <button class="nav-btn" onclick="showPage('channels',this)">📡 Каналы (40)</button>
+  <button class="nav-btn" onclick="showPage('products',this)">📦 Продукты</button>
+  <button class="nav-btn" onclick="showPage('followup',this)">🔁 Follow-up</button>
+  <button class="nav-btn" onclick="showPage('stats',this)">📈 Статистики</button>
+  <button class="nav-btn" onclick="showPage('diagnosis',this)">🩺 Диагностика</button>
+  <button class="nav-btn" onclick="showPage('ai',this)">🤖 ИИ-советник</button>
+</div>
+
+<!-- ══════════════════ PAGE: FUNNEL ══════════════════ -->
+<div class="page active" id="page-funnel">
+
+  <!-- KPI BAR -->
+  <div class="kpi-bar" id="kpi-bar">
+    <div class="metric-card blue-card"><label>Лидов / мес</label><div class="val" id="r-leads">—</div></div>
+    <div class="metric-card"><label>Продаж</label><div class="val" id="r-sales">—</div></div>
+    <div class="metric-card success-card"><label>Выручка</label><div class="val" id="r-rev">—</div></div>
+    <div class="metric-card success-card"><label>Прибыль</label><div class="val" id="r-profit">—</div></div>
+    <div class="metric-card"><label>CAC</label><div class="val" id="r-cac">—</div></div>
+    <div class="metric-card gold-card"><label>ROI</label><div class="val" id="r-roi">—</div></div>
+    <div class="metric-card blue-card"><label>LTV</label><div class="val" id="r-ltv">—</div></div>
+    <div class="metric-card"><label>LTV : CAC</label><div class="val" id="r-ltvcac">—</div></div>
+  </div>
+
+  <!-- STATS PANEL -->
+  <div class="panel" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h2 style="border:none;margin:0">📊 Статистика продаж — мировые данные</h2>
+      <span class="badge blue">MBA RESULTAT</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px">
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--primary)">
+        <div style="font-size:22px;flex-shrink:0">📞</div>
+        <div class="signal-text"><strong style="color:var(--primary);font-size:15px">48%</strong>
+          <div class="signal-note">продавцов сдаются после 1-го касания и никогда не перезванивают <em>(Marketing Donut)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--success)">
+        <div style="font-size:22px;flex-shrink:0">🏆</div>
+        <div class="signal-text"><strong style="color:var(--success);font-size:15px">80%</strong>
+          <div class="signal-note">продаж совершается между 5-м и 12-м касанием <em>(National Sales Executive Assoc.)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--warning)">
+        <div style="font-size:22px;flex-shrink:0">🤝</div>
+        <div class="signal-text"><strong style="color:var(--warning);font-size:15px">8</strong>
+          <div class="signal-note">касаний — средний цикл сделки в B2B до закрытия <em>(HubSpot)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--founder)">
+        <div style="font-size:22px;flex-shrink:0">⚡</div>
+        <div class="signal-text"><strong style="color:var(--founder);font-size:15px">5 мин</strong>
+          <div class="signal-note">ответ на заявку в первые 5 минут увеличивает шанс закрытия в <strong>9 раз</strong> <em>(Harvard Business Review)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--danger)">
+        <div style="font-size:22px;flex-shrink:0">💸</div>
+        <div class="signal-text"><strong style="color:var(--danger);font-size:15px">70%</strong>
+          <div class="signal-note">сделок срывается из-за отсутствия системного follow-up, не из-за цены <em>(Salesforce)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--gold)">
+        <div style="font-size:22px;flex-shrink:0">🔁</div>
+        <div class="signal-text"><strong style="color:var(--gold);font-size:15px">5–25×</strong>
+          <div class="signal-note">дороже привлечь нового клиента, чем удержать существующего <em>(Bain & Company)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--accent)">
+        <div style="font-size:22px;flex-shrink:0">📈</div>
+        <div class="signal-text"><strong style="color:var(--accent);font-size:15px">+5%</strong>
+          <div class="signal-note">рост удержания клиентов увеличивает прибыль на 25–95% <em>(Bain & Company)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--success)">
+        <div style="font-size:22px;flex-shrink:0">🎯</div>
+        <div class="signal-text"><strong style="color:var(--success);font-size:15px">60–70%</strong>
+          <div class="signal-note">вероятность продажи существующему клиенту vs 5–20% новому <em>(Marketing Metrics)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--primary)">
+        <div style="font-size:22px;flex-shrink:0">🧠</div>
+        <div class="signal-text"><strong style="color:var(--primary);font-size:15px">92%</strong>
+          <div class="signal-note">покупателей доверяют рекомендациям знакомых больше любой рекламы <em>(Nielsen)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--warning)">
+        <div style="font-size:22px;flex-shrink:0">📋</div>
+        <div class="signal-text"><strong style="color:var(--warning);font-size:15px">44%</strong>
+          <div class="signal-note">продавцов сдаются после 2-го отказа. Только 8% делают более 5 попыток <em>(Sirius Decisions)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--danger)">
+        <div style="font-size:22px;flex-shrink:0">🕐</div>
+        <div class="signal-text"><strong style="color:var(--danger);font-size:15px">2/3</strong>
+          <div class="signal-note">времени средний продавец тратит на НЕпродающие действия — отчёты, поиск данных <em>(Salesforce)</em></div>
+        </div>
+      </div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--founder)">
+        <div style="font-size:22px;flex-shrink:0">💬</div>
+        <div class="signal-text"><strong style="color:var(--founder);font-size:15px">43%</strong>
+          <div class="signal-note">покупателей охотнее отвечают в нерабочие часы и по SMS, чем на звонок <em>(HubSpot)</em></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <!-- LEFT: INPUTS -->
+    <div>
+      <div class="panel">
+        <h2>📣 Маркетинг и трафик</h2>
+        <div class="field-group"><label class="field-label">Рекламный бюджет (₪/мес)</label>
+          <input type="number" id="f-budget" value="10000" oninput="calc()"></div>
+        <div class="field-group"><label class="field-label">Стоимость клика, CPC (₪)</label>
+          <input type="number" id="f-cpc" value="3" step="0.1" oninput="calc()"></div>
+        <div class="field-group"><label class="field-label">Конверсия сайта в заявку, CR1</label>
+          <div class="field-row">
+            <input type="range" id="f-cr1" min="0.5" max="20" step="0.5" value="5" oninput="calc();this.nextElementSibling.textContent=this.value+'%'">
+            <span class="range-val">5%</span>
+          </div>
+          <div class="field-hint">Средний показатель: 3–8%</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>📞 Отдел продаж</h2>
+        <div class="field-group"><label class="field-label">Квалификация лидов</label>
+          <div class="field-row">
+            <input type="range" id="f-qual" min="10" max="100" step="5" value="70" oninput="calc();this.nextElementSibling.textContent=this.value+'%'">
+            <span class="range-val">70%</span>
+          </div>
+          <div class="field-hint">Доля целевых лидов из общего потока</div>
+        </div>
+        <div class="field-group"><label class="field-label">Конверсия в назначенную встречу</label>
+          <div class="field-row">
+            <input type="range" id="f-meet" min="10" max="100" step="5" value="60" oninput="calc();this.nextElementSibling.textContent=this.value+'%'">
+            <span class="range-val">60%</span>
+          </div>
+        </div>
+        <div class="field-group"><label class="field-label">Доходимость на встречу (show-up rate)</label>
+          <div class="field-row">
+            <input type="range" id="f-show" min="20" max="100" step="5" value="75" oninput="calc();this.nextElementSibling.textContent=this.value+'%'">
+            <span class="range-val">75%</span>
+          </div>
+          <div class="field-hint">80%+ — отлично. Ниже 60% — нужны SMS-напоминания</div>
+        </div>
+        <div class="field-group"><label class="field-label">Конверсия встречи в продажу (CR Close)</label>
+          <div class="field-row">
+            <input type="range" id="f-close" min="5" max="90" step="5" value="25" oninput="calc();this.nextElementSibling.textContent=this.value+'%'">
+            <span class="range-val">25%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>💰 Финансы и LTV</h2>
+        <div class="field-group"><label class="field-label">Средний чек (₪)</label>
+          <input type="number" id="f-price" value="3000" oninput="calc()"></div>
+        <div class="field-group"><label class="field-label">Маржинальность</label>
+          <div class="field-row">
+            <input type="range" id="f-margin" min="5" max="95" step="5" value="60" oninput="calc();this.nextElementSibling.textContent=this.value+'%'">
+            <span class="range-val">60%</span>
+          </div>
+        </div>
+        <div class="field-group"><label class="field-label">LTV-коэффициент (повторные покупки)</label>
+          <input type="number" id="f-ltv" value="1.5" step="0.1" min="1" oninput="calc()">
+          <div class="field-hint">1.5 = клиент покупает ещё на 50% от первого чека</div>
+        </div>
+        <div class="field-group"><label class="field-label">Срок жизни клиента (мес)</label>
+          <input type="number" id="f-lifetime" value="12" min="1" oninput="calc()"></div>
+        <div class="field-group"><label class="field-label">Рост бюджета % в месяц (прогноз)</label>
+          <div class="field-row">
+            <input type="range" id="f-growth" min="0" max="30" step="1" value="5" oninput="calc();this.nextElementSibling.textContent=this.value+'%'">
+            <span class="range-val">5%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: FUNNEL VISUAL + CHARTS -->
+    <div>
+      <div class="panel">
+        <h2>🔽 Сквозная воронка продаж</h2>
+        <div class="waterfall" id="funnel-wf"></div>
+        <div class="alert info" style="margin-top:12px">
+          <span class="alert-icon">📐</span>
+          <div><div class="alert-title">Формула системных продаж MBA RESULTAT</div>
+          Результат = (Качество × Энергия × Касания) ÷ Хаос. <strong>В системном бизнесе продаёт не человек, а система.</strong></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>📈 Динамика воронки</h2>
+        <div class="chart-wrap"><canvas id="funnelChart"></canvas></div>
+      </div>
+
+      <div class="panel">
+        <h2>🎯 Узкое горлышко</h2>
+        <div id="bottleneck"></div>
+      </div>
+
+      <div class="panel">
+        <h2>📅 Прогноз на 12 месяцев</h2>
+        <div class="chart-wrap-sm"><canvas id="forecastChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert gold">
+    <span class="alert-icon">💡</span>
+    <div><div class="alert-title">MBA RESULTAT — Главный принцип роста</div>
+    80% продаж совершается между 5-м и 12-м касанием (National Sales Executive Association). 48% продавцов сдаются после первого контакта. <strong>Кто умеет системно работать с клиентом — тот закрывает рынок.</strong> Главный рычаг роста — не увеличение рекламного бюджета, а повышение конверсии на каждом этапе воронки.</div>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE: CHANNELS ══════════════════ -->
+<div class="page" id="page-channels">
+  <div class="panel-header">
+    <h2 style="border:none;margin:0;font-size:1rem">📡 40 каналов лидогенерации</h2>
+    <button class="btn btn-primary btn-sm" onclick="autoFillChannels()">✨ Пример заполнения</button>
+  </div>
+
+  <div class="kpi-bar" style="margin-bottom:14px">
+    <div class="metric-card blue-card"><label>Активных каналов</label><div class="val" id="ch-count">0</div></div>
+    <div class="metric-card gold-card"><label>Общий бюджет</label><div class="val" id="ch-budget">—</div></div>
+    <div class="metric-card success-card"><label>Итого лидов</label><div class="val" id="ch-leads">—</div></div>
+    <div class="metric-card"><label>Средний CPL</label><div class="val" id="ch-cpl">—</div></div>
+    <div class="metric-card success-card"><label>Лучший канал</label><div class="val" id="ch-best" style="font-size:.8rem">—</div></div>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="data-table" id="ch-table">
+        <thead><tr>
+          <th style="width:30px">✓</th>
+          <th>Канал</th>
+          <th>Группа</th>
+          <th>Бюджет ₪</th>
+          <th>Показы</th>
+          <th>CTR %</th>
+          <th>CR %</th>
+          <th>Лидов</th>
+          <th>CPL ₪</th>
+          <th>ROI %</th>
+        </tr></thead>
+        <tbody id="ch-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="alert purple">
+    <span class="alert-icon">🚀</span>
+    <div><div class="alert-title">Принцип диверсификации — MBA RESULTAT</div>
+    Лидогенерация на автопилоте — комбинация онлайн- и офлайн-источников. Ключевые метрики: CPL, CTR, конверсия, ROI по каналу. Регулярно перераспределяйте бюджет от слабых каналов к сильным. <strong>Цель: CAC в 10+ раз ниже LTV клиента.</strong></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE: PRODUCTS ══════════════════ -->
+<div class="page" id="page-products">
+  <div class="alert gold" style="margin-bottom:12px">
+    <span class="alert-icon">⚖️</span>
+    <div><div class="alert-title">Фундаментальный принцип MBA RESULTAT</div>
+    <strong>«Штучный продукт должен быть дорогим. Массовый — дешёвым. Иначе нет шансов на прибыль.»</strong> Вводный (Tripwire) переводит лида в покупателя. Основной генерирует доход. Premium создаёт LTV.</div>
+  </div>
+
+  <div class="grid3" id="products-grid">
+    <!-- Tripwire -->
+    <div class="panel" style="border-top:3px solid var(--success)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3>🎣 Вводный (Tripwire)</h3><span class="badge green">Низкий порог</span>
+      </div>
+      <div class="field-group"><label class="field-label">Название</label><input type="text" id="p1-name" value="Мини-курс / Консультация" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Цена (₪)</label><input type="number" id="p1-price" value="299" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Себестоимость (₪)</label><input type="number" id="p1-cost" value="50" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Продаж в мес</label><input type="number" id="p1-qty" value="80" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Конверсия в Core</label>
+        <div class="field-row"><input type="range" id="p1-conv" min="1" max="80" value="20" oninput="calcProducts();this.nextElementSibling.textContent=this.value+'%'"><span class="range-val">20%</span></div>
+      </div>
+      <div id="p1-result"></div>
+    </div>
+
+    <!-- Core -->
+    <div class="panel" style="border-top:3px solid var(--gold)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3>⭐ Основной (Core)</h3><span class="badge gold">Главный доход</span>
+      </div>
+      <div class="field-group"><label class="field-label">Название</label><input type="text" id="p2-name" value="Программа / Услуга" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Цена (₪)</label><input type="number" id="p2-price" value="3000" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Себестоимость (₪)</label><input type="number" id="p2-cost" value="600" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Продаж в мес (авто)</label><input type="number" id="p2-qty" value="16" readonly style="background:#f8fafc;color:var(--text-muted)"></div>
+      <div class="field-group"><label class="field-label">Конверсия в Premium</label>
+        <div class="field-row"><input type="range" id="p2-conv" min="1" max="60" value="15" oninput="calcProducts();this.nextElementSibling.textContent=this.value+'%'"><span class="range-val">15%</span></div>
+      </div>
+      <div id="p2-result"></div>
+    </div>
+
+    <!-- Premium -->
+    <div class="panel" style="border-top:3px solid var(--founder)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3>💎 Premium (Upsell)</h3><span class="badge purple">Высокий LTV</span>
+      </div>
+      <div class="field-group"><label class="field-label">Название</label><input type="text" id="p3-name" value="VIP / Индивидуальный" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Цена (₪)</label><input type="number" id="p3-price" value="12000" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Себестоимость (₪)</label><input type="number" id="p3-cost" value="2000" oninput="calcProducts()"></div>
+      <div class="field-group"><label class="field-label">Продаж в мес (авто)</label><input type="number" id="p3-qty" value="2" readonly style="background:#f8fafc;color:var(--text-muted)"></div>
+      <div id="p3-result"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>📊 Итог продуктовой матрицы</h2>
+    <div class="grid4" id="products-summary"></div>
+    <div class="chart-wrap-sm"><canvas id="productsChart"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <h2>🗺️ Матрица «Цена × Масштаб»</h2>
+    <div class="matrix-grid">
+      <div class="matrix-cell best"><span class="badge gold" style="margin-bottom:6px;display:inline-block">💎 ОПТИМАЛЬНО</span><div class="mc-title">Штучный + Дорогой</div><div class="mc-desc">Коучинг, консалтинг, индивидуальные проекты. Мало клиентов — высокий доход. Строй бренд и экспертность.</div></div>
+      <div class="matrix-cell ok"><span class="badge green" style="margin-bottom:6px;display:inline-block">💰 РАБОТАЕТ</span><div class="mc-title">Массовый + Дешёвый</div><div class="mc-desc">Онлайн-курс, подписка, SaaS. Ключ — масштаб и автоматизация. Маленькая маржа, нужен объём.</div></div>
+      <div class="matrix-cell warn"><span class="badge orange" style="margin-bottom:6px;display:inline-block">⚠️ СЛОЖНО</span><div class="mc-title">Массовый + Дорогой</div><div class="mc-desc">Возможно только при сильном бренде (Apple, Tesla). Без репутации — не купят.</div></div>
+      <div class="matrix-cell bad"><span class="badge red" style="margin-bottom:6px;display:inline-block">🚫 ЛОВУШКА</span><div class="mc-title">Штучный + Дешёвый</div><div class="mc-desc">Личный труд ограничен, зарабатываешь мало. Ловушка бедности и выгорания.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE: FOLLOW-UP ══════════════════ -->
+<div class="page" id="page-followup">
+
+  <div class="alert success" style="margin-bottom:12px">
+    <span class="alert-icon">📊</span>
+    <div><div class="alert-title">Статистика, которая меняет всё</div>
+    48% продавцов сдаются после 1-го контакта. 80% продаж — между 5-м и 12-м касанием. Средний цикл B2B — 8 касаний. <strong>Кто умеет системно делать follow-up — тот закрывает рынок.</strong></div>
+  </div>
+
+  <div class="panel">
+    <h2>🔧 Инструменты касаний — выберите активные</h2>
+    <div class="fu-grid" id="fu-grid"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>⏱️ Параметры серии касаний</h2>
+      <div class="field-group"><label class="field-label">Лидов в архиве (не купили)</label><input type="number" id="fu-cold" value="200" oninput="calcFollowup()"></div>
+      <div class="field-group"><label class="field-label">Касаний в серии</label>
+        <div class="field-row"><input type="range" id="fu-touches" min="1" max="12" step="1" value="7" oninput="calcFollowup();this.nextElementSibling.textContent=this.value"><span class="range-val">7</span></div>
+      </div>
+      <div class="field-group"><label class="field-label">Базовая конверсия 1 касания (%)</label>
+        <div class="field-row"><input type="range" id="fu-base-cr" min="0.5" max="15" step="0.5" value="3" oninput="calcFollowup();this.nextElementSibling.textContent=this.value+'%'"><span class="range-val">3%</span></div>
+      </div>
+      <div class="field-group"><label class="field-label">Средний чек (₪)</label><input type="number" id="fu-price" value="3000" oninput="calcFollowup()"></div>
+    </div>
+    <div class="panel">
+      <h2>💡 Потенциал восстановления</h2>
+      <div id="fu-results"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>🏆 Методики лучших продавцов мира</h2>
+    <div class="grid3">
+      <div class="alert info"><span class="alert-icon">🔥</span><div><div class="alert-title">Метод 10 касаний</div>10 касаний за 10–14 дней: звонок → письмо → видео → отзыв → оффер. <strong>Постоянное присутствие без навязчивости.</strong></div></div>
+      <div class="alert warn"><span class="alert-icon">🧠</span><div><div class="alert-title">Лестница ценности</div>Каждое касание добавляет ценность: чек-лист → вебинар → кейс → демо → бонус. <strong>Клиент покупает, когда ты устаёшь ждать.</strong></div></div>
+      <div class="alert success"><span class="alert-icon">💡</span><div><div class="alert-title">Follow-up после отказа</div>«Вернусь через 2 месяца» — и действительно вернуться. Это делают 5% продавцов — и они берут всё.</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>📋 10 правил сильной коммуникации</h2>
+    <div id="fu-rules"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE: DIAGNOSIS ══════════════════ -->
+<div class="page" id="page-diagnosis">
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-header">
+        <h2 style="border:none;margin:0">✅ Чек-лист системы продаж</h2>
+        <span style="font-size:11px;color:var(--text-muted)">Нажмите для переключения</span>
+      </div>
+      <div id="diag-list"></div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>🏥 Индекс здоровья системы</h2>
+        <div class="ring-center">
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <circle cx="65" cy="65" r="52" fill="none" stroke="#e2e8f0" stroke-width="11"/>
+            <circle cx="65" cy="65" r="52" fill="none" stroke="url(#rg)" stroke-width="11"
+              stroke-dasharray="327" id="health-ring" stroke-dashoffset="327" stroke-linecap="round" transform="rotate(-90 65 65)"/>
+            <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#dc2626"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#16a34a"/>
+            </linearGradient></defs>
+            <text x="65" y="62" text-anchor="middle" font-family="Frank Ruhl Libre" font-size="22" font-weight="700" fill="#1e3a8a" id="health-pct">0%</text>
+            <text x="65" y="78" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#64748b">ИНДЕКС</text>
+          </svg>
+          <div id="health-verdict" style="text-align:center;font-size:12px;color:var(--text-muted);padding:0 10px;margin-top:4px"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🔑 Процесс продажи</h2>
+        <div class="process-flow">
+          <div class="pf-box" id="pf-lead">Лид</div><div class="pf-arrow">→</div>
+          <div class="pf-box" id="pf-qual">Квалификация</div><div class="pf-arrow">→</div>
+          <div class="pf-box" id="pf-meet">Встреча</div><div class="pf-arrow">→</div>
+          <div class="pf-box" id="pf-close">Закрытие</div><div class="pf-arrow">→</div>
+          <div class="pf-box" id="pf-ltv">LTV</div>
+        </div>
+      </div>
+
+      <div class="alert info">
+        <span class="alert-icon">🎯</span>
+        <div><div class="alert-title">Формула РОП</div>
+        РОП — не «старший менеджер», а управленец. Ежедневный разбор звонков, контроль воронки, планёрки. <strong>10 минут в неделю контроля — система работает без владельца.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>⚠️ Антипаттерны — ошибки, убивающие продажи</h2>
+    <div id="antipatterns"></div>
+  </div>
+
+  <div class="panel">
+    <h2>💪 10 ключевых умений менеджера по продажам</h2>
+    <div id="manager-skills"></div>
+  </div>
+
+  <div class="panel">
+    <h2>🎮 Система мотивации отдела</h2>
+    <table class="data-table">
+      <thead><tr><th>Элемент</th><th>Назначение</th><th>Пример</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Фикс + %</strong></td><td>Баланс стабильности и азарта</td><td>30 000 ₪ + 3% от сделки</td></tr>
+        <tr><td><strong>KPI-бонус</strong></td><td>Стимул к качеству</td><td>% за повторные продажи</td></tr>
+        <tr><td><strong>Игровые баллы</strong></td><td>Вовлечённость</td><td>Таблица лидеров в офисе</td></tr>
+        <tr><td><strong>Командный бонус</strong></td><td>Синергия</td><td>% от общего плана</td></tr>
+        <tr><td><strong>Коуч-сессия</strong></td><td>Личное развитие</td><td>1 раз в месяц с РОПом</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE: STATISTICS ══════════════════ -->
+<div class="page" id="page-stats">
+
+  <div class="alert info" style="margin-bottom:12px">
+    <span class="alert-icon">📐</span>
+    <div><div class="alert-title">Как пользоваться этой вкладкой</div>
+    Введите фактические показатели вашего отдела продаж — система рассчитает индекс здоровья по каждому блоку, сравнит с нормативами MBA RESULTAT и покажет, где узкое место. Данные из «Воронки» подтягиваются автоматически.</div>
+  </div>
+
+  <!-- TOP KPI HEALTH -->
+  <div class="kpi-bar" id="stats-kpi-top" style="margin-bottom:14px"></div>
+
+  <div class="grid2">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <!-- BLOCK: MANAGER ACTIVITY -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 style="border:none;margin:0">📞 Активность менеджера (день/неделя)</h2>
+          <span class="badge blue" id="badge-activity">—</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Показатель</th><th>Норматив</th><th>Ваш факт</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>Звонков в день</td><td>20–50</td><td><input type="number" id="st-calls-day" value="15" oninput="calcStats()"></td><td><span id="st-calls-day-s"></span></td></tr>
+            <tr><td>Результативных звонков в день</td><td>5–15</td><td><input type="number" id="st-calls-res" value="6" oninput="calcStats()"></td><td><span id="st-calls-res-s"></span></td></tr>
+            <tr><td>Встреч / демо в неделю</td><td>10–20</td><td><input type="number" id="st-meets-week" value="8" oninput="calcStats()"></td><td><span id="st-meets-week-s"></span></td></tr>
+            <tr><td>Отправлено КП в неделю</td><td>5–15</td><td><input type="number" id="st-kp-week" value="5" oninput="calcStats()"></td><td><span id="st-kp-week-s"></span></td></tr>
+            <tr><td>Follow-up касаний в неделю</td><td>15–30</td><td><input type="number" id="st-fu-week" value="10" oninput="calcStats()"></td><td><span id="st-fu-week-s"></span></td></tr>
+          </tbody>
+        </table>
+        <div id="activity-insight" style="margin-top:8px"></div>
+      </div>
+
+      <!-- BLOCK: CONVERSION RATES -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 style="border:none;margin:0">🎯 Конверсии воронки</h2>
+          <span class="badge blue" id="badge-conv">—</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Этап воронки</th><th>Норматив</th><th>Ваш факт (%)</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>Лид → Квалифицированный лид</td><td>60–80%</td><td><input type="number" id="st-cr-qual" value="70" min="0" max="100" oninput="calcStats()"></td><td><span id="st-cr-qual-s"></span></td></tr>
+            <tr><td>Квал. лид → Назначена встреча</td><td>50–70%</td><td><input type="number" id="st-cr-meet" value="55" min="0" max="100" oninput="calcStats()"></td><td><span id="st-cr-meet-s"></span></td></tr>
+            <tr><td>Назначена → Проведена встреча (show-up)</td><td>75–90%</td><td><input type="number" id="st-cr-show" value="70" min="0" max="100" oninput="calcStats()"></td><td><span id="st-cr-show-s"></span></td></tr>
+            <tr><td>Встреча → Продажа (close rate)</td><td>20–35%</td><td><input type="number" id="st-cr-close" value="22" min="0" max="100" oninput="calcStats()"></td><td><span id="st-cr-close-s"></span></td></tr>
+            <tr><td>Клиент → Повторная покупка</td><td>60–80%</td><td><input type="number" id="st-cr-repeat" value="55" min="0" max="100" oninput="calcStats()"></td><td><span id="st-cr-repeat-s"></span></td></tr>
+          </tbody>
+        </table>
+        <div id="conv-insight" style="margin-top:8px"></div>
+      </div>
+
+      <!-- BLOCK: SPEED -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 style="border:none;margin:0">⚡ Скорость реакции и цикл сделки</h2>
+          <span class="badge blue" id="badge-speed">—</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Показатель</th><th>Норматив</th><th>Ваш факт</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>Первый ответ на заявку (мин)</td><td>&lt; 5 мин</td><td><input type="number" id="st-resp" value="20" oninput="calcStats()"></td><td><span id="st-resp-s"></span></td></tr>
+            <tr><td>Время от лида до встречи (дни)</td><td>1–3 дня</td><td><input type="number" id="st-lead2meet" value="4" oninput="calcStats()"></td><td><span id="st-lead2meet-s"></span></td></tr>
+            <tr><td>Длина цикла сделки (дни)</td><td>7–30 дней</td><td><input type="number" id="st-cycle" value="25" oninput="calcStats()"></td><td><span id="st-cycle-s"></span></td></tr>
+            <tr><td>Время до отправки КП после встречи (часы)</td><td>&lt; 24 ч</td><td><input type="number" id="st-kp-time" value="48" oninput="calcStats()"></td><td><span id="st-kp-time-s"></span></td></tr>
+          </tbody>
+        </table>
+        <div id="speed-insight" style="margin-top:8px"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div>
+
+      <!-- BLOCK: FINANCIAL HEALTH -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 style="border:none;margin:0">💰 Финансовые показатели отдела</h2>
+          <span class="badge blue" id="badge-finance">—</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Показатель</th><th>Норматив</th><th>Ваш факт</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>Выполнение плана продаж (%)</td><td>90–120%</td><td><input type="number" id="st-plan" value="85" min="0" oninput="calcStats()"></td><td><span id="st-plan-s"></span></td></tr>
+            <tr><td>Средний чек (₪)</td><td>≥ целевого</td><td><input type="number" id="st-avg-check" value="2800" oninput="calcStats()"></td><td><span id="st-avg-check-s"></span></td></tr>
+            <tr><td>Целевой средний чек (₪)</td><td>—</td><td><input type="number" id="st-target-check" value="3000" oninput="calcStats()"></td><td>—</td></tr>
+            <tr><td>Конверсия лидов в продажи (итого, %)</td><td>10–20%</td><td><input type="number" id="st-total-cr" value="12" min="0" max="100" oninput="calcStats()"></td><td><span id="st-total-cr-s"></span></td></tr>
+            <tr><td>Доля повторных продаж от выручки (%)</td><td>30–50%</td><td><input type="number" id="st-repeat-share" value="25" min="0" max="100" oninput="calcStats()"></td><td><span id="st-repeat-share-s"></span></td></tr>
+            <tr><td>ROMI — возврат на маркетинговые инвестиции (%)</td><td>300–500%</td><td><input type="number" id="st-romi" value="250" oninput="calcStats()"></td><td><span id="st-romi-s"></span></td></tr>
+          </tbody>
+        </table>
+        <div id="finance-insight" style="margin-top:8px"></div>
+      </div>
+
+      <!-- BLOCK: CLIENT SERVICE -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 style="border:none;margin:0">👑 Клиентский сервис и лояльность</h2>
+          <span class="badge blue" id="badge-service">—</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Показатель</th><th>Норматив</th><th>Ваш факт</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>CSAT — удовлетворённость клиентов (1–10)</td><td>8–10</td><td><input type="number" id="st-csat" value="7.2" step="0.1" min="0" max="10" oninput="calcStats()"></td><td><span id="st-csat-s"></span></td></tr>
+            <tr><td>NPS — индекс лояльности (-100 до 100)</td><td>30–70</td><td><input type="number" id="st-nps" value="25" min="-100" max="100" oninput="calcStats()"></td><td><span id="st-nps-s"></span></td></tr>
+            <tr><td>Churn rate — отток клиентов (%/мес)</td><td>&lt; 5%</td><td><input type="number" id="st-churn" value="8" min="0" max="100" oninput="calcStats()"></td><td><span id="st-churn-s"></span></td></tr>
+            <tr><td>Время реакции на обращение клиента (ч)</td><td>&lt; 2 ч</td><td><input type="number" id="st-react" value="4" oninput="calcStats()"></td><td><span id="st-react-s"></span></td></tr>
+            <tr><td>% удержания клиентов (Retention Rate)</td><td>70–90%</td><td><input type="number" id="st-retention" value="65" min="0" max="100" oninput="calcStats()"></td><td><span id="st-retention-s"></span></td></tr>
+          </tbody>
+        </table>
+        <div id="service-insight" style="margin-top:8px"></div>
+      </div>
+
+      <!-- BLOCK: TEAM / HR -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 style="border:none;margin:0">👥 Команда и управление отделом</h2>
+          <span class="badge blue" id="badge-team">—</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Показатель</th><th>Норматив</th><th>Ваш факт</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>% менеджеров, выполняющих план</td><td>70–90%</td><td><input type="number" id="st-plan-pct" value="60" min="0" max="100" oninput="calcStats()"></td><td><span id="st-plan-pct-s"></span></td></tr>
+            <tr><td>Текучесть кадров в отделе (%/год)</td><td>&lt; 20%</td><td><input type="number" id="st-turnover" value="30" min="0" max="100" oninput="calcStats()"></td><td><span id="st-turnover-s"></span></td></tr>
+            <tr><td>% выполнения плана по звонкам отделом</td><td>80–100%</td><td><input type="number" id="st-calls-plan" value="70" min="0" max="200" oninput="calcStats()"></td><td><span id="st-calls-plan-s"></span></td></tr>
+            <tr><td>Скорость выхода новичка на план (дни)</td><td>14–30 дней</td><td><input type="number" id="st-ramp" value="45" oninput="calcStats()"></td><td><span id="st-ramp-s"></span></td></tr>
+          </tbody>
+        </table>
+        <div id="team-insight" style="margin-top:8px"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- OVERALL HEALTH SCORE -->
+  <div class="panel" style="margin-top:4px">
+    <h2>🏆 Сводный индекс здоровья отдела продаж</h2>
+    <div class="grid2">
+      <div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px" id="stats-block-scores"></div>
+        <div id="stats-main-verdict"></div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Ключевые рычаги роста</div>
+        <div id="stats-levers"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORLD BENCHMARKS -->
+  <div class="panel">
+    <h2>🌍 Мировые бенчмарки продаж</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--primary)"><div style="font-size:20px;flex-shrink:0">📊</div><div class="signal-text"><strong style="color:var(--primary)">15%</strong> — средняя конверсия лид→продажа в B2B <div class="signal-note">HubSpot State of Sales 2024</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--success)"><div style="font-size:20px;flex-shrink:0">⚡</div><div class="signal-text"><strong style="color:var(--success)">×9</strong> выше шанс закрыть сделку при ответе за 5 мин<div class="signal-note">Harvard Business Review</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--warning)"><div style="font-size:20px;flex-shrink:0">🏆</div><div class="signal-text"><strong style="color:var(--warning)">8</strong> касаний — средний B2B цикл до закрытия<div class="signal-note">HubSpot Sales Report</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--founder)"><div style="font-size:20px;flex-shrink:0">🔁</div><div class="signal-text"><strong style="color:var(--founder)">5–25×</strong> дороже привлечь нового vs удержать клиента<div class="signal-note">Bain & Company</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--gold)"><div style="font-size:20px;flex-shrink:0">💰</div><div class="signal-text"><strong style="color:var(--gold)">+95%</strong> прибыль при росте удержания на 5%<div class="signal-note">Bain & Company</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--danger)"><div style="font-size:20px;flex-shrink:0">❌</div><div class="signal-text"><strong style="color:var(--danger)">44%</strong> продавцов сдаются после 2-го отказа<div class="signal-note">Sirius Decisions</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--accent)"><div style="font-size:20px;flex-shrink:0">📈</div><div class="signal-text"><strong style="color:var(--accent)">60–70%</strong> вероятность продажи существующему клиенту<div class="signal-note">Marketing Metrics</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--success)"><div style="font-size:20px;flex-shrink:0">🤝</div><div class="signal-text"><strong style="color:var(--success)">2/3</strong> времени продавец тратит на НЕпродающие действия<div class="signal-note">Salesforce State of Sales</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--primary)"><div style="font-size:20px;flex-shrink:0">💬</div><div class="signal-text"><strong style="color:var(--primary)">92%</strong> покупателей доверяют рекомендациям знакомых<div class="signal-note">Nielsen Global Survey</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--warning)"><div style="font-size:20px;flex-shrink:0">🧠</div><div class="signal-text"><strong style="color:var(--warning)">87%</strong> покупателей изучают продукт онлайн до первого контакта<div class="signal-note">Forrester Research</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--founder)"><div style="font-size:20px;flex-shrink:0">📋</div><div class="signal-text"><strong style="color:var(--founder)">CRM</strong> повышает продажи на 29%, продуктивность на 34%<div class="signal-note">Salesforce ROI Study</div></div></div>
+      <div class="signal-item grey" style="cursor:default;border-left-color:var(--danger)"><div style="font-size:20px;flex-shrink:0">🎯</div><div class="signal-text"><strong style="color:var(--danger)">70%</strong> сделок срываются из-за отсутствия follow-up<div class="signal-note">Salesforce</div></div></div>
+    </div>
+  </div>
+
+</div>
+<!-- ══════════════════ PAGE: AI ══════════════════ -->
+<div class="page" id="page-ai">
+  <div class="ai-box">
+    <div class="ai-header">
+      <div class="ai-avatar">🤖</div>
+      <div>
+        <div class="ai-name"><span class="live-dot"></span>MBA RESULTAT AI-советник</div>
+        <div class="ai-role">Системные продажи · Стратегия роста · Конверсии</div>
+      </div>
+    </div>
+
+    <div class="ai-quick-btns">
+      <div class="ai-quick" onclick="askAI('Проанализируй мою воронку и найди узкое горлышко')">📊 Анализ воронки</div>
+      <div class="ai-quick" onclick="askAI('Как поднять конверсию встречи в продажу?')">📈 Поднять конверсию</div>
+      <div class="ai-quick" onclick="askAI('Какие каналы лидогенерации подойдут лучше всего?')">📡 Лучшие каналы</div>
+      <div class="ai-quick" onclick="askAI('Как выстроить систему follow-up для моего бизнеса?')">🔁 Follow-up система</div>
+      <div class="ai-quick" onclick="askAI('Как правильно отрабатывать возражение «дорого»?')">💬 Возражение «дорого»</div>
+      <div class="ai-quick" onclick="askAI('Как построить отдел продаж, который работает без владельца?')">⚙️ Автопилот продаж</div>
+      <div class="ai-quick" onclick="askAI('Объясни принцип штучного и массового продукта')">📦 Штучный vs массовый</div>
+      <div class="ai-quick" onclick="askAI('Как посчитать LTV и почему это важнее выручки?')">💰 Расчёт LTV</div>
+    </div>
+
+    <div class="ai-messages" id="ai-messages">
+      <div class="ai-msg assistant">
+        👋 Здравствуйте! Я ИИ-советник системы <strong>MBA RESULTAT</strong>.<br><br>
+        Знаю всё о системных продажах: воронки, конверсии, скрипты, follow-up, продуктовые матрицы, стратегии роста. Задайте вопрос или выберите тему выше — анализирую ваши данные из калькулятора и даю конкретные рекомендации.
+      </div>
+    </div>
+
+    <div class="ai-input-row">
+      <textarea class="ai-input" id="ai-input" rows="2" placeholder="Задайте вопрос о продажах, стратегии, конверсии... (Ctrl+Enter)" onkeydown="if(event.ctrlKey&&event.key==='Enter')sendAI()"></textarea>
+      <button class="btn-send" onclick="sendAI()" id="ai-btn">Отправить</button>
+    </div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:5px">Ctrl+Enter для отправки · ИИ анализирует ваши данные из всех вкладок</div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script>
+// ── NAVIGATION ──
+function showPage(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── FORMAT ──
+function fmt(n,d=0){if(isNaN(n)||!isFinite(n))return'—';return n.toLocaleString('ru-RU',{maximumFractionDigits:d});}
+function fmtSh(n){if(n>=1000000)return fmt(n/1000000,1)+'M';if(n>=1000)return fmt(n/1000,0)+'K';return fmt(n);}
+function fmtM(n){return'₪'+fmtSh(n);}
+function pct(n){return fmt(n,1)+'%';}
+function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function v(id){const e=document.getElementById(id);return e?+e.value:0;}
+
+// ── FUNNEL CALC ──
+let fChart, fcChart;
+function calc(){
+  const budget=v('f-budget')||1, cpc=v('f-cpc')||1;
+  const cr1=v('f-cr1')/100, qual=v('f-qual')/100, meet=v('f-meet')/100;
+  const show=v('f-show')/100, close=v('f-close')/100;
+  const price=v('f-price')||1, margin=v('f-margin')/100;
+  const ltv=v('f-ltv')||1, lifetime=v('f-lifetime')||1;
+  const growth=v('f-growth')/100;
+
+  const clicks=budget/cpc, leads=clicks*cr1;
+  const qualified=leads*qual, sched=qualified*meet;
+  const attended=sched*show, sales=attended*close;
+  const revenue=sales*price, profit=revenue*margin;
+  const cac=sales>0?budget/sales:0;
+  const ltvVal=price*ltv*lifetime*margin;
+  const ltvCac=cac>0?ltvVal/cac:0;
+  const roi=budget>0?(profit-budget)/budget*100:0;
+
+  // Header stats
+  set('hd-leads',fmt(leads)); set('hd-sales',fmt(sales,1));
+  set('hd-rev',fmtM(revenue)); set('hd-roi',pct(roi));
+
+  // KPI bar
+  set('r-leads',fmt(leads)); set('r-sales',fmt(sales,1));
+  set('r-rev',fmtM(revenue)); set('r-profit',fmtM(profit));
+  set('r-cac',fmtM(cac)); set('r-roi',pct(roi));
+  set('r-ltv',fmtM(ltvVal)); set('r-ltvcac',fmt(ltvCac,1)+'x');
+
+  // Style KPI cards by value
+  const roiCard=document.querySelector('#kpi-bar .metric-card:nth-child(6)');
+  if(roiCard){roiCard.className='metric-card '+(roi>100?'success-card':roi>0?'gold-card':'danger-card');}
+  const ltvCard=document.querySelector('#kpi-bar .metric-card:nth-child(8)');
+  if(ltvCard){ltvCard.className='metric-card '+(ltvCac>=10?'success-card':ltvCac>=3?'blue-card':'danger-card');}
+
+  // Waterfall funnel
+  const steps=[
+    {label:'Клики (реклама→сайт)',val:clicks,color:'#2563eb',tier:'tier-1'},
+    {label:'Лиды (заявки)',val:leads,color:'#7c3aed',tier:'tier-2'},
+    {label:'Квалифицированные лиды',val:qualified,color:'#7c3aed',tier:'tier-2'},
+    {label:'Назначено встреч',val:sched,color:'#16a34a',tier:'tier-3'},
+    {label:'Проведено встреч',val:attended,color:'#16a34a',tier:'tier-3'},
+    {label:'Продажи (закрытые сделки)',val:sales,color:'#b45309',tier:'tier-gold'},
+  ];
+  const maxV=steps[0].val||1;
+  document.getElementById('funnel-wf').innerHTML=steps.map((s,i)=>{
+    const w=Math.max(8,(s.val/maxV)*100);
+    const conv=i>0&&steps[i-1].val>0?'→ '+((s.val/steps[i-1].val)*100).toFixed(0)+'%':'';
+    return `<div class="wf-row ${s.tier}">
+      <div class="wf-label">${s.label}</div>
+      <div class="wf-bar-wrap"><div class="wf-bar" style="width:${w}%;background:${s.color}"></div></div>
+      <div class="wf-val">${fmt(s.val,0)}</div>
+      <div class="wf-pct">${conv}</div>
+    </div>`;
+  }).join('');
+
+  // Bottleneck
+  const convs=[
+    {name:'Клик → Лид (CR1)',val:cr1*100,target:5},
+    {name:'Квалификация',val:qual*100,target:70},
+    {name:'Назначение встреч',val:meet*100,target:60},
+    {name:'Доходимость',val:show*100,target:80},
+    {name:'Закрытие сделки',val:close*100,target:25},
+  ];
+  const sorted=[...convs].sort((a,b)=>(a.val/a.target)-(b.val/b.target));
+  const worst=sorted[0];
+  document.getElementById('bottleneck').innerHTML=`
+    <div class="alert warn" style="margin-bottom:10px">
+      <span class="alert-icon">⚠️</span>
+      <div>Узкое горлышко: <strong>${worst.name}</strong> — ${pct(worst.val)} (цель: ${pct(worst.target)})</div>
+    </div>
+    ${sorted.map(c=>{
+      const r=c.val/c.target;
+      const cls=r>=1?'green':r>=0.7?'yellow':'red';
+      const dotCls=r>=1?'green':r>=0.7?'yellow':'red';
+      return `<div class="signal-item ${cls}">
+        <div class="signal-dot ${dotCls}"></div>
+        <div class="signal-text">${c.name}: <strong>${pct(c.val)}</strong>
+          <div class="signal-note">Цель: ${pct(c.target)} · Достигнуто: ${(r*100).toFixed(0)}%</div>
+          <div class="progress-wrap"><div class="progress-bar ${cls}" style="width:${Math.min(100,r*100)}%"></div></div>
+        </div>
+      </div>`;
+    }).join('')}`;
+
+  // Funnel bar chart
+  if(fChart)fChart.destroy();
+  const ctx=document.getElementById('funnelChart').getContext('2d');
+  fChart=new Chart(ctx,{type:'bar',
+    data:{labels:steps.map(s=>s.label),datasets:[{data:steps.map(s=>s.val),backgroundColor:steps.map(s=>s.color+'88'),borderColor:steps.map(s=>s.color),borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#f1f5f9'}},x:{ticks:{color:'#64748b',font:{size:9}},grid:{display:false}}}}
+  });
+
+  // Forecast
+  const months=Array.from({length:12},(_,i)=>i+1);
+  const fRevs=months.map(m=>{let b=budget;for(let i=0;i<m-1;i++)b*=(1+growth);return b/cpc*cr1*qual*meet*show*close*price;});
+  if(fcChart)fcChart.destroy();
+  const ctx2=document.getElementById('forecastChart').getContext('2d');
+  fcChart=new Chart(ctx2,{type:'line',
+    data:{labels:months.map(m=>`М${m}`),datasets:[{label:'Выручка',data:fRevs,borderColor:'#b45309',backgroundColor:'rgba(180,83,9,.08)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#b45309',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{color:'#64748b',font:{size:10},callback:v=>fmtM(v)},grid:{color:'#f1f5f9'}},x:{ticks:{color:'#64748b',font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+// ── CHANNELS ──
+const channels40=[
+  {n:'Google Ads (поиск)',g:'Онлайн-реклама',b:2000,imp:50000,ctr:3,cr:5},
+  {n:'Google Ads YouTube',g:'Онлайн-реклама',b:1500,imp:80000,ctr:1.5,cr:3},
+  {n:'Google KMC/Display',g:'Онлайн-реклама',b:800,imp:120000,ctr:0.8,cr:2},
+  {n:'Meta (Facebook/Instagram)',g:'Онлайн-реклама',b:2000,imp:60000,ctr:2.5,cr:4},
+  {n:'TikTok Ads',g:'Онлайн-реклама',b:500,imp:40000,ctr:2,cr:3},
+  {n:'Telegram Ads',g:'Онлайн-реклама',b:600,imp:30000,ctr:2.8,cr:4},
+  {n:'LinkedIn Ads',g:'Онлайн-реклама',b:1000,imp:15000,ctr:1.2,cr:3},
+  {n:'Ретаргетинг / Look-alike',g:'Онлайн-реклама',b:400,imp:25000,ctr:4,cr:8},
+  {n:'Реклама на конкурентов',g:'Онлайн-реклама',b:300,imp:10000,ctr:2,cr:4},
+  {n:'SEO / Органика сайта',g:'Контент',b:500,imp:30000,ctr:5,cr:4},
+  {n:'YouTube-канал (органика)',g:'Контент',b:300,imp:20000,ctr:3,cr:5},
+  {n:'Telegram-канал',g:'Контент',b:200,imp:15000,ctr:4,cr:6},
+  {n:'TikTok органика',g:'Контент',b:100,imp:25000,ctr:3,cr:3},
+  {n:'Instagram Reels',g:'Контент',b:150,imp:18000,ctr:2.5,cr:3},
+  {n:'Подкасты / интервью',g:'Контент',b:200,imp:5000,ctr:6,cr:5},
+  {n:'Блог / Статьи (SEO)',g:'Контент',b:150,imp:8000,ctr:4,cr:4},
+  {n:'PR / Статьи в СМИ',g:'Контент',b:500,imp:15000,ctr:1,cr:3},
+  {n:'Email-рассылки',g:'Email & CRM',b:100,imp:10000,ctr:8,cr:6},
+  {n:'SMS-рассылки',g:'Email & CRM',b:200,imp:5000,ctr:12,cr:5},
+  {n:'WhatsApp-рассылки',g:'Email & CRM',b:150,imp:4000,ctr:15,cr:7},
+  {n:'Автоворонки (email)',g:'Email & CRM',b:100,imp:6000,ctr:10,cr:8},
+  {n:'Ретаргетинг по базе',g:'Email & CRM',b:200,imp:5000,ctr:9,cr:7},
+  {n:'Партнёрская программа',g:'Партнёры',b:300,imp:12000,ctr:5,cr:8},
+  {n:'Аффилиаты / CPA-сети',g:'Партнёры',b:600,imp:20000,ctr:3,cr:5},
+  {n:'Крупные блогеры',g:'Партнёры',b:1500,imp:50000,ctr:2,cr:4},
+  {n:'Микро-блогеры (посевы)',g:'Партнёры',b:800,imp:30000,ctr:2.5,cr:5},
+  {n:'Кросс-промо с бизнесами',g:'Партнёры',b:200,imp:8000,ctr:4,cr:6},
+  {n:'Реферальная программа',g:'Партнёры',b:200,imp:5000,ctr:8,cr:10},
+  {n:'Бартер с блогерами',g:'Партнёры',b:100,imp:10000,ctr:3,cr:5},
+  {n:'Выступления на форумах',g:'Офлайн',b:500,imp:3000,ctr:10,cr:12},
+  {n:'Собственные мероприятия',g:'Офлайн',b:1000,imp:2000,ctr:15,cr:15},
+  {n:'Сарафанное радио',g:'Офлайн',b:0,imp:1000,ctr:20,cr:15},
+  {n:'Холодные звонки (реанимация)',g:'Офлайн',b:200,imp:800,ctr:25,cr:8},
+  {n:'Нетворкинг / Клубы',g:'Офлайн',b:300,imp:500,ctr:30,cr:20},
+  {n:'Местная реклама / OOH',g:'Офлайн',b:400,imp:20000,ctr:0.5,cr:2},
+  {n:'Вебинары / Онлайн-события',g:'Вебинары',b:400,imp:2000,ctr:20,cr:12},
+  {n:'Лид-магниты (чек-листы)',g:'Вебинары',b:100,imp:5000,ctr:8,cr:10},
+  {n:'Мастер-классы',g:'Вебинары',b:300,imp:1500,ctr:18,cr:14},
+  {n:'Закрытый клуб',g:'Вебинары',b:200,imp:800,ctr:12,cr:18},
+  {n:'Telegram-боты + Чат-боты',g:'Автоматизация',b:150,imp:3500,ctr:13,cr:8},
+];
+let chState=channels40.map((c,i)=>({...c,active:i<8}));
+
+function buildChannels(){
+  const tbody=document.getElementById('ch-tbody');
+  let html='',lastG='';
+  chState.forEach((c,i)=>{
+    if(c.g!==lastG){html+=`<tr><td colspan="10" class="ch-group-label">${c.g}</td></tr>`;lastG=c.g;}
+    const dis=!c.active?'opacity:.5;':'';
+    html+=`<tr>
+      <td><span style="cursor:pointer;font-size:15px" onclick="toggleCh(${i})">${c.active?'✅':'⬜'}</span></td>
+      <td style="font-weight:600;font-size:11px;${dis}">${c.n}</td>
+      <td><span class="badge blue" style="font-size:9px">${c.g.split(' ')[0]}</span></td>
+      <td><input type="number" value="${c.active?c.b:0}" onchange="chState[${i}].b=+this.value;calcChannels()" ${c.active?'':'disabled'} style="${dis}"></td>
+      <td><input type="number" value="${c.imp}" onchange="chState[${i}].imp=+this.value;calcChannels()" ${c.active?'':'disabled'} style="${dis}"></td>
+      <td><input type="number" value="${c.ctr}" step="0.1" onchange="chState[${i}].ctr=+this.value;calcChannels()" ${c.active?'':'disabled'} style="${dis}"></td>
+      <td><input type="number" value="${c.cr}" step="0.1" onchange="chState[${i}].cr=+this.value;calcChannels()" ${c.active?'':'disabled'} style="${dis}"></td>
+      <td id="chl-${i}" style="font-weight:700;color:var(--success)">—</td>
+      <td id="chc-${i}" style="color:var(--text-muted)">—</td>
+      <td id="chr-${i}" style="font-weight:700">—</td>
+    </tr>`;
+  });
+  tbody.innerHTML=html;
+  calcChannels();
+}
+function toggleCh(i){chState[i].active=!chState[i].active;buildChannels();}
+function calcChannels(){
+  let tB=0,tL=0,bestCpl=Infinity,bestN='';
+  const avgP=v('f-price')||3000;
+  chState.forEach((c,i)=>{
+    if(!c.active){set('chl-'+i,'—');set('chc-'+i,'—');set('chr-'+i,'—');return;}
+    const clicks=c.imp*c.ctr/100, leads=clicks*c.cr/100;
+    const cpl=leads>0?c.b/leads:0;
+    const roi=c.b>0?(leads*avgP*0.4-c.b)/c.b*100:0;
+    tB+=c.b;tL+=leads;
+    if(cpl>0&&cpl<bestCpl){bestCpl=cpl;bestN=c.n;}
+    set('chl-'+i,fmt(leads,0)); set('chc-'+i,fmtM(cpl));
+    const roiEl=document.getElementById('chr-'+i);
+    if(roiEl){roiEl.textContent=pct(roi);roiEl.style.color=roi>0?'var(--success)':'var(--danger)';}
+  });
+  const act=chState.filter(c=>c.active).length;
+  set('ch-count',act);set('ch-budget',fmtM(tB));
+  set('ch-leads',fmt(tL,0));set('ch-cpl',tL>0?fmtM(tB/tL):'—');set('ch-best',bestN||'—');
+}
+function autoFillChannels(){chState=chState.map(c=>({...c,active:true}));buildChannels();}
+
+// ── PRODUCTS ──
+let pChart;
+function calcProducts(){
+  const p1p=v('p1-price'),p1c=v('p1-cost'),p1q=v('p1-qty'),p1conv=v('p1-conv')/100;
+  const p2p=v('p2-price'),p2c=v('p2-cost'),p2conv=v('p2-conv')/100;
+  const p3p=v('p3-price'),p3c=v('p3-cost');
+  const p2q=Math.round(p1q*p1conv), p3q=Math.round(p2q*p2conv);
+  document.getElementById('p2-qty').value=p2q;
+  document.getElementById('p3-qty').value=p3q;
+  const r1={rev:p1p*p1q,m:(p1p-p1c)*p1q,mp:p1p>0?(p1p-p1c)/p1p*100:0};
+  const r2={rev:p2p*p2q,m:(p2p-p2c)*p2q,mp:p2p>0?(p2p-p2c)/p2p*100:0};
+  const r3={rev:p3p*p3q,m:(p3p-p3c)*p3q,mp:p3p>0?(p3p-p3c)/p3p*100:0};
+  const tRev=r1.rev+r2.rev+r3.rev, tM=r1.m+r2.m+r3.m;
+
+  [[r1,'p1'],[r2,'p2'],[r3,'p3']].forEach(([r,id])=>{
+    document.getElementById(id+'-result').innerHTML=`
+      <div class="grid2" style="gap:6px;margin-top:10px">
+        <div class="metric-card" style="padding:10px"><label>Выручка</label><div class="val" style="font-size:1.1rem">${fmtM(r.rev)}</div></div>
+        <div class="metric-card ${r.mp>50?'success-card':r.mp>25?'gold-card':'danger-card'}" style="padding:10px"><label>Маржа</label><div class="val" style="font-size:1.1rem">${pct(r.mp)}</div></div>
+      </div>`;
+  });
+
+  document.getElementById('products-summary').innerHTML=`
+    <div class="metric-card blue-card"><label>Общая выручка</label><div class="val">${fmtM(tRev)}</div></div>
+    <div class="metric-card success-card"><label>Валовая маржа</label><div class="val">${fmtM(tM)}</div></div>
+    <div class="metric-card gold-card"><label>Маржа %</label><div class="val">${tRev>0?pct(tM/tRev*100):'—'}</div></div>
+    <div class="metric-card"><label>Клиентов всего</label><div class="val">${fmt(v('p1-qty')+p2q+p3q)}</div></div>
+  `;
+  if(pChart)pChart.destroy();
+  const ctx=document.getElementById('productsChart').getContext('2d');
+  pChart=new Chart(ctx,{type:'doughnut',
+    data:{labels:[document.getElementById('p1-name').value||'Tripwire',document.getElementById('p2-name').value||'Core',document.getElementById('p3-name').value||'Premium'],
+      datasets:[{data:[r1.rev,r2.rev,r3.rev],backgroundColor:['rgba(22,163,74,.6)','rgba(180,83,9,.7)','rgba(124,58,237,.6)'],borderColor:['#16a34a','#b45309','#7c3aed'],borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:11}}}}}
+  });
+}
+
+// ── FOLLOW-UP ──
+const fuMethods=[
+  {icon:'📞',n:'Телефонный звонок',d:'Самый личный. Для уточнения и принятия решения.',stat:'+25% конверсии',key:'call'},
+  {icon:'💬',n:'WhatsApp / Telegram',d:'Мягкий формат. Короткие напоминания и касания.',stat:'+18% конверсии',key:'msg'},
+  {icon:'📧',n:'Email follow-up',d:'B2B. Thank you, Value, Deadline, Reactivation.',stat:'+15% конверсии',key:'email'},
+  {icon:'🎯',n:'Контент-касание',d:'Кейс, статья, чек-лист — без прямой продажи.',stat:'+20% доверия',key:'content'},
+  {icon:'✉️',n:'Личная открытка',d:'Premium. Рукописное письмо — сильный эффект.',stat:'×3 запоминаемость',key:'card'},
+  {icon:'🔄',n:'Follow-up после отказа',d:'«Вернусь через 2 месяца» и действительно вернуться.',stat:'Делают 5%, берут всё',key:'reject'},
+  {icon:'📹',n:'Видео-сообщение',d:'Персонализированное видео с обращением по имени.',stat:'+35% открываемость',key:'video'},
+  {icon:'🎁',n:'Ценный подарок/бонус',d:'Релевантный бонус, решающий боль прямо сейчас.',stat:'+40% отклик',key:'gift'},
+];
+let fuActive=new Set(['call','msg','email']);
+
+function buildFollowup(){
+  document.getElementById('fu-grid').innerHTML=fuMethods.map(m=>`
+    <div class="fu-card ${fuActive.has(m.key)?'active':''}" onclick="toggleFu('${m.key}')">
+      <div class="fu-icon">${m.icon}</div>
+      <div class="fu-name">${m.n}</div>
+      <div class="fu-desc">${m.d}</div>
+      <div class="fu-stat">${m.stat}</div>
+    </div>`).join('');
+  calcFollowup();
+}
+function toggleFu(k){fuActive.has(k)?fuActive.delete(k):fuActive.add(k);buildFollowup();}
+function calcFollowup(){
+  const cold=v('fu-cold')||0, touches=v('fu-touches')||1;
+  const baseCr=v('fu-base-cr')/100, price=v('fu-price')||0;
+  const mult=1+(fuActive.size-1)*0.08;
+  const conv=1-Math.pow(1-baseCr,touches)*mult;
+  const recovered=Math.round(cold*Math.min(0.85,conv));
+  const addRev=recovered*price;
+  document.getElementById('fu-results').innerHTML=`
+    <div class="kpi-bar" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+      <div class="metric-card success-card"><label>Восстановлено клиентов</label><div class="val">${fmt(recovered)}</div></div>
+      <div class="metric-card gold-card"><label>Доп. выручка</label><div class="val">${fmtM(addRev)}</div></div>
+    </div>
+    <div class="metric-card blue-card" style="margin-bottom:8px"><label>Активных инструментов</label>
+      <div class="val">${fuActive.size} из ${fuMethods.length}</div>
+      <div class="progress-wrap"><div class="progress-bar blue" style="width:${fuActive.size/fuMethods.length*100}%"></div></div>
+    </div>
+    <div class="alert success">
+      <span class="alert-icon">💰</span>
+      <div>Серия из <strong>${touches} касаний</strong> по базе ${fmt(cold)} лидов — потенциал <strong>${fmtM(addRev)}</strong> без новых расходов на рекламу.</div>
+    </div>`;
+  const rules=['Будь краток. Первые 20 секунд решают всё.','Формулируй пользу, не функции.',
+    'Используй имя клиента.','Говори цифрами, а не прилагательными.',
+    'Каждое сообщение — с CTA (призывом к действию).','Пиши грамотно, без «может быть».',
+    'Записывай все договорённости.','Поддерживай темп общения.',
+    'Отвечай в течение часа.','Будь человеком — не роботом.'];
+  document.getElementById('fu-rules').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">`+
+    rules.map((r,i)=>`<div class="signal-item grey" style="cursor:default">
+      <div class="signal-dot grey"></div>
+      <div class="signal-text"><strong>${String(i+1).padStart(2,'0')}.</strong> ${r}</div>
+    </div>`).join('')+'</div>';
+}
+
+// ── DIAGNOSIS ──
+const diagItems=[
+  {t:'Установлены цели и KPI отдела',n:'Каждый менеджер знает план в цифрах',k:'kpi'},
+  {t:'Есть скрипты для всех этапов продаж',n:'Конструктор: приветствие → потребность → возражения → закрытие',k:'scripts'},
+  {t:'Внедрена CRM и контроль конверсий',n:'CRM важнее, чем стол и стулья — без неё системные продажи невозможны',k:'crm'},
+  {t:'Все звонки записываются и разбираются',n:'Минимум 5 звонков в неделю анализирует РОП',k:'calls'},
+  {t:'Еженедельная планёрка по результатам',n:'10 минут контроля в неделю — система работает без владельца',k:'meetings'},
+  {t:'Есть система касаний для холодных лидов',n:'Follow-up серия 5–12 касаний по архивной базе',k:'followup'},
+  {t:'Ведётся статистика сделок по стадиям',n:'Воронка прозрачна: лид → квалификация → встреча → продажа',k:'stats'},
+  {t:'Работает система мотивации менеджеров',n:'Фикс + %, KPI-бонус, геймификация, признание',k:'motiv'},
+  {t:'Обучение и тренинги минимум раз в неделю',n:'Ринг возражений, 100 звонков, Клиент-хамелеон',k:'train'},
+  {t:'Есть воронка повторных продаж (LTV)',n:'Upsell, cross-sell, программы лояльности',k:'ltv'},
+  {t:'Клиенты оценивают качество обслуживания',n:'CSAT — цель 94%',k:'csat'},
+  {t:'Нет хаоса: порядок в задачах и CRM',n:'Нет незаменимых продавцов — система независима от людей',k:'order'},
+];
+let diagState={};
+diagItems.forEach(d=>diagState[d.k]=null);
+
+function buildDiagnosis(){
+  document.getElementById('diag-list').innerHTML=diagItems.map(d=>{
+    const s=diagState[d.k];
+    const cls=s===true?'green':s===false?'red':'grey';
+    const dot=s===true?'green':s===false?'red':'grey';
+    const ico=s===true?'✓':s===false?'✗':'?';
+    return `<div class="signal-item ${cls}" onclick="cycleDiag('${d.k}')">
+      <div style="width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;
+        background:${s===true?'#dcfce7':s===false?'#fee2e2':'#f1f5f9'};
+        color:${s===true?'#16a34a':s===false?'#dc2626':'#64748b'};
+        border:1px solid ${s===true?'#86efac':s===false?'#fca5a5':'#e2e8f0'}">${ico}</div>
+      <div class="signal-text">${d.t}
+        <div class="signal-note">${d.n}</div>
+      </div>
+    </div>`;
+  }).join('');
+  updateHealth();
+}
+function cycleDiag(k){const c=diagState[k];diagState[k]=c===null?true:c===true?false:null;buildDiagnosis();}
+function updateHealth(){
+  const yes=Object.values(diagState).filter(v=>v===true).length;
+  const pctH=yes/diagItems.length*100;
+  const ring=document.getElementById('health-ring');
+  if(ring)ring.style.strokeDashoffset=327*(1-pctH/100);
+  set('health-pct',Math.round(pctH)+'%');
+  const v2=pctH>=80?'🟢 Система здорова. Фокус на масштаб.':
+    pctH>=50?'🟡 Есть точки роста. Устраните узкие места.':'🔴 Критические пробелы. Начните с CRM и скриптов.';
+  set('health-verdict',v2);
+  const roles=['pf-lead','pf-qual','pf-meet','pf-close','pf-ltv'];
+  roles.forEach((r,i)=>{const e=document.getElementById(r);if(e)e.className='pf-box'+(pctH>i*20?' active':'');});
+}
+
+const antip=[
+  {e:'Говорит больше, чем слушает',w:'Клиент не чувствует участия',f:'Правило 70/30 — слушай 70%'},
+  {e:'«Как дела?» в начале звонка',w:'Тратит время и раздражает',f:'«Удобно ли говорить минуту?»'},
+  {e:'Нет чёткой цели звонка',w:'Потеря контроля над диалогом',f:'Чёткий план: цель + следующий шаг'},
+  {e:'Отправил КП без диалога',w:'КП не читают — теряется',f:'Сначала созвонись, потом пришли'},
+  {e:'Не фиксирует возражения',w:'Теряется обучающий материал',f:'Записывай возражения в таблицу CRM'},
+  {e:'Нет follow-up после встречи',w:'Потеря лида после 1-го контакта',f:'Автоматизируй напоминания в CRM'},
+  {e:'Говорит о характеристиках, не о выгоде',w:'Клиент не понимает зачем',f:'«Это значит, что вы получите…»'},
+  {e:'Боится назвать цену',w:'Клиент чувствует неуверенность',f:'Называй уверенно после презентации ценности'},
+];
+function buildAntip(){
+  document.getElementById('antipatterns').innerHTML=`<table class="data-table">
+    <thead><tr><th>Ошибка</th><th>Почему опасна</th><th>✅ Альтернатива</th></tr></thead>
+    <tbody>${antip.map(a=>`<tr>
+      <td style="color:var(--danger);font-weight:600">${a.e}</td>
+      <td style="color:var(--text-muted)">${a.w}</td>
+      <td style="color:var(--success);font-weight:600">${a.f}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;}
+
+const skills10=['Умение слушать и слышать','Умение задавать качественные вопросы',
+  'Навык визуализации выгоды','Уверенное завершение сделки',
+  'Умение работать с возражениями','Навык эмоционального заражения — энергия в голосе',
+  'Тайминг — держать разговор 5–7 минут','Планирование дня — 20+ касаний',
+  'Самоанализ звонков','Непрерывное обучение'];
+function buildSkills(){
+  document.getElementById('manager-skills').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
+    ${skills10.map((s,i)=>`<div class="signal-item grey" style="cursor:default">
+      <div class="signal-dot grey"></div>
+      <div class="signal-text"><strong style="color:var(--primary)">${String(i+1).padStart(2,'0')}.</strong> ${s}</div>
+    </div>`).join('')}</div>`;}
+
+// ── STATISTICS CALC ──
+function stRow(id,val,min,max,inverse){
+  const ok=inverse?(val<=min):(val>=min&&val<=max*1.5);
+  const great=inverse?(val<=min*0.6):(val>=max);
+  const cls=great?'green':ok?'yellow':'red';
+  const ico=great?'✅':ok?'⚠️':'🚨';
+  const el=document.getElementById(id);
+  if(el)el.innerHTML=`<span class="badge ${cls}">${ico}</span>`;
+  return great?2:ok?1:0;
+}
+function blockBadge(id,score,total){
+  const pct=Math.round(score/total*100);
+  const cls=pct>=80?'green':pct>=50?'yellow':'red';
+  const el=document.getElementById(id);
+  if(el){el.textContent=pct+'%';el.className='badge '+cls;}
+  return pct;
+}
+function insightBox(type,icon,title,body){return`<div class="alert ${type}"><span class="alert-icon">${icon}</span><div><div class="alert-title">${title}</div>${body}</div></div>`;}
+
+function calcStats(){
+  let scores={};
+  // Activity
+  let a=0;
+  a+=stRow('st-calls-day-s',+document.getElementById('st-calls-day').value,20,50);
+  a+=stRow('st-calls-res-s',+document.getElementById('st-calls-res').value,5,15);
+  a+=stRow('st-meets-week-s',+document.getElementById('st-meets-week').value,10,20);
+  a+=stRow('st-kp-week-s',+document.getElementById('st-kp-week').value,5,15);
+  a+=stRow('st-fu-week-s',+document.getElementById('st-fu-week').value,15,30);
+  scores.activity=blockBadge('badge-activity',a,10);
+  document.getElementById('activity-insight').innerHTML=a<6?
+    insightBox('danger','🚨','Активность ниже нормы','Менеджеры делают менее 20 звонков в день. Введите ежедневный контроль в CRM и утреннюю постановку задач.'):
+    a<9?insightBox('warn','⚠️','Средняя активность','Поднимите follow-up касания. 80% продаж — между 5-м и 12-м контактом.'):
+    insightBox('success','✅','Активность в норме','Фокус на качество диалогов и конверсию встреч.');
+
+  // Conversions
+  let c=0;
+  c+=stRow('st-cr-qual-s',+document.getElementById('st-cr-qual').value,60,80);
+  c+=stRow('st-cr-meet-s',+document.getElementById('st-cr-meet').value,50,70);
+  c+=stRow('st-cr-show-s',+document.getElementById('st-cr-show').value,75,90);
+  c+=stRow('st-cr-close-s',+document.getElementById('st-cr-close').value,20,35);
+  c+=stRow('st-cr-repeat-s',+document.getElementById('st-cr-repeat').value,60,80);
+  scores.conv=blockBadge('badge-conv',c,10);
+  const showV=+document.getElementById('st-cr-show').value,closeV=+document.getElementById('st-cr-close').value;
+  document.getElementById('conv-insight').innerHTML=showV<70?
+    insightBox('warn','⚠️','Низкая доходимость',`Show-up rate ${showV}% — ниже нормы 75%. Внедрите автоматические WhatsApp-напоминания за 2 часа до встречи.`):
+    closeV<20?insightBox('warn','⚠️','Низкий close rate',`${closeV}% — ниже нормы. Проведите аудит скрипта закрытия. Основная причина — отсутствие чёткого CTA.`):
+    insightBox('success','✅','Конверсии в норме','Следите за повторными покупками — они определяют долгосрочный LTV.');
+
+  // Speed
+  let sp=0;
+  sp+=stRow('st-resp-s',+document.getElementById('st-resp').value,0,5,true);
+  sp+=stRow('st-lead2meet-s',+document.getElementById('st-lead2meet').value,0,3,true);
+  sp+=stRow('st-cycle-s',+document.getElementById('st-cycle').value,7,30);
+  sp+=stRow('st-kp-time-s',+document.getElementById('st-kp-time').value,0,24,true);
+  scores.speed=blockBadge('badge-speed',sp,8);
+  const respV=+document.getElementById('st-resp').value;
+  document.getElementById('speed-insight').innerHTML=respV>60?
+    insightBox('danger','🚨','Критическая задержка ответа',`${respV} мин — ответ за 5 мин увеличивает шанс закрытия в 9 раз (Harvard Business Review). Настройте автоответ.`):
+    respV>15?insightBox('warn','⚠️','Задержка выше нормы',`${respV} мин. Цель: до 5 минут. Каждая минута снижает конверсию.`):
+    insightBox('success','✅','Скорость реакции отличная','Конкурентное преимущество — сохраните при росте потока.');
+
+  // Finance
+  let f=0;
+  f+=stRow('st-plan-s',+document.getElementById('st-plan').value,90,120);
+  const avgChk=+document.getElementById('st-avg-check').value,tgtChk=+document.getElementById('st-target-check').value||1;
+  const chkR=avgChk/tgtChk*100;
+  f+=(chkR>=95?2:chkR>=80?1:0);
+  const chkEl=document.getElementById('st-avg-check-s');
+  if(chkEl)chkEl.innerHTML=`<span class="badge ${chkR>=95?'green':chkR>=80?'yellow':'red'}">${chkR>=95?'✅':chkR>=80?'⚠️':'🚨'}</span>`;
+  f+=stRow('st-total-cr-s',+document.getElementById('st-total-cr').value,10,20);
+  f+=stRow('st-repeat-share-s',+document.getElementById('st-repeat-share').value,30,50);
+  f+=stRow('st-romi-s',+document.getElementById('st-romi').value,300,500);
+  scores.finance=blockBadge('badge-finance',f,12);
+  const planV=+document.getElementById('st-plan').value;
+  document.getElementById('finance-insight').innerHTML=planV<80?
+    insightBox('danger','🚨','Критическое невыполнение плана',`${planV}% — немедленно проведите разбор воронки: где именно теряются сделки.`):
+    planV<90?insightBox('warn','⚠️','План не выполнен',`${planV}%. Проверьте конверсию на слабейшем этапе воронки.`):
+    insightBox('success','✅','Финансы в норме','Наращивайте повторные продажи — они в 5–25 раз дешевле привлечения новых клиентов.');
+
+  // Service
+  let sv=0;
+  sv+=stRow('st-csat-s',+document.getElementById('st-csat').value,8,10);
+  sv+=stRow('st-nps-s',+document.getElementById('st-nps').value,30,70);
+  sv+=stRow('st-churn-s',+document.getElementById('st-churn').value,0,5,true);
+  sv+=stRow('st-react-s',+document.getElementById('st-react').value,0,2,true);
+  sv+=stRow('st-retention-s',+document.getElementById('st-retention').value,70,90);
+  scores.service=blockBadge('badge-service',sv,10);
+  const churnV=+document.getElementById('st-churn').value;
+  document.getElementById('service-insight').innerHTML=churnV>10?
+    insightBox('danger','🚨','Критический отток',`Churn ${churnV}%/мес — половина базы теряется за 5 месяцев. Внедрите программу удержания и check-in звонки.`):
+    churnV>5?insightBox('warn','⚠️','Churn выше нормы',`${churnV}%/мес. Рост удержания на 5% даёт +25–95% прибыли (Bain).`):
+    insightBox('success','✅','Клиентский сервис в норме','NPS — лучший предиктор роста через сарафанное радио.');
+
+  // Team
+  let tm=0;
+  tm+=stRow('st-plan-pct-s',+document.getElementById('st-plan-pct').value,70,90);
+  tm+=stRow('st-turnover-s',+document.getElementById('st-turnover').value,0,20,true);
+  tm+=stRow('st-calls-plan-s',+document.getElementById('st-calls-plan').value,80,100);
+  tm+=stRow('st-ramp-s',+document.getElementById('st-ramp').value,0,30,true);
+  scores.team=blockBadge('badge-team',tm,8);
+  const rampV=+document.getElementById('st-ramp').value;
+  document.getElementById('team-insight').innerHTML=rampV>45?
+    insightBox('danger','🚨','Долгий выход на план',`${rampV} дней — создайте программу адаптации с первым KPI на 14-й день.`):
+    insightBox('info','💡','Стандарт адаптации','Первая продажа — 7–14 день. Выход на план — к 30-му дню.');
+
+  // Overall
+  const allV=Object.values(scores);
+  const overall=Math.round(allV.reduce((a,b)=>a+b,0)/allV.length);
+  const bn={activity:'Активность',conv:'Конверсии',speed:'Скорость',finance:'Финансы',service:'Сервис',team:'Команда'};
+  document.getElementById('stats-block-scores').innerHTML=Object.entries(scores).map(([k,v])=>`
+    <div style="text-align:center">
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">${bn[k]}</div>
+      <span class="badge ${v>=80?'green':v>=50?'yellow':'red'}" style="font-size:12px;padding:4px 10px">${v}%</span>
+    </div>`).join('');
+  document.getElementById('stats-main-verdict').innerHTML=`
+    <div class="metric-card ${overall>=80?'success-card':overall>=50?'gold-card':'danger-card'}" style="text-align:center;padding:14px;margin-top:8px">
+      <label>Общий индекс здоровья отдела</label>
+      <div class="val" style="font-size:2rem">${overall}%</div>
+      <div class="sub">${overall>=80?'🟢 Система здорова. Масштабируй.':overall>=50?'🟡 Устрани узкие места.':'🔴 Критические пробелы — нужно вмешательство.'}</div>
+    </div>`;
+  const levers=Object.entries(scores).sort((a,b)=>a[1]-b[1]).slice(0,3);
+  document.getElementById('stats-levers').innerHTML=levers.map(([k,v],i)=>`
+    <div class="signal-item ${v<50?'red':v<80?'yellow':'green'}" style="cursor:default;margin-bottom:5px">
+      <div style="font-weight:700;font-size:12px;flex-shrink:0;color:var(--primary)">#${i+1}</div>
+      <div class="signal-text"><strong>${bn[k]}</strong> — ${v}%
+        <div class="signal-note">Наибольший потенциал роста</div>
+        <div class="progress-wrap"><div class="progress-bar ${v<50?'red':v<80?'orange':'green'}" style="width:${v}%"></div></div>
+      </div>
+    </div>`).join('');
+  document.getElementById('stats-kpi-top').innerHTML=`
+    <div class="metric-card ${overall>=80?'success-card':overall>=50?'gold-card':'danger-card'}"><label>Общий индекс</label><div class="val">${overall}%</div></div>
+    ${Object.entries(scores).map(([k,v])=>`<div class="metric-card ${v>=80?'success-card':v>=50?'gold-card':'danger-card'}"><label>${bn[k]}</label><div class="val">${v}%</div></div>`).join('')}`;
+}
+
+// ── AI ADVISOR — подключён через общий прокси index.html ──
+const AI_SYSTEM=`Ты — профессиональный советник по продажам системы MBA RESULTAT. Никогда не упоминай имена конкретных тренеров или авторов. Говори от имени системы MBA RESULTAT.
+
+ГЛАВНЫЕ ПРИНЦИПЫ:
+- Продажи — следствие правильной организации. В системном бизнесе продаёт не человек, а система.
+- Формула: Система = люди + процессы + контроль + мотивация + улучшения
+- Без CRM системные продажи невозможны. CRM важнее, чем стол и стулья.
+- 80% продаж — между 5-м и 12-м касанием. 48% сдаются после 1-го.
+- Ответ в первые 5 минут увеличивает шанс закрытия в 9 раз (Harvard Business Review).
+- Рост удержания на 5% даёт +25–95% прибыли (Bain & Company).
+- CRM повышает продажи на 29%, продуктивность на 34% (Salesforce).
+
+ВОРОНКА: Лид → Квалификация → Назначение встречи → Доходимость → Закрытие → LTV. Цель: LTV:CAC > 10.
+
+ПРОДУКТОВАЯ МАТРИЦА: Штучный продукт должен быть дорогим. Массовый — дешёвым.
+Tripwire (вводный) → Core (основной) → Premium (upsell).
+
+FOLLOW-UP: Метод 10 касаний, Лестница ценности, Follow-up после отказа.
+СКРИПТ: приветствие → потребность → презентация выгоды → возражения → закрытие.
+
+Отвечай конкретно, с цифрами, на русском языке. Ссылайся на методологию MBA RESULTAT.`;
+
+let aiHist=[];
+function getCtx(){
+  const g=id=>(document.getElementById(id)?.value||document.getElementById(id)?.textContent||'—');
+  return`\n\nДанные из калькулятора:\n- Бюджет: ${g('f-budget')}₪, CR1: ${g('f-cr1')}%, Квалификация: ${g('f-qual')}%, Доходимость: ${g('f-show')}%, Закрытие: ${g('f-close')}%\n- Чек: ${g('f-price')}₪, Лидов: ${document.getElementById('r-leads')?.textContent||'—'}, Продаж: ${document.getElementById('r-sales')?.textContent||'—'}, ROI: ${document.getElementById('r-roi')?.textContent||'—'}, LTV:CAC: ${document.getElementById('r-ltvcac')?.textContent||'—'}\n- Выполнение плана: ${g('st-plan')}%, CSAT: ${g('st-csat')}, Churn: ${g('st-churn')}%, Close rate: ${g('st-cr-close')}%, Ответ на заявку: ${g('st-resp')} мин`;
+}
+
+// Shared proxy — тот же эндпоинт что и в index.html
+async function callProxy(userMsg){
+  const r=await fetch('https://mba-api.guza87.workers.dev',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',system:AI_SYSTEM,user:userMsg})
+  });
+  const d=await r.json();
+  if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+  return d.text||d.content?.[0]?.text||'Нет ответа';
+}
+
+async function sendAI(){const i=document.getElementById('ai-input');const t=i.value.trim();if(!t)return;askAI(t);i.value='';}
+async function askAI(text){
+  const msgs=document.getElementById('ai-messages'),btn=document.getElementById('ai-btn');
+  msgs.innerHTML+=`<div class="ai-msg user">${text}</div>`;
+  const load=document.createElement('div');load.className='ai-msg assistant';load.innerHTML='<em>Анализирую данные...</em>';
+  msgs.appendChild(load);msgs.scrollTop=msgs.scrollHeight;btn.disabled=true;
+  try{
+    const reply=await callProxy(text+getCtx());
+    aiHist.push({role:'user',content:text},{role:'assistant',content:reply});
+    load.remove();
+    msgs.innerHTML+=`<div class="ai-msg assistant">${reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
+  }catch(e){
+    load.remove();
+    msgs.innerHTML+=`<div class="ai-msg assistant" style="color:var(--danger)">❌ ${e.message}. Убедитесь что прокси mba-api.guza87.workers.dev доступен.</div>`;
+  }
+  btn.disabled=false;msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── INIT ──
+window.onload=function(){
+  calc();buildChannels();calcProducts();buildFollowup();buildDiagnosis();buildAntip();buildSkills();calcStats();
+};
+</script>
+</body>
+</html>
