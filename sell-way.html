@@ -1454,6 +1454,73 @@ function calcStats(){
     ${Object.entries(scores).map(([k,v])=>`<div class="metric-card ${v>=80?'success-card':v>=50?'gold-card':'danger-card'}"><label>${bn[k]}</label><div class="val">${v}%</div></div>`).join('')}`;
 }
 
+// ── SUPABASE KNOWLEDGE BASE ──
+const KB_URL = 'https://ejabiluscxahbiceievs.supabase.co';
+const KB_KEY = 'sb_publishable__ldZEsHUB_jsBZfiLjhIBA_0J-VxvTz';
+
+// Извлекаем ключевые слова из вопроса пользователя
+function extractKeywords(text) {
+  const kwMap = {
+    'воронк': 'воронка', 'лид': 'лид', 'конверси': 'конверсия',
+    'follow': 'follow-up', 'фоллоу': 'follow-up', 'касани': 'касание',
+    'скрипт': 'скрипт', 'возражени': 'возражение', 'закрыти': 'закрытие',
+    'канал': 'канал', 'лидоген': 'лидогенерация', 'трафик': 'трафик',
+    'продукт': 'продукт', 'чек': 'чек', 'ltv': 'LTV', 'cac': 'CAC',
+    'маржа': 'маржа', 'выручк': 'выручка', 'прибыл': 'прибыль',
+    'план': 'план', 'kpi': 'KPI', 'статистик': 'статистика',
+    'менеджер': 'менеджер', 'отдел': 'отдел', 'crm': 'CRM',
+    'дорог': 'дорого', 'цен': 'цена', 'скидк': 'скидка',
+    'встреч': 'встреча', 'звонок': 'звонок', 'сделк': 'сделка',
+    'систем': 'система', 'масштаб': 'масштаб', 'рост': 'рост',
+  };
+  const lower = text.toLowerCase();
+  for (const [key, kw] of Object.entries(kwMap)) {
+    if (lower.includes(key)) return kw;
+  }
+  // Fallback — первое существительное длиннее 4 букв
+  const words = text.split(/\s+/).filter(w => w.length > 4);
+  return words[0] || 'продажи';
+}
+
+async function searchKB(userText) {
+  try {
+    const kw = extractKeywords(userText);
+    // Ищем в базе знаний — только в division Отделение 2
+    const url = `${KB_URL}/rest/v1/knowledge_base?` +
+      `select=title,content` +
+      `&content=ilike.*${encodeURIComponent(kw)}*` +
+      `&division=ilike.*Продаж*` +
+      `&limit=3` +
+      `&order=id`;
+    const r = await fetch(url, {
+      headers: { 'apikey': KB_KEY, 'Authorization': 'Bearer ' + KB_KEY }
+    });
+    if (!r.ok) return '';
+    const data = await r.json();
+    if (!data || !data.length) {
+      // Если ничего не нашли по division — ищем по всей базе
+      const url2 = `${KB_URL}/rest/v1/knowledge_base?` +
+        `select=title,content` +
+        `&content=ilike.*${encodeURIComponent(kw)}*` +
+        `&limit=3&order=id`;
+      const r2 = await fetch(url2, {
+        headers: { 'apikey': KB_KEY, 'Authorization': 'Bearer ' + KB_KEY }
+      });
+      if (!r2.ok) return '';
+      const data2 = await r2.json();
+      if (!data2 || !data2.length) return '';
+      return data2.map(c =>
+        `[${c.title}]\n${(c.content||'').substring(0,500)}`
+      ).join('\n\n---\n\n');
+    }
+    return data.map(c =>
+      `[${c.title}]\n${(c.content||'').substring(0,500)}`
+    ).join('\n\n---\n\n');
+  } catch(e) {
+    return '';
+  }
+}
+
 // ── AI ADVISOR — подключён через общий прокси index.html ──
 const AI_SYSTEM=`Ты — профессиональный советник по продажам системы MBA RESULTAT. Никогда не упоминай имена конкретных тренеров или авторов. Говори от имени системы MBA RESULTAT.
 
@@ -1498,10 +1565,21 @@ async function sendAI(){const i=document.getElementById('ai-input');const t=i.va
 async function askAI(text){
   const msgs=document.getElementById('ai-messages'),btn=document.getElementById('ai-btn');
   msgs.innerHTML+=`<div class="ai-msg user">${text}</div>`;
-  const load=document.createElement('div');load.className='ai-msg assistant';load.innerHTML='<em>Анализирую данные...</em>';
+  const load=document.createElement('div');load.className='ai-msg assistant';load.innerHTML='<em>Ищу в базе знаний...</em>';
   msgs.appendChild(load);msgs.scrollTop=msgs.scrollHeight;btn.disabled=true;
   try{
-    const reply=await callProxy(text+getCtx());
+    // 1. Ищем релевантные чанки из базы знаний
+    const kbContext = await searchKB(text);
+    // 2. Формируем промпт с контекстом из KB
+    const kbBlock = kbContext
+      ? `\n\nБАЗА ЗНАНИЙ MBA RESULTAT (используй эти данные в ответе):\n${kbContext}\n\n---\n`
+      : '';
+    const fullMsg = kbBlock + text + getCtx();
+    // 3. Показываем что нашли KB
+    load.innerHTML = kbContext
+      ? '<em>📚 Найдено в базе знаний, формирую ответ...</em>'
+      : '<em>Анализирую данные...</em>';
+    const reply = await callProxy(fullMsg);
     aiHist.push({role:'user',content:text},{role:'assistant',content:reply});
     load.remove();
     msgs.innerHTML+=`<div class="ai-msg assistant">${reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
