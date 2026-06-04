@@ -767,6 +767,7 @@
         <div class="row">
           <span class="row-label">Скорость</span>
           <select id="shadowSpeed">
+            <option value="0.4">Очень медленно (0.4×)</option>
             <option value="0.6">Медленно (0.6×)</option>
             <option value="0.75" selected>Норма (0.75×)</option>
             <option value="0.9">Быстро (0.9×)</option>
@@ -938,10 +939,7 @@
           <div id="pd4" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
         </div>
 
-        <div id="ctrlCountDisplay" style="display:none;text-align:center;padding:10px 0 4px;">
-          <div style="font-size:40px;font-weight:700;font-family:var(--mono);color:var(--green);line-height:1;" id="ctrlCountNum">—</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">считайте вслух</div>
-        </div>
+        <!-- счётчик убран -->
 
         <div id="ctrlInsightBtnWrap" style="display:none;margin-top:6px;">
           <button onclick="triggerInsight()" style="width:100%;padding:13px;border-radius:10px;border:2px solid rgba(245,158,11,0.5);background:rgba(245,158,11,0.12);color:#f59e0b;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.22)'" onmouseout="this.style.background='rgba(245,158,11,0.12)'">
@@ -1135,7 +1133,7 @@ function drawWave() {
 
   // Сглаживаем волну: быстро следуем за сигналом только при РЕЗКИХ скачках
   // При плавной речи — почти не двигается → мотивация говорить ровно
-  const followSpeed = sharpness > 6 ? 0.5 : 0.08; // резкость → нестабильная линия
+  const followSpeed = sharpness > 4 ? 0.7 : 0.25; // более чувствительно
   for (let i = 0; i < bufLen; i++) {
     smoothWaveData[i] += (raw[i] - smoothWaveData[i]) * followSpeed;
   }
@@ -1154,9 +1152,11 @@ function drawWave() {
   waveCtx.beginPath();
   const slice = waveCanvas.width / bufLen;
   let x = 0;
+  const center = waveCanvas.height / 2;
   for (let i = 0; i < bufLen; i++) {
     const v = smoothWaveData[i] / 128;
-    const y = v * waveCanvas.height / 2;
+    const deviation = (v - 1) * 2.8; // усиливаем амплитуду
+    const y = center + deviation * center;
     if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
     x += slice;
   }
@@ -1249,11 +1249,10 @@ function gameLoop() {
     ball.targetY += (centerY - ball.targetY) * 0.03;
   } else {
     // Речь есть: позиция = центр + штраф за резкость + штраф за темп
-    const sharpPenalty = Math.min(45, sharpness * 5); // резкий старт = отклонение вниз
-    const ratePenalty = Math.max(0, (syllableRate - 3.5) * 10); // быстрый темп = отклонение
+    const sharpPenalty = Math.min(55, sharpness * 8); // увеличена амплитуда
+    const ratePenalty = Math.max(0, (syllableRate - 3.5) * 14);
     const deviation = sharpPenalty + ratePenalty;
-    // Отклонение вниз при плохой плавности, держимся по центру при хорошей
-    ball.targetY = centerY + deviation * (Math.sin(Date.now() * 0.03) * 0.5 + 0.5);
+    ball.targetY = centerY + deviation * (Math.sin(Date.now() * 0.03) * 0.6 + 0.5);
   }
 
   ball.y += (ball.targetY - ball.y) * 0.10;
@@ -1439,11 +1438,14 @@ async function startAISession() {
     appendMsg('ai', aiMsg);
     chatHistory.push({ role: 'assistant', content: aiMsg });
     document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+    speakAI(aiMsg);
   } catch(e) {
     document.getElementById('chatArea').lastChild?.remove();
-    appendMsg('ai', 'Здравствуйте! Я слушаю вас, не торопитесь. Говорите в своём темпе.');
-    chatHistory.push({ role: 'assistant', content: 'Здравствуйте! Я слушаю вас, не торопитесь. Говорите в своём темпе.' });
+    const fallback = 'Здравствуйте! Я слушаю вас, не торопитесь. Говорите в своём темпе.';
+    appendMsg('ai', fallback);
+    chatHistory.push({ role: 'assistant', content: fallback });
     document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+    speakAI(fallback);
   }
 }
 
@@ -1476,11 +1478,22 @@ async function sendUserMsg() {
     chatHistory.push({ role: 'assistant', content: aiMsg });
     document.getElementById('aiAvatarStatus').classList.remove('thinking');
     document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+    speakAI(aiMsg);
   } catch(e) {
     document.getElementById('chatArea').lastChild?.remove();
     appendMsg('ai', 'Не торопитесь, я жду столько, сколько нужно.');
     document.getElementById('aiAvatarStatus').classList.remove('thinking');
+    speakAI('Не торопитесь, я жду столько, сколько нужно.');
   }
+}
+
+function speakAI(text) {
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ru-RU';
+  utt.rate = 0.78;
+  utt.pitch = 1.0;
+  window.speechSynthesis.speak(utt);
 }
 
 function appendMsg(role, text) {
@@ -1609,9 +1622,10 @@ async function generatePhrase() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
+        temperature: 1.0,
         messages: [{
           role: 'user',
-          content: `Ситуация: ${ctx}. Напиши одну плавную, вежливую фразу для этой ситуации. Используй мягкие согласные, протяжные гласные, избегай взрывных «п», «б», «к» в начале слов. Только фраза, без объяснений.`
+          content: `Ситуация: ${ctx}. Напиши одну плавную, вежливую фразу (вариант #${Math.floor(Math.random()*900)+100}). Используй мягкие согласные, протяжные гласные. Фраза должна быть немного другой каждый раз — меняй структуру и слова. Только фраза, без объяснений.`
         }]
       })
     });
@@ -1675,6 +1689,7 @@ let ctrlState = 'idle';
 let ctrlCycles = 0;
 let ctrlStopTimer = null;
 let ctrlInsightLog = [];
+let ctrlRec = null; // speech recognition
 
 function checkReady() {
   const c1 = document.getElementById('chk1').checked;
@@ -1697,8 +1712,9 @@ function ctrlSetPhase(n) {
   ['pd1','pd2','pd3','pd4'].forEach((id, i) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.background = i < n ? 'var(--green)' : '#1a2038';
-    if (i === n-1) el.style.background = '#f59e0b';
+    if (i < n - 1) el.style.background = 'var(--green)';
+    else if (i === n - 1) el.style.background = '#f59e0b';
+    else el.style.background = '#1a2038';
   });
 }
 
@@ -1718,8 +1734,31 @@ function ctrlSpeak(text, onEnd) {
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = 'ru-RU'; utt.rate = 0.82; utt.pitch = 1.0;
-  utt.onend = () => { if (onEnd) onEnd(); };
+  utt.onend = () => { if (onEnd) setTimeout(onEnd, 400); };
   window.speechSynthesis.speak(utt);
+}
+
+// Распознавание одного ответа голосом
+function ctrlListenFor(keywords, onMatch, timeoutMs) {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    // нет распознавания — показываем кнопки как запасной вариант
+    return false;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  ctrlRec = new SR();
+  ctrlRec.lang = 'ru-RU';
+  ctrlRec.continuous = false;
+  ctrlRec.interimResults = false;
+  ctrlRec.onresult = (e) => {
+    const text = e.results[0][0].transcript.toLowerCase();
+    ctrlLog('Услышано: «' + text + '»', '#3a4460');
+    onMatch(text);
+  };
+  ctrlRec.onerror = () => { if (onMatch) onMatch(''); };
+  ctrlRec.onend = () => {};
+  try { ctrlRec.start(); } catch(e){}
+  if (timeoutMs) setTimeout(() => { try { ctrlRec.stop(); } catch(e){} }, timeoutMs);
+  return true;
 }
 
 function startControlProcess() {
@@ -1734,11 +1773,9 @@ function startControlProcess() {
   document.getElementById('ctrlCycleCount').textContent = '0';
   ctrlLog('Сессия начата. Участник: ' + name, '#34d399');
   ctrlSetAI('Добро пожаловать. Устраивайтесь удобнее.', 'ℹ');
-  setTimeout(() => {
-    ctrlSpeak('Добро пожаловать, ' + name + '. Я буду вашим инструктором в этом процессе. Устраивайтесь удобнее.', () => {
-      setTimeout(() => runCtrlCycle(), 1200);
-    });
-  }, 400);
+  ctrlSpeak('Добро пожаловать, ' + name + '. Я буду вашим инструктором. Устраивайтесь удобнее.', () => {
+    setTimeout(() => runCtrlCycle(), 800);
+  });
 }
 
 function runCtrlCycle() {
@@ -1748,36 +1785,62 @@ function runCtrlCycle() {
   ctrlShow('ctrlAnswerBtns', false);
   ctrlShow('ctrlInsightRecord', false);
   ctrlShow('ctrlInsightBtnWrap', false);
-  const cmd1 = 'Я хочу, чтобы вы начали считать вслух с единицы, а потом в какой-то момент я произнесу стоп, и в этот момент вы прекратите говорить. Хорошо?';
+  const cmd1 = 'Я хочу, чтобы вы начали считать вслух с единицы. В какой-то момент я скажу стоп, и вы прекратите говорить. Хорошо?';
   ctrlSetAI(cmd1, 'ℹ');
   ctrlLog('Цикл ' + (ctrlCycles + 1) + ': Команда 1');
   ctrlSpeak(cmd1, () => {
-    ctrlState = 'counting';
-    ctrlSetPhase(2);
-    ctrlShow('ctrlCountDisplay', true);
-    ctrlShow('ctrlInsightBtnWrap', true);
-    ctrlSetAI('Считайте вслух: один, два, три...', 'ℹ');
-    ctrlLog('Ожидание счёта...', '#6395ff');
-    let dn = 1;
-    document.getElementById('ctrlCountNum').textContent = '1';
-    const vis = setInterval(() => {
-      if (ctrlState !== 'counting') { clearInterval(vis); return; }
-      dn++; document.getElementById('ctrlCountNum').textContent = dn;
-    }, 1100);
-    const delay = 5000 + Math.random() * 9000;
-    ctrlLog('Команда «Стоп» прозвучит через ~' + Math.round(delay/1000) + ' сек', '#3a4460');
-    ctrlStopTimer = setTimeout(() => {
-      if (ctrlState !== 'counting') return;
-      clearInterval(vis);
-      ctrlFireStop();
-    }, delay);
+    // Слушаем голосовое «да/хорошо» — или 3 сек таймаут
+    ctrlListenFor(['да','хорошо','ладно','начинаю'], () => startCounting(), 3000);
+    setTimeout(() => { if (ctrlState === 'cmd1') startCounting(); }, 3500);
   });
+}
+
+function startCounting() {
+  if (ctrlState !== 'cmd1') return;
+  ctrlState = 'counting';
+  ctrlSetPhase(2);
+  // 8. Убрали визуальный счётчик (п.7) — только статус
+  ctrlSetAI('Считайте вслух... я слушаю', 'ℹ');
+  ctrlLog('Счёт начат...', '#6395ff');
+  ctrlShow('ctrlInsightBtnWrap', true);
+  // Параллельно слушаем «я понял» во время счёта
+  startInsightListener();
+  const delay = 5000 + Math.random() * 9000;
+  ctrlStopTimer = setTimeout(() => {
+    if (ctrlState !== 'counting') return;
+    ctrlFireStop();
+  }, delay);
+}
+
+// Фоновый слушатель на озарение
+function startInsightListener() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SR();
+  rec.lang = 'ru-RU'; rec.continuous = true; rec.interimResults = true;
+  rec.onresult = (e) => {
+    let text = '';
+    for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript.toLowerCase();
+    if (text.includes('понял') || text.includes('осознал') || text.includes('озарение') || text.includes('понял')) {
+      rec.stop();
+      if (ctrlState === 'counting' || ctrlState === 'cmd3') {
+        if (ctrlStopTimer) clearTimeout(ctrlStopTimer);
+        triggerInsight();
+      }
+    }
+  };
+  rec.onerror = () => {};
+  try { rec.start(); } catch(e){}
+  // Перезапускаем каждые 10 сек (браузер останавливает)
+  setTimeout(() => {
+    try { rec.stop(); } catch(e){}
+    if (ctrlState === 'counting' || ctrlState === 'cmd3') startInsightListener();
+  }, 9000);
 }
 
 function ctrlFireStop() {
   ctrlState = 'stop_wait';
   ctrlSetPhase(3);
-  ctrlShow('ctrlCountDisplay', false);
   ctrlSetAI('СТОП!', 'ℹ');
   ctrlLog('Команда 2: «Стоп!»', '#f87171');
   ctrlSpeak('Стоп!', () => {
@@ -1806,9 +1869,20 @@ function fireCmd3() {
   ctrlState = 'cmd3';
   ctrlSetPhase(4);
   const cmd3 = 'Вы сами остановили свою речь?';
-  ctrlSetAI(cmd3, 'ℹ');
-  ctrlLog('Команда 3: «Вы сами остановили свою речь?»', '#f59e0b');
-  ctrlSpeak(cmd3, () => { ctrlShow('ctrlAnswerBtns', true); });
+  ctrlSetAI(cmd3 + ' Скажите да или нет.', 'ℹ');
+  ctrlLog('Команда 3: «' + cmd3 + '»', '#f59e0b');
+  ctrlSpeak(cmd3, () => {
+    // Слушаем голосовой ответ
+    const heard = ctrlListenFor(['да','нет','не уверен','не знаю','наверное'], (text) => {
+      ctrlAnswer(text || 'ответил');
+    }, 6000);
+    // Если нет распознавания — показываем кнопки
+    if (!heard) ctrlShow('ctrlAnswerBtns', true);
+    // Таймаут: если не ответил голосом — показываем кнопки
+    setTimeout(() => {
+      if (ctrlState === 'cmd3') ctrlShow('ctrlAnswerBtns', true);
+    }, 6500);
+  });
 }
 
 function ctrlAnswer(answer) {
@@ -1816,8 +1890,8 @@ function ctrlAnswer(answer) {
   ctrlCycles++;
   document.getElementById('ctrlCycleCount').textContent = ctrlCycles;
   ctrlLog('Ответ: «' + answer + '» — Цикл ' + ctrlCycles + ' завершён ✓', '#34d399');
-  ctrlSetAI('', 'ℹ');
-  setTimeout(() => { if (ctrlState === 'cmd3') runCtrlCycle(); }, 1000);
+  ctrlState = 'cmd1'; // сброс перед следующим циклом
+  setTimeout(() => runCtrlCycle(), 800);
 }
 
 function triggerInsight() {
@@ -1828,11 +1902,12 @@ function triggerInsight() {
   ctrlShow('ctrlCountDisplay', false);
   ctrlShow('ctrlInsightBtnWrap', false);
   ctrlShow('ctrlAnswerBtns', false);
-  ctrlLog('ОЗАРЕНИЕ! Пользователь нажал кнопку озарения', '#34d399');
-  ctrlSetAI('Спасибо за озарение. Расскажите подробнее — что именно вы поняли?', 'ℹ');
+  ctrlLog('ОЗАРЕНИЕ!', '#34d399');
+  ctrlSetAI('Спасибо за озарение. Расскажите — что именно вы поняли?', 'ℹ');
   ctrlSpeak('Спасибо за озарение. Расскажите подробнее, что именно вы поняли?', () => {
     ctrlShow('ctrlInsightRecord', true);
-    document.getElementById('ctrlInsightText').textContent = 'Говорите или напишите ниже...';
+    document.getElementById('ctrlInsightText').textContent = 'Слушаю вас... (или напишите ниже)';
+    // Записываем озарение голосом
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
@@ -1855,18 +1930,36 @@ function ctrlFinishProcess() {
     || document.getElementById('ctrlInsightText').textContent;
   const name = document.getElementById('ctrlNameDisplay').textContent;
   ctrlShow('ctrlInsightRecord', false);
-  ctrlSetAI('Мы сейчас будем заканчивать процесс. Хотите что-то добавить или сказать?', 'ℹ');
-  ctrlLog('Записано озарение: «' + insight + '»', '#34d399');
+  ctrlSetAI('Завершаем процесс...', 'ℹ');
+  ctrlLog('Озарение записано: «' + insight + '»', '#34d399');
   ctrlSpeak('Мы сейчас будем заканчивать процесс. Хотите вы что-то добавить или сказать?', () => {
     setTimeout(() => {
       ctrlSpeak('Мы закончили этот процесс. Спасибо!', () => {
-        ctrlSetAI('Процесс завершён. ' + ctrlCycles + ' циклов пройдено. Отличная работа, ' + name + '!', 'ℹ');
-        ctrlLog('Процесс завершён. Всего циклов: ' + ctrlCycles, '#34d399');
+        ctrlSetAI('Процесс завершён. ' + ctrlCycles + ' циклов. Отличная работа, ' + name + '!', 'ℹ');
+        ctrlLog('Завершено. Циклов: ' + ctrlCycles, '#34d399');
         ctrlInsightLog.push({ date: new Date().toLocaleDateString('ru-RU'), name, cycles: ctrlCycles, insight });
         renderInsightsDiary();
+        // 6. Кнопка начать заново
+        const main = document.getElementById('ctrl-main');
+        const restartDiv = document.createElement('div');
+        restartDiv.style.marginTop = '12px';
+        restartDiv.innerHTML = '<button class="btn" onclick="ctrlRestart()">↺ Начать новую сессию</button>';
+        main.appendChild(restartDiv);
       });
     }, 3000);
   });
+}
+
+// 6. Кнопка начать заново
+function ctrlRestart() {
+  ctrlCycles = 0; ctrlState = 'idle';
+  document.getElementById('ctrl-main').style.display = 'none';
+  document.getElementById('ctrl-log').style.display = 'none';
+  document.getElementById('ctrl-checklist').style.display = 'block';
+  // Сбросить чекбоксы и имя
+  ['chk1','chk2','chk3'].forEach(id => document.getElementById(id).checked = false);
+  document.getElementById('ctrlName').value = '';
+  document.getElementById('ctrlStartBtn').disabled = true;
 }
 
 function renderInsightsDiary() {
