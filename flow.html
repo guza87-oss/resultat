@@ -98,28 +98,31 @@
   /* TABS */
   .tab-bar {
     display: flex;
-    padding: 12px 16px;
-    gap: 6px;
+    padding: 8px 12px;
+    gap: 4px;
     border-bottom: 1px solid var(--border);
     overflow-x: auto;
     scrollbar-width: none;
+    justify-content: space-between;
   }
   .tab-bar::-webkit-scrollbar { display: none; }
 
   .tab-btn {
-    display: flex; align-items: center; gap: 6px;
-    padding: 7px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 8px;
     background: transparent;
     border: 1px solid transparent;
     border-radius: 8px;
     cursor: pointer;
     font-family: var(--sans);
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 500;
     color: var(--text-muted);
     white-space: nowrap;
     transition: all 0.2s;
     letter-spacing: 0.3px;
+    flex: 1;
+    min-width: 0;
   }
   .tab-btn.active {
     background: var(--green-dim);
@@ -127,7 +130,8 @@
     color: var(--green);
   }
   .tab-btn:hover:not(.active) { background: var(--blue-dim); color: var(--text); }
-  .tab-icon { font-size: 14px; }
+  .tab-icon { font-size: 18px; line-height: 1; }
+  .tab-label { font-size: 8.5px; letter-spacing: 0; line-height: 1; overflow: hidden; text-overflow: ellipsis; max-width: 44px; text-align: center; }
 
   /* SCROLL CONTENT */
   .content {
@@ -606,12 +610,13 @@
 
   <!-- TAB BAR -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="home"><span class="tab-icon">🏠</span>Главная</button>
-    <button class="tab-btn" data-tab="daf"><span class="tab-icon">🎧</span>DAF/FAF</button>
-    <button class="tab-btn" data-tab="training"><span class="tab-icon">🎮</span>Тренировка</button>
-    <button class="tab-btn" data-tab="ai"><span class="tab-icon">🤖</span>ИИ-Диалог</button>
-    <button class="tab-btn" data-tab="cbt"><span class="tab-icon">🧘</span>КПТ</button>
-    <button class="tab-btn" data-tab="sos"><span class="tab-icon">🚀</span>SOS</button>
+    <button class="tab-btn active" data-tab="home"><span class="tab-icon">🏠</span><span class="tab-label">Главная</span></button>
+    <button class="tab-btn" data-tab="daf"><span class="tab-icon">🎧</span><span class="tab-label">DAF</span></button>
+    <button class="tab-btn" data-tab="training"><span class="tab-icon">🎮</span><span class="tab-label">Тренировка</span></button>
+    <button class="tab-btn" data-tab="ai"><span class="tab-icon">🤖</span><span class="tab-label">ИИ-Диалог</span></button>
+    <button class="tab-btn" data-tab="cbt"><span class="tab-icon">🧘</span><span class="tab-label">КПТ</span></button>
+    <button class="tab-btn" data-tab="sos"><span class="tab-icon">🚀</span><span class="tab-label">SOS</span></button>
+    <button class="tab-btn" data-tab="control"><span class="tab-icon">🧬</span><span class="tab-label">Контроль</span></button>
   </div>
 
   <!-- CONTENT -->
@@ -740,7 +745,7 @@
           </div>
           <div class="game-overlay" id="gameOverlay">
             <h3 id="gameTitle">РЕЧЕВОЙ ТРЕНАЖЁР</h3>
-            <p id="gameDesc">Говорите медленно — шар летит по центру. Резкий звук отнимает жизнь. Держите речь плавной!</p>
+            <p id="gameDesc">Говорите плавно и медленно → шар держится по центру. Резкий старт или быстрый темп → шар падает и врезается в ворота. Ворота зелёные = широкие (плавная речь), красные = узкие (резкая).</p>
             <button class="btn btn-sm" id="startGameBtn">▶ ИГРАТЬ</button>
           </div>
         </div>
@@ -891,6 +896,91 @@
       </div>
     </div>
 
+    <!-- ===== CONTROL TAB ===== -->
+    <div class="tab-page" id="tab-control">
+
+      <div class="card" id="ctrl-checklist">
+        <div class="card-title" style="margin-bottom:10px;">🧬 Модуль осознанного контроля</div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:12px;">Восстанавливает осознанный контроль над речью через триаду: <strong style="color:var(--text);">начало → изменение → остановка</strong>. Повторяйте циклы до собственного озарения — оно может прийти через 10 минут или через 2 часа.</p>
+        <div class="tip-box" style="margin-bottom:12px;">
+          <div class="tip-title">Перед началом убедитесь:</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;"><input type="checkbox" id="chk1" onchange="checkReady()"> Вы сыты и не устали</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;"><input type="checkbox" id="chk2" onchange="checkReady()"> Вы в спокойной обстановке</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;"><input type="checkbox" id="chk3" onchange="checkReady()"> Динамик или наушники готовы</label>
+          </div>
+        </div>
+        <input type="text" id="ctrlName" placeholder="Ваше имя..." style="height:36px;margin-bottom:10px;" oninput="checkReady()">
+        <button class="btn" id="ctrlStartBtn" disabled onclick="startControlProcess()">▶ Начать процесс</button>
+      </div>
+
+      <div class="card" id="ctrl-main" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <div style="font-size:9px;color:var(--text-muted);font-family:var(--mono);" id="ctrlDate"></div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);" id="ctrlNameDisplay"></div>
+          </div>
+          <div style="text-align:center;background:var(--green-dim);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:6px 14px;">
+            <div style="font-size:24px;font-weight:700;color:var(--green);font-family:var(--mono);line-height:1;" id="ctrlCycleCount">0</div>
+            <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Циклов</div>
+          </div>
+        </div>
+
+        <div style="background:#0a0f1a;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;min-height:72px;display:flex;align-items:center;gap:10px;">
+          <div style="width:30px;height:30px;background:var(--green-dim);border:1px solid rgba(52,211,153,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;" id="ctrlAiAvatar">🎙</div>
+          <div id="ctrlAiText" style="font-size:12px;line-height:1.6;color:var(--text);">Подготовка...</div>
+        </div>
+
+        <div style="display:flex;gap:4px;margin-bottom:12px;" id="ctrlPhaseDots">
+          <div id="pd1" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+          <div id="pd2" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+          <div id="pd3" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+          <div id="pd4" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+        </div>
+
+        <div id="ctrlCountDisplay" style="display:none;text-align:center;padding:10px 0 4px;">
+          <div style="font-size:40px;font-weight:700;font-family:var(--mono);color:var(--green);line-height:1;" id="ctrlCountNum">—</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">считайте вслух</div>
+        </div>
+
+        <div id="ctrlInsightBtnWrap" style="display:none;margin-top:6px;">
+          <button onclick="triggerInsight()" style="width:100%;padding:13px;border-radius:10px;border:2px solid rgba(245,158,11,0.5);background:rgba(245,158,11,0.12);color:#f59e0b;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.22)'" onmouseout="this.style.background='rgba(245,158,11,0.12)'">
+            💡 Я ПОНЯЛ! — Нажмите при озарении
+          </button>
+        </div>
+
+        <div id="ctrlAnswerBtns" style="display:none;margin-top:6px;">
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:8px;font-style:italic;">«Вы сами остановили свою речь?»</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" onclick="ctrlAnswer('да')" style="flex:1;">✓ Да</button>
+            <button class="btn btn-ghost" onclick="ctrlAnswer('не уверен')" style="flex:1;margin-top:0;">~ Не уверен</button>
+          </div>
+        </div>
+
+        <div id="ctrlInsightRecord" style="display:none;margin-top:6px;">
+          <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:12px;margin-bottom:8px;">
+            <div style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">💡 Записываю озарение</div>
+            <div id="ctrlInsightText" style="font-size:11px;color:var(--text);min-height:30px;font-style:italic;line-height:1.6;">...</div>
+          </div>
+          <textarea id="ctrlInsightEdit" placeholder="Дополните или уточните своими словами..." style="height:70px;"></textarea>
+          <button class="btn" onclick="ctrlFinishProcess()" style="margin-top:8px;">Завершить процесс →</button>
+        </div>
+      </div>
+
+      <div class="card" id="ctrl-log" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;">📋 Журнал сессии</div>
+        <div id="ctrlLogArea" style="background:#0a0f1a;border:1px solid var(--border);border-radius:8px;padding:8px;max-height:150px;overflow-y:auto;font-size:10px;font-family:var(--mono);color:var(--text-muted);line-height:1.8;scrollbar-width:thin;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px;">📖 Дневник озарений</div>
+        <div id="ctrlInsightsDiary">
+          <div style="font-size:10px;color:var(--text-dim);text-align:center;padding:12px 0;">Озарения появятся здесь после завершения сессий</div>
+        </div>
+      </div>
+
+    </div>
+
   </div><!-- /content -->
 </div>
 
@@ -913,8 +1003,19 @@ document.getElementById('closeSettings').addEventListener('click', () => documen
 
 // ====== AUDIO ENGINE ======
 let audioCtx, analyser, micSource, delayNode, filterNode, scriptProc;
-let audioLevel = 0;
+let audioLevel = 0;      // raw volume (for DAF wave display only)
+let sharpness = 0;       // резкость: скорость изменения звука (спайки = заикание)
+let smoothScore = 100;   // 0–100: плавность речи (100 = идеально плавно)
+let prevLevel = 0;
+let syllableTimer = 0;   // детектор темпа слогов
+let syllableRate = 0;    // слогов в секунду (высокий = торопливость)
+let speechActive = false;
+let silenceFrames = 0;
 let dafActive = false, waveActive = false;
+
+// Скользящий буфер для сглаживания
+let sharpBuf = new Array(20).fill(0);
+let sharpBufIdx = 0;
 
 async function initAudio() {
   if (audioCtx) return;
@@ -923,19 +1024,58 @@ async function initAudio() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     micSource = audioCtx.createMediaStreamSource(stream);
     analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.4;
     micSource.connect(analyser);
     delayNode = audioCtx.createDelay(1.0);
     delayNode.delayTime.value = 0.12;
     filterNode = audioCtx.createBiquadFilter();
     filterNode.type = 'allpass';
-    scriptProc = audioCtx.createScriptProcessor(256, 1, 1);
+    scriptProc = audioCtx.createScriptProcessor(512, 1, 1);
     analyser.connect(scriptProc);
     scriptProc.connect(audioCtx.destination);
+
+    let syllableCount = 0;
+    let syllableWindow = 0;
+    let inSyllable = false;
+
     scriptProc.onaudioprocess = () => {
       const arr = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(arr);
-      audioLevel = arr.reduce((a,b) => a+b, 0) / arr.length;
+      // Громкость — только средние частоты (речевые: 300–3000 Гц)
+      const speechBins = arr.slice(8, 80);
+      audioLevel = speechBins.reduce((a,b) => a+b, 0) / speechBins.length;
+
+      // Резкость = абсолютное изменение уровня между кадрами
+      const delta = Math.abs(audioLevel - prevLevel);
+      prevLevel = audioLevel;
+
+      // Буфер резкости — скользящее среднее
+      sharpBuf[sharpBufIdx % 20] = delta;
+      sharpBufIdx++;
+      sharpness = sharpBuf.reduce((a,b) => a+b, 0) / 20;
+
+      // Детектор слогов: считаем пики громкости
+      const SYLL_THRESH = 18;
+      if (audioLevel > SYLL_THRESH && !inSyllable) {
+        inSyllable = true;
+        syllableCount++;
+      }
+      if (audioLevel < SYLL_THRESH * 0.6) inSyllable = false;
+
+      // Каждые ~60 кадров (~1 сек) считаем темп
+      syllableWindow++;
+      if (syllableWindow >= 60) {
+        syllableRate = syllableCount; // слогов за последнюю секунду
+        syllableCount = 0;
+        syllableWindow = 0;
+      }
+
+      // Плавность: штраф за резкость и за быстрый темп
+      const sharpPenalty = Math.min(40, sharpness * 3.5);
+      const ratePenalty = Math.max(0, (syllableRate - 4) * 8); // норма до 4 слогов/сек
+      const target = Math.max(0, 100 - sharpPenalty - ratePenalty);
+      smoothScore += (target - smoothScore) * 0.05; // инерция
     };
   } catch(e) { console.log('Mic error', e); }
 }
@@ -969,6 +1109,9 @@ const waveCtx = waveCanvas.getContext('2d');
 waveCanvas.width = 370; waveCanvas.height = 80;
 let waveAnimId;
 
+// Сглаженная волна для отображения (убираем дрожание)
+let smoothWaveData = null;
+
 function drawWave() {
   if (!analyser) {
     waveCtx.fillStyle = '#0a0f1a';
@@ -982,30 +1125,59 @@ function drawWave() {
     return;
   }
   const bufLen = analyser.frequencyBinCount;
-  const data = new Uint8Array(bufLen);
-  analyser.getByteTimeDomainData(data);
+  const raw = new Uint8Array(bufLen);
+  analyser.getByteTimeDomainData(raw);
+
+  // Инициализируем сглаженный буфер
+  if (!smoothWaveData || smoothWaveData.length !== bufLen) {
+    smoothWaveData = new Float32Array(bufLen).fill(128);
+  }
+
+  // Сглаживаем волну: быстро следуем за сигналом только при РЕЗКИХ скачках
+  // При плавной речи — почти не двигается → мотивация говорить ровно
+  const followSpeed = sharpness > 6 ? 0.5 : 0.08; // резкость → нестабильная линия
+  for (let i = 0; i < bufLen; i++) {
+    smoothWaveData[i] += (raw[i] - smoothWaveData[i]) * followSpeed;
+  }
+
   waveCtx.fillStyle = '#0a0f1a';
   waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
-  const green = audioLevel > 25 ? '#f59e0b' : '#34d399';
-  waveCtx.strokeStyle = green;
+
+  // Цвет зависит от плавности: зелёный = хорошо, жёлтый = торопливо, красный = запинка
+  let waveColor;
+  if (smoothScore > 75) waveColor = '#34d399';
+  else if (smoothScore > 45) waveColor = '#f59e0b';
+  else waveColor = '#f87171';
+
+  waveCtx.strokeStyle = waveColor;
   waveCtx.lineWidth = 2;
-  waveCtx.shadowColor = green;
-  waveCtx.shadowBlur = audioLevel > 15 ? 6 : 0;
   waveCtx.beginPath();
   const slice = waveCanvas.width / bufLen;
   let x = 0;
   for (let i = 0; i < bufLen; i++) {
-    const v = data[i] / 128;
+    const v = smoothWaveData[i] / 128;
     const y = v * waveCanvas.height / 2;
     if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
     x += slice;
   }
   waveCtx.stroke();
-  waveCtx.shadowBlur = 0;
+
+  // Подпись
   const label = document.getElementById('waveStatus');
-  if (audioLevel > 30) { label.textContent = '⚠ Слишком резко! Замедляйтесь.'; label.style.color = '#f59e0b'; }
-  else if (audioLevel > 5) { label.textContent = '🟢 Плавная речь — отличный темп'; label.style.color = '#34d399'; }
-  else { label.textContent = '🎙 Говорите — голос отображается в реальном времени'; label.style.color = '#6b7a9b'; }
+  const sc = Math.round(smoothScore);
+  if (audioLevel < 4) {
+    label.textContent = '🎙 Говорите — линия покажет плавность вашей речи';
+    label.style.color = '#6b7a9b';
+  } else if (smoothScore > 75) {
+    label.textContent = `🟢 Отлично! Плавность: ${sc}% — продолжайте в том же темпе`;
+    label.style.color = '#34d399';
+  } else if (smoothScore > 45) {
+    label.textContent = `🟡 Замедлитесь — плавность: ${sc}% — слишком быстро`;
+    label.style.color = '#f59e0b';
+  } else {
+    label.textContent = `🔴 Резкий старт! Плавность: ${sc}% — тяните гласные`;
+    label.style.color = '#f87171';
+  }
 }
 
 document.getElementById('waveToggle').addEventListener('change', async function(e) {
@@ -1066,38 +1238,79 @@ function gameLoop() {
   if (!playing) return;
   gameId = requestAnimationFrame(gameLoop);
   drawGame();
-  if (audioLevel > 20) ball.targetY = gc.height/2 + Math.sin(Date.now()*0.04)*(audioLevel*1.1);
-  else ball.targetY = gc.height/2;
-  ball.y += (ball.targetY - ball.y) * 0.12;
-  ball.y = Math.max(ball.r, Math.min(gc.height-ball.r, ball.y));
+
+  // Шарик держится по центру когда речь ПЛАВНАЯ (smoothScore высокий)
+  // Падает вниз когда РЕЗКИЙ старт (spikes) или слишком быстро
+  // Логика: чем лучше плавность → тем ближе к центру
+  const centerY = gc.height / 2;
+
+  if (audioLevel < 3) {
+    // Тишина — медленно возвращаемся к центру
+    ball.targetY += (centerY - ball.targetY) * 0.03;
+  } else {
+    // Речь есть: позиция = центр + штраф за резкость + штраф за темп
+    const sharpPenalty = Math.min(45, sharpness * 5); // резкий старт = отклонение вниз
+    const ratePenalty = Math.max(0, (syllableRate - 3.5) * 10); // быстрый темп = отклонение
+    const deviation = sharpPenalty + ratePenalty;
+    // Отклонение вниз при плохой плавности, держимся по центру при хорошей
+    ball.targetY = centerY + deviation * (Math.sin(Date.now() * 0.03) * 0.5 + 0.5);
+  }
+
+  ball.y += (ball.targetY - ball.y) * 0.10;
+  ball.y = Math.max(ball.r, Math.min(gc.height - ball.r, ball.y));
   if (invT > 0) invT--;
-  const sharp = audioLevel > 28;
-  if (sharp) { document.getElementById('comboVal').textContent='⚠ РЕЗКО!'; document.getElementById('comboVal').style.color='#f59e0b'; }
-  else { document.getElementById('comboVal').textContent='🟢 ПЛАВНО'; document.getElementById('comboVal').style.color='#34d399'; }
+
+  // HUD: показываем реальные метрики
+  const sc = Math.round(smoothScore);
+  if (audioLevel < 3) {
+    document.getElementById('comboVal').textContent = '— ТИШИНА';
+    document.getElementById('comboVal').style.color = '#6b7a9b';
+  } else if (sc > 75) {
+    document.getElementById('comboVal').textContent = `🟢 ${sc}% ПЛАВНО`;
+    document.getElementById('comboVal').style.color = '#34d399';
+  } else if (sc > 45) {
+    document.getElementById('comboVal').textContent = `🟡 ${sc}% — медленнее!`;
+    document.getElementById('comboVal').style.color = '#f59e0b';
+  } else {
+    document.getElementById('comboVal').textContent = `🔴 ${sc}% — резко!`;
+    document.getElementById('comboVal').style.color = '#f87171';
+  }
   gctx.beginPath(); gctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  const ballColor = smoothScore > 75 ? '#34d399' : smoothScore > 45 ? '#f59e0b' : '#f87171';
   if (invT>0 && Math.floor(Date.now()/80)%2===0) gctx.fillStyle='transparent';
-  else gctx.fillStyle = sharp ? '#f59e0b' : '#34d399';
+  else gctx.fillStyle = ballColor;
   gctx.fill();
-  gctx.shadowColor = sharp ? '#f59e0b' : '#34d399'; gctx.shadowBlur = 8;
+  gctx.shadowColor = ballColor; gctx.shadowBlur = 8;
   gctx.fill(); gctx.shadowBlur = 0;
   spawnT++;
-  if (spawnT > 90) {
-    const gh=42, gy = gc.height/2 - gh/2 + (Math.random()*18-9);
-    obstacles.push({x:gc.width,top:gy,bot:gy+gh,w:12,passed:false});
-    spawnT=0;
+  if (spawnT > 110) {
+    // Ворота ВСЕГДА по центру. Ширина зависит от плавности речи:
+    // говоришь плавно → ворота шире → легче пройти
+    const gateBonus = Math.round(smoothScore * 0.28); // 0–28px
+    const gh = 36 + gateBonus;
+    const gy = gc.height/2 - gh/2; // строго по центру
+    obstacles.push({x:gc.width, top:gy, bot:gy+gh, w:10, passed:false, gh});
+    spawnT = 0;
   }
   for (let i=obstacles.length-1;i>=0;i--) {
-    let o=obstacles[i]; o.x-=1.6;
-    gctx.fillStyle='#1a2240'; gctx.fillRect(o.x,0,o.w,o.top); gctx.fillRect(o.x,o.bot,o.w,gc.height-o.bot);
-    gctx.fillStyle='#34d399'; gctx.fillRect(o.x,o.top,o.w,1); gctx.fillRect(o.x,o.bot,o.w,1);
-    if (invT===0 && ball.x+ball.r>o.x && ball.x-ball.r<o.x+o.w) {
-      if (ball.y-ball.r<o.top || ball.y+ball.r>o.bot) {
-        lives--; updateHud(); invT=50;
-        if (lives<=0) { playing=false; cancelAnimationFrame(gameId); showGameOver(); }
+    let o=obstacles[i]; o.x -= 1.5;
+    gctx.fillStyle='#1a2240';
+    gctx.fillRect(o.x, 0, o.w, o.top);
+    gctx.fillRect(o.x, o.bot, o.w, gc.height - o.bot);
+    // Цвет ворот: зелёный = широкие (плавная речь), красный = узкие (резкая)
+    const gateColor = o.gh > 55 ? '#34d399' : o.gh > 46 ? '#f59e0b' : '#f87171';
+    gctx.fillStyle = gateColor;
+    gctx.fillRect(o.x, o.top - 2, o.w, 3);
+    gctx.fillRect(o.x, o.bot, o.w, 3);
+    // Коллизия
+    if (invT === 0 && o.x <= ball.x + ball.r && o.x + o.w >= ball.x - ball.r) {
+      if (ball.y - ball.r < o.top || ball.y + ball.r > o.bot) {
+        lives--; updateHud(); invT = 60;
+        if (lives <= 0) { playing=false; cancelAnimationFrame(gameId); showGameOver(); return; }
       }
     }
-    if (!o.passed && o.x+o.w<ball.x) { o.passed=true; score++; document.getElementById('scoreVal').textContent=score; }
-    if (o.x+o.w<0) obstacles.splice(i,1);
+    if (!o.passed && o.x + o.w < ball.x) { o.passed=true; score++; document.getElementById('scoreVal').textContent=score; }
+    if (o.x + o.w < 0) obstacles.splice(i, 1);
   }
 }
 function showGameOver() {
@@ -1130,7 +1343,7 @@ async function generateText() {
   const status = document.getElementById('aiTextStatus');
   status.textContent = '✨ Генерирую текст...';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1210,7 +1423,7 @@ async function startAISession() {
   document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Соединяю...';
   appendMsg('ai', '<span class="typing-dots"><span></span><span></span><span></span></span>');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1246,7 +1459,7 @@ async function sendUserMsg() {
   document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Думаю...';
   appendMsg('ai', '<span class="typing-dots"><span></span><span></span><span></span></span>');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1390,7 +1603,7 @@ async function generatePhrase() {
   box.style.display='block';
   box.innerHTML = '<div class="tip-box" style="color:var(--text-muted);">✨ Генерирую...</div>';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1453,9 +1666,219 @@ function updateFluency(val) {
 // Simulate slight changes
 setInterval(() => {
   const base = 84;
-  const jitter = Math.sin(Date.now()/8000)*5 + (waveActive ? (audioLevel > 20 ? -3 : 1) : 0);
-  updateFluency(Math.round(Math.max(70, Math.min(98, base + jitter))));
+  const jitter = Math.sin(Date.now()/8000)*2 + (waveActive ? (smoothScore - 84) * 0.15 : 0);
+  updateFluency(Math.round(Math.max(60, Math.min(99, 84 + jitter))));
 }, 1500);
+
+// ====== МОДУЛЬ ОСОЗНАННОГО КОНТРОЛЯ ======
+let ctrlState = 'idle';
+let ctrlCycles = 0;
+let ctrlStopTimer = null;
+let ctrlInsightLog = [];
+
+function checkReady() {
+  const c1 = document.getElementById('chk1').checked;
+  const c2 = document.getElementById('chk2').checked;
+  const c3 = document.getElementById('chk3').checked;
+  const name = document.getElementById('ctrlName').value.trim();
+  document.getElementById('ctrlStartBtn').disabled = !(c1 && c2 && c3 && name.length > 0);
+}
+
+function ctrlLog(msg, color) {
+  const area = document.getElementById('ctrlLogArea');
+  if (!area) return;
+  const t = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const col = color || '#6b7a9b';
+  area.innerHTML += '<span style="color:' + col + '">[' + t + ']</span> ' + msg + '<br>';
+  area.scrollTop = area.scrollHeight;
+}
+
+function ctrlSetPhase(n) {
+  ['pd1','pd2','pd3','pd4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.background = i < n ? 'var(--green)' : '#1a2038';
+    if (i === n-1) el.style.background = '#f59e0b';
+  });
+}
+
+function ctrlSetAI(text, emoji) {
+  const el = document.getElementById('ctrlAiText');
+  const av = document.getElementById('ctrlAiAvatar');
+  if (el) el.textContent = text;
+  if (av) av.textContent = emoji || 'ℹ';
+}
+
+function ctrlShow(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+
+function ctrlSpeak(text, onEnd) {
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ru-RU'; utt.rate = 0.82; utt.pitch = 1.0;
+  utt.onend = () => { if (onEnd) onEnd(); };
+  window.speechSynthesis.speak(utt);
+}
+
+function startControlProcess() {
+  const name = document.getElementById('ctrlName').value.trim();
+  ctrlCycles = 0; ctrlState = 'idle';
+  document.getElementById('ctrl-checklist').style.display = 'none';
+  document.getElementById('ctrl-main').style.display = 'block';
+  document.getElementById('ctrl-log').style.display = 'block';
+  const now = new Date();
+  document.getElementById('ctrlDate').textContent = now.toLocaleDateString('ru-RU', {day:'2-digit', month:'long', year:'numeric'});
+  document.getElementById('ctrlNameDisplay').textContent = name;
+  document.getElementById('ctrlCycleCount').textContent = '0';
+  ctrlLog('Сессия начата. Участник: ' + name, '#34d399');
+  ctrlSetAI('Добро пожаловать. Устраивайтесь удобнее.', 'ℹ');
+  setTimeout(() => {
+    ctrlSpeak('Добро пожаловать, ' + name + '. Я буду вашим инструктором в этом процессе. Устраивайтесь удобнее.', () => {
+      setTimeout(() => runCtrlCycle(), 1200);
+    });
+  }, 400);
+}
+
+function runCtrlCycle() {
+  ctrlState = 'cmd1';
+  ctrlSetPhase(1);
+  ctrlShow('ctrlCountDisplay', false);
+  ctrlShow('ctrlAnswerBtns', false);
+  ctrlShow('ctrlInsightRecord', false);
+  ctrlShow('ctrlInsightBtnWrap', false);
+  const cmd1 = 'Я хочу, чтобы вы начали считать вслух с единицы, а потом в какой-то момент я произнесу стоп, и в этот момент вы прекратите говорить. Хорошо?';
+  ctrlSetAI(cmd1, 'ℹ');
+  ctrlLog('Цикл ' + (ctrlCycles + 1) + ': Команда 1');
+  ctrlSpeak(cmd1, () => {
+    ctrlState = 'counting';
+    ctrlSetPhase(2);
+    ctrlShow('ctrlCountDisplay', true);
+    ctrlShow('ctrlInsightBtnWrap', true);
+    ctrlSetAI('Считайте вслух: один, два, три...', 'ℹ');
+    ctrlLog('Ожидание счёта...', '#6395ff');
+    let dn = 1;
+    document.getElementById('ctrlCountNum').textContent = '1';
+    const vis = setInterval(() => {
+      if (ctrlState !== 'counting') { clearInterval(vis); return; }
+      dn++; document.getElementById('ctrlCountNum').textContent = dn;
+    }, 1100);
+    const delay = 5000 + Math.random() * 9000;
+    ctrlLog('Команда «Стоп» прозвучит через ~' + Math.round(delay/1000) + ' сек', '#3a4460');
+    ctrlStopTimer = setTimeout(() => {
+      if (ctrlState !== 'counting') return;
+      clearInterval(vis);
+      ctrlFireStop();
+    }, delay);
+  });
+}
+
+function ctrlFireStop() {
+  ctrlState = 'stop_wait';
+  ctrlSetPhase(3);
+  ctrlShow('ctrlCountDisplay', false);
+  ctrlSetAI('СТОП!', 'ℹ');
+  ctrlLog('Команда 2: «Стоп!»', '#f87171');
+  ctrlSpeak('Стоп!', () => {
+    ctrlSetAI('Жду тишины...', 'ℹ');
+    detectCtrlSilence(() => { setTimeout(() => fireCmd3(), 800); });
+  });
+}
+
+function detectCtrlSilence(onSilence) {
+  if (!analyser) { setTimeout(onSilence, 2000); return; }
+  const THRESH = 8, REQ_MS = 900;
+  let silStart = Date.now(), checking = true;
+  const chk = setInterval(() => {
+    if (!checking) { clearInterval(chk); return; }
+    const arr = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(arr);
+    const avg = arr.slice(8,80).reduce((a,b)=>a+b,0)/72;
+    if (avg < THRESH) {
+      if (Date.now() - silStart > REQ_MS) { checking=false; clearInterval(chk); onSilence(); }
+    } else { silStart = Date.now(); }
+  }, 80);
+  setTimeout(() => { checking=false; clearInterval(chk); onSilence(); }, 6000);
+}
+
+function fireCmd3() {
+  ctrlState = 'cmd3';
+  ctrlSetPhase(4);
+  const cmd3 = 'Вы сами остановили свою речь?';
+  ctrlSetAI(cmd3, 'ℹ');
+  ctrlLog('Команда 3: «Вы сами остановили свою речь?»', '#f59e0b');
+  ctrlSpeak(cmd3, () => { ctrlShow('ctrlAnswerBtns', true); });
+}
+
+function ctrlAnswer(answer) {
+  ctrlShow('ctrlAnswerBtns', false);
+  ctrlCycles++;
+  document.getElementById('ctrlCycleCount').textContent = ctrlCycles;
+  ctrlLog('Ответ: «' + answer + '» — Цикл ' + ctrlCycles + ' завершён ✓', '#34d399');
+  ctrlSetAI('', 'ℹ');
+  setTimeout(() => { if (ctrlState === 'cmd3') runCtrlCycle(); }, 1000);
+}
+
+function triggerInsight() {
+  if (ctrlState === 'insight' || ctrlState === 'final') return;
+  window.speechSynthesis.cancel();
+  if (ctrlStopTimer) clearTimeout(ctrlStopTimer);
+  ctrlState = 'insight';
+  ctrlShow('ctrlCountDisplay', false);
+  ctrlShow('ctrlInsightBtnWrap', false);
+  ctrlShow('ctrlAnswerBtns', false);
+  ctrlLog('ОЗАРЕНИЕ! Пользователь нажал кнопку озарения', '#34d399');
+  ctrlSetAI('Спасибо за озарение. Расскажите подробнее — что именно вы поняли?', 'ℹ');
+  ctrlSpeak('Спасибо за озарение. Расскажите подробнее, что именно вы поняли?', () => {
+    ctrlShow('ctrlInsightRecord', true);
+    document.getElementById('ctrlInsightText').textContent = 'Говорите или напишите ниже...';
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SR();
+      rec.lang = 'ru-RU'; rec.continuous = true; rec.interimResults = true;
+      rec.onresult = (e) => {
+        let t = '';
+        for (let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+        document.getElementById('ctrlInsightText').textContent = t;
+        document.getElementById('ctrlInsightEdit').value = t;
+      };
+      try { rec.start(); } catch(e){}
+      setTimeout(() => { try { rec.stop(); } catch(e){} }, 30000);
+    }
+  });
+}
+
+function ctrlFinishProcess() {
+  ctrlState = 'final';
+  const insight = document.getElementById('ctrlInsightEdit').value.trim()
+    || document.getElementById('ctrlInsightText').textContent;
+  const name = document.getElementById('ctrlNameDisplay').textContent;
+  ctrlShow('ctrlInsightRecord', false);
+  ctrlSetAI('Мы сейчас будем заканчивать процесс. Хотите что-то добавить или сказать?', 'ℹ');
+  ctrlLog('Записано озарение: «' + insight + '»', '#34d399');
+  ctrlSpeak('Мы сейчас будем заканчивать процесс. Хотите вы что-то добавить или сказать?', () => {
+    setTimeout(() => {
+      ctrlSpeak('Мы закончили этот процесс. Спасибо!', () => {
+        ctrlSetAI('Процесс завершён. ' + ctrlCycles + ' циклов пройдено. Отличная работа, ' + name + '!', 'ℹ');
+        ctrlLog('Процесс завершён. Всего циклов: ' + ctrlCycles, '#34d399');
+        ctrlInsightLog.push({ date: new Date().toLocaleDateString('ru-RU'), name, cycles: ctrlCycles, insight });
+        renderInsightsDiary();
+      });
+    }, 3000);
+  });
+}
+
+function renderInsightsDiary() {
+  const diary = document.getElementById('ctrlInsightsDiary');
+  if (!diary || ctrlInsightLog.length === 0) return;
+  diary.innerHTML = ctrlInsightLog.slice().reverse().map(e =>
+    '<div style="background:var(--surface);border:1px solid rgba(52,211,153,0.2);border-radius:10px;padding:10px 12px;margin-bottom:6px;">' +
+    '<div style="font-size:9px;color:var(--text-dim);font-family:var(--mono);">' + e.date + ' · ' + e.name + ' · ' + e.cycles + ' циклов</div>' +
+    '<div style="font-size:11px;color:var(--text);margin-top:5px;line-height:1.6;font-style:italic;">"' + e.insight + '"</div>' +
+    '</div>'
+  ).join('');
+}
 
 // ====== TIPS ROTATION ======
 const tips = [
