@@ -251,16 +251,17 @@
   .game-wrap {
     position: relative;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid var(--border);
   }
   .game-overlay {
     position: absolute; inset: 0;
-    background: rgba(8,12,20,0.88);
+    background: rgba(8,12,20,0.92);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 8px;
-    backdrop-filter: blur(4px);
+    gap: 10px;
+    border-radius: 10px;
+    padding: 16px;
   }
   .game-overlay h3 { font-size: 13px; font-weight: 600; color: var(--green); letter-spacing: 0.5px; }
   .game-overlay p { font-size: 10px; color: var(--text-muted); text-align: center; max-width: 240px; line-height: 1.5; }
@@ -594,6 +595,12 @@
     </div>
   </div>
 
+  <!-- MIC BANNER -->
+  <div id="micBanner" style="background:rgba(99,149,255,0.12);border-bottom:1px solid rgba(99,149,255,0.2);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <span style="font-size:10px;color:#6395ff;">🎙 Нужен доступ к микрофону для работы приложения</span>
+    <button onclick="requestMicNow()" style="background:rgba(99,149,255,0.2);border:1px solid rgba(99,149,255,0.4);border-radius:6px;color:#6395ff;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;white-space:nowrap;">Разрешить</button>
+  </div>
+
   <!-- TOP BAR -->
   <div class="topbar">
     <div class="logo">
@@ -746,7 +753,7 @@
           <div class="game-overlay" id="gameOverlay">
             <h3 id="gameTitle">РЕЧЕВОЙ ТРЕНАЖЁР</h3>
             <p id="gameDesc">Говорите плавно и медленно → шар держится по центру. Резкий старт или быстрый темп → шар падает и врезается в ворота. Ворота зелёные = широкие (плавная речь), красные = узкие (резкая).</p>
-            <button class="btn btn-sm" id="startGameBtn">▶ ИГРАТЬ</button>
+            <button id="startGameBtn" style="background:var(--green);color:#000;border:none;border-radius:10px;padding:10px 28px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.5px;box-shadow:0 0 20px rgba(52,211,153,0.5);">▶ ИГРАТЬ</button>
           </div>
         </div>
       </div>
@@ -767,6 +774,7 @@
         <div class="row">
           <span class="row-label">Скорость</span>
           <select id="shadowSpeed">
+            <option value="0.4">Очень медленно (0.4×)</option>
             <option value="0.6">Медленно (0.6×)</option>
             <option value="0.75" selected>Норма (0.75×)</option>
             <option value="0.9">Быстро (0.9×)</option>
@@ -813,9 +821,11 @@
           <div style="text-align:center;font-size:10px;color:var(--text-dim);padding:20px 0;">Выберите сценарий и нажмите «Начать»</div>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;">
-          <input type="text" id="userInput" placeholder="Напишите ответ (или говорите)..." style="height:36px;" onkeydown="if(event.key==='Enter')sendUserMsg()">
+          <input type="text" id="userInput" placeholder="Напишите или нажмите 🎙..." style="height:36px;" onkeydown="if(event.key==='Enter')sendUserMsg()">
+          <button id="voiceBtn" onclick="toggleVoiceInput()" style="width:36px;height:36px;flex-shrink:0;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">🎙</button>
           <button class="btn btn-sm" onclick="sendUserMsg()" style="width:auto;margin-top:0;padding:0 14px;">↑</button>
         </div>
+        <div id="voiceStatus" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:4px;display:none;">🔴 Слушаю... говорите</div>
       </div>
     </div>
 
@@ -926,43 +936,39 @@
           </div>
         </div>
 
-        <div style="background:#0a0f1a;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;min-height:72px;display:flex;align-items:center;gap:10px;">
-          <div style="width:30px;height:30px;background:var(--green-dim);border:1px solid rgba(52,211,153,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;" id="ctrlAiAvatar">🎙</div>
-          <div id="ctrlAiText" style="font-size:12px;line-height:1.6;color:var(--text);">Подготовка...</div>
+        <!-- Текст команды ИИ -->
+        <div style="background:#0a0f1a;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;min-height:80px;display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;background:var(--green-dim);border:1px solid rgba(52,211,153,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;" id="ctrlAiAvatar">🎙</div>
+          <div id="ctrlAiText" style="font-size:12px;line-height:1.7;color:var(--text);">Нажмите кнопку чтобы начать...</div>
         </div>
 
-        <div style="display:flex;gap:4px;margin-bottom:12px;" id="ctrlPhaseDots">
+        <!-- Индикатор фазы -->
+        <div style="display:flex;gap:4px;margin-bottom:14px;">
           <div id="pd1" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
           <div id="pd2" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
           <div id="pd3" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
           <div id="pd4" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
         </div>
 
-        <div id="ctrlCountDisplay" style="display:none;text-align:center;padding:10px 0 4px;">
-          <div style="font-size:40px;font-weight:700;font-family:var(--mono);color:var(--green);line-height:1;" id="ctrlCountNum">—</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">считайте вслух</div>
-        </div>
+        <!-- ГЛАВНАЯ кнопка — меняется по фазе -->
+        <button id="ctrlActionBtn" onclick="ctrlHandleActionBtn()" style="width:100%;padding:15px;border-radius:12px;border:2px solid rgba(52,211,153,0.5);background:var(--green-dim);color:var(--green);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.3px;margin-bottom:10px;transition:all 0.2s;">
+          ▶ Запустить процесс
+        </button>
 
-        <div id="ctrlInsightBtnWrap" style="display:none;margin-top:6px;">
-          <button onclick="triggerInsight()" style="width:100%;padding:13px;border-radius:10px;border:2px solid rgba(245,158,11,0.5);background:rgba(245,158,11,0.12);color:#f59e0b;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.22)'" onmouseout="this.style.background='rgba(245,158,11,0.12)'">
-            💡 Я ПОНЯЛ! — Нажмите при озарении
+        <!-- Озарение -->
+        <div id="ctrlInsightBtnWrap" style="display:none;">
+          <button onclick="triggerInsight()" style="width:100%;padding:11px;border-radius:10px;border:2px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);color:#f59e0b;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;">
+            💡 У меня озарение — Я ПОНЯЛ!
           </button>
         </div>
 
-        <div id="ctrlAnswerBtns" style="display:none;margin-top:6px;">
-          <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:8px;font-style:italic;">«Вы сами остановили свою речь?»</div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn" onclick="ctrlAnswer('да')" style="flex:1;">✓ Да</button>
-            <button class="btn btn-ghost" onclick="ctrlAnswer('не уверен')" style="flex:1;margin-top:0;">~ Не уверен</button>
-          </div>
-        </div>
-
-        <div id="ctrlInsightRecord" style="display:none;margin-top:6px;">
+        <!-- Запись озарения -->
+        <div id="ctrlInsightRecord" style="display:none;margin-top:10px;">
           <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:12px;margin-bottom:8px;">
-            <div style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">💡 Записываю озарение</div>
-            <div id="ctrlInsightText" style="font-size:11px;color:var(--text);min-height:30px;font-style:italic;line-height:1.6;">...</div>
+            <div style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">💡 Расскажите об озарении</div>
+            <div id="ctrlInsightText" style="font-size:11px;color:var(--text);min-height:30px;font-style:italic;line-height:1.6;">Говорите или пишите ниже...</div>
           </div>
-          <textarea id="ctrlInsightEdit" placeholder="Дополните или уточните своими словами..." style="height:70px;"></textarea>
+          <textarea id="ctrlInsightEdit" placeholder="Опишите что вы поняли..." style="height:70px;"></textarea>
           <button class="btn" onclick="ctrlFinishProcess()" style="margin-top:8px;">Завершить процесс →</button>
         </div>
       </div>
@@ -985,6 +991,13 @@
 </div>
 
 <script>
+// ====== АВТО-ИНИЦИАЛИЗАЦИЯ КАК В daf1.html ======
+window.addEventListener('click', function onFirstClick() {
+  // Разблокируем AudioContext при первом клике
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  window.removeEventListener('click', onFirstClick);
+}, { once: true });
+
 // ====== TAB NAVIGATION ======
 const tabs = document.querySelectorAll('.tab-btn');
 const pages = document.querySelectorAll('.tab-page');
@@ -1135,7 +1148,7 @@ function drawWave() {
 
   // Сглаживаем волну: быстро следуем за сигналом только при РЕЗКИХ скачках
   // При плавной речи — почти не двигается → мотивация говорить ровно
-  const followSpeed = sharpness > 6 ? 0.5 : 0.08; // резкость → нестабильная линия
+  const followSpeed = sharpness > 4 ? 0.7 : 0.25; // более чувствительно
   for (let i = 0; i < bufLen; i++) {
     smoothWaveData[i] += (raw[i] - smoothWaveData[i]) * followSpeed;
   }
@@ -1154,9 +1167,11 @@ function drawWave() {
   waveCtx.beginPath();
   const slice = waveCanvas.width / bufLen;
   let x = 0;
+  const center = waveCanvas.height / 2;
   for (let i = 0; i < bufLen; i++) {
     const v = smoothWaveData[i] / 128;
-    const y = v * waveCanvas.height / 2;
+    const deviation = (v - 1) * 2.8; // усиливаем амплитуду
+    const y = center + deviation * center;
     if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
     x += slice;
   }
@@ -1249,11 +1264,10 @@ function gameLoop() {
     ball.targetY += (centerY - ball.targetY) * 0.03;
   } else {
     // Речь есть: позиция = центр + штраф за резкость + штраф за темп
-    const sharpPenalty = Math.min(45, sharpness * 5); // резкий старт = отклонение вниз
-    const ratePenalty = Math.max(0, (syllableRate - 3.5) * 10); // быстрый темп = отклонение
+    const sharpPenalty = Math.min(55, sharpness * 8); // увеличена амплитуда
+    const ratePenalty = Math.max(0, (syllableRate - 3.5) * 14);
     const deviation = sharpPenalty + ratePenalty;
-    // Отклонение вниз при плохой плавности, держимся по центру при хорошей
-    ball.targetY = centerY + deviation * (Math.sin(Date.now() * 0.03) * 0.5 + 0.5);
+    ball.targetY = centerY + deviation * (Math.sin(Date.now() * 0.03) * 0.6 + 0.5);
   }
 
   ball.y += (ball.targetY - ball.y) * 0.10;
@@ -1343,7 +1357,7 @@ async function generateText() {
   const status = document.getElementById('aiTextStatus');
   status.textContent = '✨ Генерирую текст...';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1423,7 +1437,7 @@ async function startAISession() {
   document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Соединяю...';
   appendMsg('ai', '<span class="typing-dots"><span></span><span></span><span></span></span>');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1439,11 +1453,14 @@ async function startAISession() {
     appendMsg('ai', aiMsg);
     chatHistory.push({ role: 'assistant', content: aiMsg });
     document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+    speakAI(aiMsg);
   } catch(e) {
     document.getElementById('chatArea').lastChild?.remove();
-    appendMsg('ai', 'Здравствуйте! Я слушаю вас, не торопитесь. Говорите в своём темпе.');
-    chatHistory.push({ role: 'assistant', content: 'Здравствуйте! Я слушаю вас, не торопитесь. Говорите в своём темпе.' });
+    const fallback = 'Здравствуйте! Я слушаю вас, не торопитесь. Говорите в своём темпе.';
+    appendMsg('ai', fallback);
+    chatHistory.push({ role: 'assistant', content: fallback });
     document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+    speakAI(fallback);
   }
 }
 
@@ -1459,7 +1476,7 @@ async function sendUserMsg() {
   document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Думаю...';
   appendMsg('ai', '<span class="typing-dots"><span></span><span></span><span></span></span>');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1476,11 +1493,74 @@ async function sendUserMsg() {
     chatHistory.push({ role: 'assistant', content: aiMsg });
     document.getElementById('aiAvatarStatus').classList.remove('thinking');
     document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+    speakAI(aiMsg);
   } catch(e) {
     document.getElementById('chatArea').lastChild?.remove();
     appendMsg('ai', 'Не торопитесь, я жду столько, сколько нужно.');
     document.getElementById('aiAvatarStatus').classList.remove('thinking');
+    speakAI('Не торопитесь, я жду столько, сколько нужно.');
   }
+}
+
+// ====== TTS: простая реализация как в daf1.html ======
+function speak(text, onEnd, rate) {
+  if (!text || text.includes('<') ) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ru-RU';
+  utt.rate = rate || 0.80;
+  utt.pitch = 1.0;
+  utt.volume = 1.0;
+  if (onEnd) utt.onend = () => { setTimeout(onEnd, 300); };
+  window.speechSynthesis.speak(utt);
+}
+
+function speakAI(text) { speak(text, null, 0.78); }
+function unlockTTS() {} // не нужна — speak вызывается прямо из click
+
+// Голосовой ввод в диалоге
+let voiceInputActive = false;
+let voiceInputRec = null;
+function toggleVoiceInput() {
+  if (voiceInputActive) {
+    voiceInputActive = false;
+    if (voiceInputRec) { try { voiceInputRec.stop(); } catch(e){} }
+    document.getElementById('voiceBtn').textContent = '🎙';
+    document.getElementById('voiceBtn').style.background = 'var(--card)';
+    document.getElementById('voiceStatus').style.display = 'none';
+    return;
+  }
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Распознавание речи не поддерживается в этом браузере. Используйте Chrome.');
+    return;
+  }
+  voiceInputActive = true;
+  document.getElementById('voiceBtn').textContent = '⏹';
+  document.getElementById('voiceBtn').style.background = 'rgba(248,113,113,0.2)';
+  document.getElementById('voiceStatus').style.display = 'block';
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  voiceInputRec = new SR();
+  voiceInputRec.lang = 'ru-RU';
+  voiceInputRec.continuous = false;
+  voiceInputRec.interimResults = true;
+  voiceInputRec.onresult = (e) => {
+    let t = '';
+    for (let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+    document.getElementById('userInput').value = t;
+    if (e.results[e.results.length-1].isFinal) {
+      voiceInputActive = false;
+      document.getElementById('voiceBtn').textContent = '🎙';
+      document.getElementById('voiceBtn').style.background = 'var(--card)';
+      document.getElementById('voiceStatus').style.display = 'none';
+      setTimeout(() => sendUserMsg(), 300);
+    }
+  };
+  voiceInputRec.onerror = () => {
+    voiceInputActive = false;
+    document.getElementById('voiceBtn').textContent = '🎙';
+    document.getElementById('voiceStatus').style.display = 'none';
+  };
+  voiceInputRec.start();
 }
 
 function appendMsg(role, text) {
@@ -1603,15 +1683,16 @@ async function generatePhrase() {
   box.style.display='block';
   box.innerHTML = '<div class="tip-box" style="color:var(--text-muted);">✨ Генерирую...</div>';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
+        system: 'Ты помогаешь людям с заиканием формулировать фразы. Каждый раз давай РАЗНЫЙ вариант фразы — другие слова, другая структура, другое начало. Никогда не повторяй предыдущие варианты.',
         messages: [{
           role: 'user',
-          content: `Ситуация: ${ctx}. Напиши одну плавную, вежливую фразу для этой ситуации. Используй мягкие согласные, протяжные гласные, избегай взрывных «п», «б», «к» в начале слов. Только фраза, без объяснений.`
+          content: `Ситуация: ${ctx}. Вариант #${Math.floor(Math.random()*9000)+1000}. Напиши одну плавную вежливую фразу с мягкими согласными. Только фраза, без пояснений.`
         }]
       })
     });
@@ -1675,6 +1756,22 @@ let ctrlState = 'idle';
 let ctrlCycles = 0;
 let ctrlStopTimer = null;
 let ctrlInsightLog = [];
+let ctrlRec = null; // speech recognition
+
+function requestMicNow() {
+  initAudio().then(() => {
+    document.getElementById('micBanner').style.display = 'none';
+    unlockTTS();
+  }).catch(() => {
+    document.getElementById('micBanner').querySelector('span').textContent = '⚠ Доступ к микрофону запрещён. Проверьте настройки браузера.';
+  });
+}
+
+// Авто-запрос при первом взаимодействии
+document.addEventListener('click', function onFirstClick() {
+  unlockTTS();
+  document.removeEventListener('click', onFirstClick);
+}, { once: true });
 
 function checkReady() {
   const c1 = document.getElementById('chk1').checked;
@@ -1697,8 +1794,9 @@ function ctrlSetPhase(n) {
   ['pd1','pd2','pd3','pd4'].forEach((id, i) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.background = i < n ? 'var(--green)' : '#1a2038';
-    if (i === n-1) el.style.background = '#f59e0b';
+    if (i < n - 1) el.style.background = 'var(--green)';
+    else if (i === n - 1) el.style.background = '#f59e0b';
+    else el.style.background = '#1a2038';
   });
 }
 
@@ -1714,17 +1812,136 @@ function ctrlShow(id, show) {
   if (el) el.style.display = show ? 'block' : 'none';
 }
 
-function ctrlSpeak(text, onEnd) {
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'ru-RU'; utt.rate = 0.82; utt.pitch = 1.0;
-  utt.onend = () => { if (onEnd) onEnd(); };
-  window.speechSynthesis.speak(utt);
+function ctrlSpeak(text, onEnd) { speak(text, onEnd, 0.82); }
+
+// Распознавание одного ответа голосом
+function ctrlListenFor(keywords, onMatch, timeoutMs) {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    // нет распознавания — показываем кнопки как запасной вариант
+    return false;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  ctrlRec = new SR();
+  ctrlRec.lang = 'ru-RU';
+  ctrlRec.continuous = false;
+  ctrlRec.interimResults = false;
+  ctrlRec.onresult = (e) => {
+    const text = e.results[0][0].transcript.toLowerCase();
+    ctrlLog('Услышано: «' + text + '»', '#3a4460');
+    onMatch(text);
+  };
+  ctrlRec.onerror = () => { if (onMatch) onMatch(''); };
+  ctrlRec.onend = () => {};
+  try { ctrlRec.start(); } catch(e){}
+  if (timeoutMs) setTimeout(() => { try { ctrlRec.stop(); } catch(e){} }, timeoutMs);
+  return true;
+}
+
+// ====== КОНТРОЛЬ: ГОЛОС ГЛАВНЫЙ, КНОПКИ — СТРАХОВКА ======
+let ctrlActionState = 'idle';
+let ctrlVoiceLoop = null;   // активный слушатель
+let ctrlStopFired = false;
+
+// ---------- утилиты ----------
+function ctrlSetActionBtn(text, color) {
+  const btn = document.getElementById('ctrlActionBtn');
+  if (!btn) return;
+  btn.textContent = text;
+  const styles = {
+    green: ['rgba(52,211,153,0.5)', 'var(--green-dim)', 'var(--green)'],
+    amber: ['rgba(245,158,11,0.5)', 'rgba(245,158,11,0.12)', '#f59e0b'],
+    blue:  ['rgba(99,149,255,0.4)', 'rgba(99,149,255,0.1)', '#6395ff'],
+    red:   ['rgba(248,113,113,0.4)', 'rgba(248,113,113,0.1)', '#f87171'],
+  };
+  const [bc, bg, col] = styles[color] || styles.green;
+  btn.style.borderColor = bc;
+  btn.style.background  = bg;
+  btn.style.color       = col;
+}
+
+// ctrlSetBtn определён выше
+
+// Показать/скрыть кнопку страховки внизу
+function ctrlBackupBtn(text, fn) {
+  let wrap = document.getElementById('ctrlBackupWrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'ctrlBackupWrap';
+    wrap.style.cssText = 'margin-top:8px;';
+    document.getElementById('ctrl-main').appendChild(wrap);
+  }
+  if (!text) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  wrap.innerHTML = '<button onclick="ctrlBackupAction()" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-family:var(--sans);font-size:11px;cursor:pointer;">👆 ' + text + ' (кнопка)</button>';
+  wrap._fn = fn;
+}
+function ctrlBackupAction() {
+  const wrap = document.getElementById('ctrlBackupWrap');
+  if (wrap && wrap._fn) wrap._fn();
+}
+
+function ctrlStopVoice() {
+  if (ctrlVoiceLoop) { try { ctrlVoiceLoop.stop(); } catch(e){} ctrlVoiceLoop = null; }
+}
+
+// Запустить постоянный голосовой слушатель
+// keywords: массив слов-триггеров, onMatch(transcript) → вызывается при совпадении
+function ctrlStartListening(keywords, onMatch) {
+  ctrlStopVoice();
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let active = true;
+
+  function startRec() {
+    if (!active) return;
+    const rec = new SR();
+    ctrlVoiceLoop = rec;
+    rec.lang = 'ru-RU';
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.onresult = (e) => {
+      const text = e.results[0][0].transcript.toLowerCase().trim();
+      ctrlLog('🎙 «' + text + '»', '#3a4460');
+      const matched = keywords.some(k => text.includes(k));
+      if (matched) {
+        active = false;
+        ctrlVoiceLoop = null;
+        onMatch(text);
+      } else {
+        // не то слово — слушаем снова
+        setTimeout(startRec, 300);
+      }
+    };
+    rec.onerror = (e) => {
+      if (!active) return;
+      // не ошибка — просто перезапуск
+      setTimeout(startRec, 600);
+    };
+    rec.onend = () => {
+      if (active) setTimeout(startRec, 300);
+    };
+    try { rec.start(); } catch(ex) {}
+  }
+  startRec();
+}
+
+// ---------- главный поток ----------
+
+// Роутер кнопки — вызывает текущий обработчик
+let ctrlCurrentBtnFn = null;
+function ctrlHandleActionBtn() {
+  // Вызывается прямо из onclick — TTS работает на мобильном
+  if (ctrlCurrentBtnFn) ctrlCurrentBtnFn();
+}
+function ctrlSetBtn(text, color, fn) {
+  ctrlCurrentBtnFn = fn;
+  ctrlSetActionBtn(text, color);
 }
 
 function startControlProcess() {
   const name = document.getElementById('ctrlName').value.trim();
-  ctrlCycles = 0; ctrlState = 'idle';
+  ctrlCycles = 0; ctrlState = 'idle'; ctrlActionState = 'idle';
+  ctrlStopFired = false;
   document.getElementById('ctrl-checklist').style.display = 'none';
   document.getElementById('ctrl-main').style.display = 'block';
   document.getElementById('ctrl-log').style.display = 'block';
@@ -1732,63 +1949,133 @@ function startControlProcess() {
   document.getElementById('ctrlDate').textContent = now.toLocaleDateString('ru-RU', {day:'2-digit', month:'long', year:'numeric'});
   document.getElementById('ctrlNameDisplay').textContent = name;
   document.getElementById('ctrlCycleCount').textContent = '0';
-  ctrlLog('Сессия начата. Участник: ' + name, '#34d399');
-  ctrlSetAI('Добро пожаловать. Устраивайтесь удобнее.', 'ℹ');
-  setTimeout(() => {
-    ctrlSpeak('Добро пожаловать, ' + name + '. Я буду вашим инструктором в этом процессе. Устраивайтесь удобнее.', () => {
-      setTimeout(() => runCtrlCycle(), 1200);
-    });
-  }, 400);
+  ctrlLog('Сессия начата: ' + name, '#34d399');
+  ctrlSetAI('Нажмите кнопку ниже — дальше всё голосом.', '🎙');
+
+  // Первое нажатие — разблокирует TTS на мобильном (user gesture!)
+  ctrlSetBtn('▶ Запустить процесс', 'green', () => {
+    // Прямой user-gesture → speak работает на мобильном
+    speak('Добро пожаловать, ' + name + '. Сейчас начнём.', () => runCtrlCycle(), 0.82);
+  });
+  ctrlBackupBtn(null, null);
 }
 
 function runCtrlCycle() {
+  ctrlStopVoice();
   ctrlState = 'cmd1';
+  ctrlActionState = 'cmd1_ready';
   ctrlSetPhase(1);
-  ctrlShow('ctrlCountDisplay', false);
-  ctrlShow('ctrlAnswerBtns', false);
   ctrlShow('ctrlInsightRecord', false);
   ctrlShow('ctrlInsightBtnWrap', false);
-  const cmd1 = 'Я хочу, чтобы вы начали считать вслух с единицы, а потом в какой-то момент я произнесу стоп, и в этот момент вы прекратите говорить. Хорошо?';
-  ctrlSetAI(cmd1, 'ℹ');
-  ctrlLog('Цикл ' + (ctrlCycles + 1) + ': Команда 1');
+
+  const cmd1 = 'Я хочу, чтобы вы начали считать вслух с единицы. В какой-то момент я скажу «стоп», и вы прекратите говорить. Хорошо?';
+  ctrlSetAI(cmd1, '🎙');
+  ctrlLog('Цикл ' + (ctrlCycles + 1) + ' — Команда 1');
   ctrlSpeak(cmd1, () => {
-    ctrlState = 'counting';
-    ctrlSetPhase(2);
-    ctrlShow('ctrlCountDisplay', true);
-    ctrlShow('ctrlInsightBtnWrap', true);
-    ctrlSetAI('Считайте вслух: один, два, три...', 'ℹ');
-    ctrlLog('Ожидание счёта...', '#6395ff');
-    let dn = 1;
-    document.getElementById('ctrlCountNum').textContent = '1';
-    const vis = setInterval(() => {
-      if (ctrlState !== 'counting') { clearInterval(vis); return; }
-      dn++; document.getElementById('ctrlCountNum').textContent = dn;
-    }, 1100);
-    const delay = 5000 + Math.random() * 9000;
-    ctrlLog('Команда «Стоп» прозвучит через ~' + Math.round(delay/1000) + ' сек', '#3a4460');
-    ctrlStopTimer = setTimeout(() => {
-      if (ctrlState !== 'counting') return;
-      clearInterval(vis);
-      ctrlFireStop();
-    }, delay);
+    // Слушаем «да / хорошо / начинаю»
+    ctrlSetAI('Скажите «да» или «хорошо»...', '👂');
+    ctrlStartListening(['да','хорошо','ладно','начинаю','начну','готов'], () => {
+      ctrlLog('Подтверждение получено — начинаем счёт', '#6395ff');
+      startCounting();
+    });
+    // Страховка: кнопка
+    ctrlSetBtn('👂 Жду вашего «да»...', 'blue', () => {
+      ctrlStopVoice();
+      ctrlLog('Подтверждение кнопкой', '#3a4460');
+      startCounting();
+    });
+    ctrlBackupBtn('Нажать если голос не работает', () => {
+      ctrlStopVoice();
+      startCounting();
+    });
   });
+}
+
+function startCounting() {
+  if (ctrlState !== 'cmd1') return;
+  ctrlStopVoice();
+  ctrlState = 'counting';
+  ctrlStopFired = false;
+  ctrlSetPhase(2);
+  ctrlSetAI('Считайте вслух: один, два, три...', '👂');
+  ctrlLog('Счёт начат', '#6395ff');
+
+  // Показываем кнопку озарения (основной путь для инсайта)
+  ctrlShow('ctrlInsightBtnWrap', true);
+  ctrlSetBtn('💡 Я ПОНЯЛ! — Озарение', 'amber', () => triggerInsight());
+  ctrlBackupBtn(null, null);
+
+  // Фоновый слушатель на «я понял / озарение»
+  ctrlStartInsightBackground();
+
+  // СТОП через рандом 5–14 сек
+  const delay = 5000 + Math.random() * 9000;
+  ctrlLog('«Стоп» через ~' + Math.round(delay/1000) + ' сек', '#3a4460');
+  ctrlStopTimer = setTimeout(() => {
+    if (ctrlState === 'counting') ctrlFireStop();
+  }, delay);
+}
+
+function ctrlStartInsightBackground() {
+  // Параллельный слушатель — не прерывает счёт, просто ждёт «я понял»
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let bgActive = true;
+
+  function bgRec() {
+    if (!bgActive || ctrlState !== 'counting') return;
+    const rec = new SR();
+    rec.lang = 'ru-RU'; rec.continuous = false; rec.interimResults = false;
+    rec.onresult = (e) => {
+      const text = e.results[0][0].transcript.toLowerCase();
+      if (text.includes('понял') || text.includes('осознал') || text.includes('озарение')) {
+        bgActive = false;
+        if (ctrlState === 'counting') {
+          if (ctrlStopTimer) clearTimeout(ctrlStopTimer);
+          triggerInsight();
+        }
+      } else {
+        setTimeout(bgRec, 400);
+      }
+    };
+    rec.onerror = () => { setTimeout(bgRec, 800); };
+    rec.onend = () => { if (bgActive && ctrlState === 'counting') setTimeout(bgRec, 400); };
+    try { rec.start(); } catch(ex) {}
+  }
+  bgRec();
 }
 
 function ctrlFireStop() {
+  if (ctrlStopFired) return;
+  ctrlStopFired = true;
+  ctrlStopVoice();
   ctrlState = 'stop_wait';
+  ctrlActionState = 'stopped';
+  ctrlShow('ctrlInsightBtnWrap', false);
   ctrlSetPhase(3);
-  ctrlShow('ctrlCountDisplay', false);
-  ctrlSetAI('СТОП!', 'ℹ');
+  ctrlSetAI('СТОП!', '✋');
   ctrlLog('Команда 2: «Стоп!»', '#f87171');
+
+  // Говорим «Стоп!» — это user-gesture chain из setTimeout, работает
   ctrlSpeak('Стоп!', () => {
-    ctrlSetAI('Жду тишины...', 'ℹ');
-    detectCtrlSilence(() => { setTimeout(() => fireCmd3(), 800); });
+    // Ждём тишины через Web Audio
+    ctrlSetAI('Жду тишины...', '🔇');
+    detectCtrlSilence(() => {
+      setTimeout(() => fireCmd3(), 600);
+    });
   });
+
+  // Страховка: кнопка «я замолчал»
+  ctrlSetBtn('✋ Я замолчал', 'amber', () => {
+    ctrlStopVoice();
+    fireCmd3();
+  });
+  ctrlBackupBtn('Нажать если замолчали', () => fireCmd3());
 }
 
 function detectCtrlSilence(onSilence) {
-  if (!analyser) { setTimeout(onSilence, 2000); return; }
-  const THRESH = 8, REQ_MS = 900;
+  if (!analyser) { setTimeout(onSilence, 1500); return; }
+  const THRESH = 10, REQ_MS = 800;
   let silStart = Date.now(), checking = true;
   const chk = setInterval(() => {
     if (!checking) { clearInterval(chk); return; }
@@ -1799,40 +2086,73 @@ function detectCtrlSilence(onSilence) {
       if (Date.now() - silStart > REQ_MS) { checking=false; clearInterval(chk); onSilence(); }
     } else { silStart = Date.now(); }
   }, 80);
-  setTimeout(() => { checking=false; clearInterval(chk); onSilence(); }, 6000);
+  setTimeout(() => { checking=false; clearInterval(chk); onSilence(); }, 5000);
 }
 
 function fireCmd3() {
+  ctrlStopVoice();
   ctrlState = 'cmd3';
+  ctrlActionState = 'cmd3_ready';
   ctrlSetPhase(4);
-  const cmd3 = 'Вы сами остановили свою речь?';
-  ctrlSetAI(cmd3, 'ℹ');
-  ctrlLog('Команда 3: «Вы сами остановили свою речь?»', '#f59e0b');
-  ctrlSpeak(cmd3, () => { ctrlShow('ctrlAnswerBtns', true); });
+  const q = 'Вы сами остановили свою речь?';
+  ctrlSetAI(q, '🤔');
+  ctrlLog('Команда 3: «' + q + '»', '#f59e0b');
+
+  ctrlSpeak(q, () => {
+    ctrlSetAI('Скажите «да» или «нет»...', '👂');
+    // Слушаем ответ голосом
+    ctrlStartListening(['да','нет','не знаю','не уверен','наверное','конечно','само'], (text) => {
+      ctrlLog('Ответ голосом: «' + text + '»', '#34d399');
+      ctrlAnswer(text);
+    });
+    // Страховка — кнопки
+    ctrlSetBtn('✓ Да, я сам остановил', 'green', () => {
+      ctrlStopVoice();
+      ctrlAnswer('да');
+    });
+    ctrlBackupBtn('Нет / Не уверен', () => {
+      ctrlStopVoice();
+      ctrlAnswer('не уверен');
+    });
+  });
 }
 
 function ctrlAnswer(answer) {
-  ctrlShow('ctrlAnswerBtns', false);
+  ctrlStopVoice();
   ctrlCycles++;
   document.getElementById('ctrlCycleCount').textContent = ctrlCycles;
-  ctrlLog('Ответ: «' + answer + '» — Цикл ' + ctrlCycles + ' завершён ✓', '#34d399');
-  ctrlSetAI('', 'ℹ');
-  setTimeout(() => { if (ctrlState === 'cmd3') runCtrlCycle(); }, 1000);
+  ctrlLog('Ответ: «' + answer + '» — Цикл ' + ctrlCycles + ' ✓', '#34d399');
+  ctrlState = 'idle';
+  ctrlShow('ctrlInsightBtnWrap', false);
+  ctrlBackupBtn(null, null);
+
+  // Авто-переход через 1.5 сек
+  ctrlSetAI('Цикл ' + ctrlCycles + ' завершён. Начинаю следующий...', '✅');
+  ctrlSetBtn('▶ Следующий цикл (или подождите)', 'green', () => {
+    clearTimeout(ctrlAutoNext);
+    runCtrlCycle();
+  });
+  const ctrlAutoNext = setTimeout(() => {
+    if (ctrlState === 'idle') runCtrlCycle();
+  }, 2000);
 }
 
 function triggerInsight() {
   if (ctrlState === 'insight' || ctrlState === 'final') return;
+  ctrlStopVoice();
   window.speechSynthesis.cancel();
   if (ctrlStopTimer) clearTimeout(ctrlStopTimer);
   ctrlState = 'insight';
-  ctrlShow('ctrlCountDisplay', false);
   ctrlShow('ctrlInsightBtnWrap', false);
-  ctrlShow('ctrlAnswerBtns', false);
-  ctrlLog('ОЗАРЕНИЕ! Пользователь нажал кнопку озарения', '#34d399');
-  ctrlSetAI('Спасибо за озарение. Расскажите подробнее — что именно вы поняли?', 'ℹ');
-  ctrlSpeak('Спасибо за озарение. Расскажите подробнее, что именно вы поняли?', () => {
+  ctrlBackupBtn(null, null);
+  ctrlLog('💡 ОЗАРЕНИЕ!', '#34d399');
+
+  const thankText = 'Спасибо за озарение. Расскажите подробнее — что именно вы поняли?';
+  ctrlSetAI(thankText, '💡');
+  ctrlSpeak(thankText, () => {
     ctrlShow('ctrlInsightRecord', true);
-    document.getElementById('ctrlInsightText').textContent = 'Говорите или напишите ниже...';
+    document.getElementById('ctrlInsightText').textContent = '🎙 Слушаю...';
+    // Записываем голосом
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
@@ -1844,29 +2164,44 @@ function triggerInsight() {
         document.getElementById('ctrlInsightEdit').value = t;
       };
       try { rec.start(); } catch(e){}
-      setTimeout(() => { try { rec.stop(); } catch(e){} }, 30000);
+      setTimeout(() => { try { rec.stop(); } catch(e){} }, 40000);
     }
   });
 }
 
 function ctrlFinishProcess() {
+  ctrlStopVoice();
   ctrlState = 'final';
   const insight = document.getElementById('ctrlInsightEdit').value.trim()
     || document.getElementById('ctrlInsightText').textContent;
   const name = document.getElementById('ctrlNameDisplay').textContent;
   ctrlShow('ctrlInsightRecord', false);
-  ctrlSetAI('Мы сейчас будем заканчивать процесс. Хотите что-то добавить или сказать?', 'ℹ');
-  ctrlLog('Записано озарение: «' + insight + '»', '#34d399');
+  ctrlSetAI('Завершаем процесс...', '✅');
+  ctrlLog('Озарение: «' + insight + '»', '#34d399');
   ctrlSpeak('Мы сейчас будем заканчивать процесс. Хотите вы что-то добавить или сказать?', () => {
     setTimeout(() => {
       ctrlSpeak('Мы закончили этот процесс. Спасибо!', () => {
-        ctrlSetAI('Процесс завершён. ' + ctrlCycles + ' циклов пройдено. Отличная работа, ' + name + '!', 'ℹ');
-        ctrlLog('Процесс завершён. Всего циклов: ' + ctrlCycles, '#34d399');
+        ctrlSetAI('Завершено. ' + ctrlCycles + ' циклов. Отличная работа, ' + name + '!', '✅');
+        ctrlLog('Завершено. Циклов: ' + ctrlCycles, '#34d399');
         ctrlInsightLog.push({ date: new Date().toLocaleDateString('ru-RU'), name, cycles: ctrlCycles, insight });
         renderInsightsDiary();
+        ctrlSetBtn('↺ Новая сессия', 'blue', () => ctrlRestart());
       });
     }, 3000);
   });
+}
+
+function ctrlRestart() {
+  ctrlStopVoice();
+  ctrlCycles = 0; ctrlState = 'idle'; ctrlActionState = 'idle';
+  document.getElementById('ctrl-main').style.display = 'none';
+  document.getElementById('ctrl-log').style.display = 'none';
+  document.getElementById('ctrl-checklist').style.display = 'block';
+  ['chk1','chk2','chk3'].forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
+  const ni = document.getElementById('ctrlName');
+  if (ni) ni.value = '';
+  const sb = document.getElementById('ctrlStartBtn');
+  if (sb) sb.disabled = true;
 }
 
 function renderInsightsDiary() {
