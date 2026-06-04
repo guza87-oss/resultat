@@ -251,16 +251,17 @@
   .game-wrap {
     position: relative;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid var(--border);
   }
   .game-overlay {
     position: absolute; inset: 0;
-    background: rgba(8,12,20,0.88);
+    background: rgba(8,12,20,0.92);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 8px;
-    backdrop-filter: blur(4px);
+    gap: 10px;
+    border-radius: 10px;
+    padding: 16px;
   }
   .game-overlay h3 { font-size: 13px; font-weight: 600; color: var(--green); letter-spacing: 0.5px; }
   .game-overlay p { font-size: 10px; color: var(--text-muted); text-align: center; max-width: 240px; line-height: 1.5; }
@@ -950,8 +951,8 @@
         </div>
 
         <!-- ГЛАВНАЯ кнопка — меняется по фазе -->
-        <button id="ctrlActionBtn" style="width:100%;padding:15px;border-radius:12px;border:2px solid rgba(52,211,153,0.5);background:var(--green-dim);color:var(--green);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.3px;margin-bottom:10px;transition:all 0.2s;">
-          ▶ Начать — услышать инструкцию
+        <button id="ctrlActionBtn" onclick="ctrlHandleActionBtn()" style="width:100%;padding:15px;border-radius:12px;border:2px solid rgba(52,211,153,0.5);background:var(--green-dim);color:var(--green);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.3px;margin-bottom:10px;transition:all 0.2s;">
+          ▶ Запустить процесс
         </button>
 
         <!-- Озарение -->
@@ -1497,27 +1498,35 @@ async function sendUserMsg() {
 
 let ttsUnlocked = false;
 function unlockTTS() {
-  // На мобильном TTS нужно вызвать из прямого user-event
   if (ttsUnlocked) return;
-  const utt = new SpeechSynthesisUtterance('');
-  window.speechSynthesis.speak(utt);
+  // Пустое высказывание разблокирует TTS на iOS/Android
+  try {
+    const utt = new SpeechSynthesisUtterance(' ');
+    utt.volume = 0;
+    window.speechSynthesis.speak(utt);
+  } catch(e) {}
   ttsUnlocked = true;
 }
 
-function speakAI(text) {
-  if (!text || text.includes('<span')) return; // не озвучивать HTML
-  window.speechSynthesis.cancel();
-  // Небольшая задержка чтобы cancel успел отработать
+// Универсальная функция озвучки — используется везде
+function speak(text, onEnd, rate) {
+  if (!text || text.includes('<span') || text.includes('<div')) return;
+  // Отменяем предыдущее только если уже что-то говорит
+  if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
   setTimeout(() => {
     const utt = new SpeechSynthesisUtterance(text);
     utt.lang = 'ru-RU';
-    utt.rate = 0.78;
+    utt.rate = rate || 0.80;
     utt.pitch = 1.0;
     utt.volume = 1.0;
-    utt.onerror = (e) => console.log('TTS error:', e.error);
+    if (onEnd) utt.onend = () => setTimeout(onEnd, 300);
+    utt.onerror = (e) => { if (e.error !== 'interrupted') console.log('TTS:', e.error); };
     window.speechSynthesis.speak(utt);
-  }, 100);
+  }, 80);
 }
+
+// Алиасы для совместимости
+function speakAI(text) { speak(text, null, 0.78); }
 
 // Голосовой ввод в диалоге
 let voiceInputActive = false;
@@ -1813,13 +1822,7 @@ function ctrlShow(id, show) {
   if (el) el.style.display = show ? 'block' : 'none';
 }
 
-function ctrlSpeak(text, onEnd) {
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'ru-RU'; utt.rate = 0.82; utt.pitch = 1.0;
-  utt.onend = () => { if (onEnd) setTimeout(onEnd, 400); };
-  window.speechSynthesis.speak(utt);
-}
+function ctrlSpeak(text, onEnd) { speak(text, onEnd, 0.82); }
 
 // Распознавание одного ответа голосом
 function ctrlListenFor(keywords, onMatch, timeoutMs) {
@@ -1866,10 +1869,7 @@ function ctrlSetActionBtn(text, color) {
   btn.style.color       = col;
 }
 
-function ctrlSetBtn(text, color, fn) {
-  ctrlSetActionBtn(text, color);
-  document.getElementById('ctrlActionBtn').onclick = fn;
-}
+// ctrlSetBtn определён выше
 
 // Показать/скрыть кнопку страховки внизу
 function ctrlBackupBtn(text, fn) {
@@ -1936,6 +1936,17 @@ function ctrlStartListening(keywords, onMatch) {
 }
 
 // ---------- главный поток ----------
+
+// Роутер кнопки — вызывает текущий обработчик
+let ctrlCurrentBtnFn = null;
+function ctrlHandleActionBtn() {
+  unlockTTS(); // разблокируем TTS при каждом нажатии
+  if (ctrlCurrentBtnFn) ctrlCurrentBtnFn();
+}
+function ctrlSetBtn(text, color, fn) {
+  ctrlCurrentBtnFn = fn;
+  ctrlSetActionBtn(text, color);
+}
 
 function startControlProcess() {
   const name = document.getElementById('ctrlName').value.trim();
