@@ -2008,39 +2008,30 @@ function ctrlStartListening(keywords, onMatch) {
   ctrlStopVoice();
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let active = true;
-
-  function startRec() {
-    if (!active) return;
-    const rec = new SR();
-    ctrlVoiceLoop = rec;
-    rec.lang = 'ru-RU';
-    rec.continuous = false;
-    rec.interimResults = false;
-    rec.onresult = (e) => {
-      const text = e.results[0][0].transcript.toLowerCase().trim();
+  const rec = new SR();
+  ctrlVoiceLoop = rec;
+  rec.lang = 'ru-RU';
+  rec.continuous = true;   // один запуск, слушаем долго — без перезапусков
+  rec.interimResults = false;
+  let matched = false;
+  rec.onresult = (e) => {
+    if (matched) return;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (!e.results[i].isFinal) continue;
+      const text = e.results[i][0].transcript.toLowerCase().trim();
       ctrlLog('🎙 «' + text + '»', '#3a4460');
-      const matched = keywords.some(k => text.includes(k));
-      if (matched) {
-        active = false;
+      if (keywords.some(k => text.includes(k))) {
+        matched = true;
+        try { rec.stop(); } catch(ex) {}
         ctrlVoiceLoop = null;
         onMatch(text);
-      } else {
-        // не то слово — слушаем снова
-        setTimeout(startRec, 300);
+        return;
       }
-    };
-    rec.onerror = (e) => {
-      if (!active) return;
-      // не ошибка — просто перезапуск
-      setTimeout(startRec, 600);
-    };
-    rec.onend = () => {
-      if (active) setTimeout(startRec, 300);
-    };
-    try { rec.start(); } catch(ex) {}
-  }
-  startRec();
+    }
+  };
+  rec.onerror = (e) => { ctrlLog('mic err: ' + e.error, '#f87171'); };
+  setTimeout(() => { try { rec.stop(); } catch(e){} }, 30000);
+  try { rec.start(); } catch(ex) { ctrlLog('rec start fail: ' + ex, '#f87171'); }
 }
 
 // ---------- главный поток ----------
@@ -2101,12 +2092,14 @@ function runCtrlCycle() {
 
   // Говорим команду, слушатель запускаем ПОСЛЕ окончания речи
   speak(cmd1, () => {
-    ctrlSetAI('Скажите «да» или «хорошо»...', '👂');
-    ctrlStartListening(['да','хорошо','ладно','начинаю','начну','готов'], () => {
-      ctrlStopVoice();
-      ctrlLog('Голос: подтверждение получено', '#6395ff');
-      startCounting();
-    });
+    setTimeout(() => {
+      ctrlSetAI('Скажите «да» или «хорошо»...', '👂');
+      ctrlStartListening(['да','хорошо','ладно','начинаю','начну','готов'], () => {
+        ctrlStopVoice();
+        ctrlLog('Голос: подтверждение получено', '#6395ff');
+        startCounting();
+      });
+    }, 800);
   }, 0.82);
 }
 
@@ -2135,32 +2128,30 @@ function startCounting() {
 }
 
 function ctrlStartInsightBackground() {
-  // Параллельный слушатель — не прерывает счёт, просто ждёт «я понял»
+  // Фоновый слушатель «я понял» — continuous, без перезапусков
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let bgActive = true;
-
-  function bgRec() {
-    if (!bgActive || ctrlState !== 'counting') return;
-    const rec = new SR();
-    rec.lang = 'ru-RU'; rec.continuous = false; rec.interimResults = false;
-    rec.onresult = (e) => {
-      const text = e.results[0][0].transcript.toLowerCase();
+  const rec = new SR();
+  rec.lang = 'ru-RU';
+  rec.continuous = true;   // один запуск — нет колокольчиков при перезапуске
+  rec.interimResults = false;
+  rec.onresult = (e) => {
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (!e.results[i].isFinal) continue;
+      const text = e.results[i][0].transcript.toLowerCase();
       if (text.includes('понял') || text.includes('осознал') || text.includes('озарение')) {
-        bgActive = false;
+        try { rec.stop(); } catch(ex) {}
         if (ctrlState === 'counting') {
           if (ctrlStopTimer) clearTimeout(ctrlStopTimer);
           triggerInsight();
         }
-      } else {
-        setTimeout(bgRec, 400);
       }
-    };
-    rec.onerror = () => { setTimeout(bgRec, 800); };
-    rec.onend = () => { if (bgActive && ctrlState === 'counting') setTimeout(bgRec, 400); };
-    try { rec.start(); } catch(ex) {}
-  }
-  bgRec();
+    }
+  };
+  rec.onerror = () => {};
+  // Останавливаем когда счёт заканчивается
+  setTimeout(() => { try { rec.stop(); } catch(e){} }, 60000);
+  try { rec.start(); } catch(ex) {}
 }
 
 function ctrlFireStop() {
@@ -2220,12 +2211,14 @@ function fireCmd3() {
   // Сначала говорим вопрос, слушатель запускаем ПОСЛЕ окончания речи
   // чтобы TTS не распознал сам себя
   speak(q + '. Скажите да или нет.', () => {
-    // TTS закончил — теперь слушаем
-    ctrlSetAI('Слушаю ваш ответ...', '👂');
-    ctrlStartListening(['да','нет','не знаю','не уверен','наверное','конечно','само','остановил'], (text) => {
-      ctrlLog('Голос: «' + text + '»', '#34d399');
-      ctrlAnswer(text);
-    });
+    // Пауза после TTS — Android нужно время чтобы переключить аудио
+    setTimeout(() => {
+      ctrlSetAI('Слушаю ваш ответ...', '👂');
+      ctrlStartListening(['да','нет','не знаю','не уверен','наверное','конечно','само','остановил'], (text) => {
+        ctrlLog('Голос: «' + text + '»', '#34d399');
+        ctrlAnswer(text);
+      });
+    }, 800);
   }, 0.82);
 }
 
@@ -2266,20 +2259,28 @@ function triggerInsight() {
   ctrlSpeak(thankText, () => {
     ctrlShow('ctrlInsightRecord', true);
     document.getElementById('ctrlInsightText').textContent = '🎙 Слушаю...';
-    // Записываем голосом
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const rec = new SR();
-      rec.lang = 'ru-RU'; rec.continuous = true; rec.interimResults = true;
-      rec.onresult = (e) => {
-        let t = '';
-        for (let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
-        document.getElementById('ctrlInsightText').textContent = t;
-        document.getElementById('ctrlInsightEdit').value = t;
-      };
-      try { rec.start(); } catch(e){}
-      setTimeout(() => { try { rec.stop(); } catch(e){} }, 40000);
-    }
+    // Пауза 1 сек после TTS — Android нужно время переключить аудио
+    setTimeout(() => {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const rec = new SR();
+        rec.lang = 'ru-RU'; rec.continuous = true; rec.interimResults = true;
+        rec.onresult = (e) => {
+          let t = '';
+          for (let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+          document.getElementById('ctrlInsightText').textContent = t;
+          document.getElementById('ctrlInsightEdit').value = t;
+        };
+        rec.onerror = (e) => {
+          if (e.error !== 'aborted') {
+            document.getElementById('ctrlInsightText').textContent = 
+              '🎙 Говорите... (или напишите ниже)';
+          }
+        };
+        try { rec.start(); } catch(e){}
+        setTimeout(() => { try { rec.stop(); } catch(e){} }, 40000);
+      }
+    }, 1000);
   });
 }
 
@@ -2461,11 +2462,22 @@ async function runSpeechAnalysis() {
     setTimeout(() => speak(analysis, null, 0.82), 300);
 
   } catch(e) {
-    document.getElementById('analysisText').textContent = 'Ошибка соединения. Проверьте интернет.';
+    // Локальный анализ если нет сети
+    const wordCount = transcript.split(' ').length;
+    const localAnalysis = `Запись получена (${wordCount} слов). Анализ без сети:
+
+` +
+      `• Темп: попробуйте говорить на 20% медленнее чем сейчас
+` +
+      `• Совет: делайте паузу перед каждым предложением — глубокий вдох
+` +
+      `• Следующий шаг: повторите текст ещё раз, растягивая первый слог каждого слова`;
+    document.getElementById('analysisText').textContent = localAnalysis;
     document.getElementById('analysisResult').style.display = 'block';
     document.getElementById('analysisAIBtn').textContent = '🧠 Получить анализ от ИИ';
     document.getElementById('analysisAIBtn').style.opacity = '1';
-    document.getElementById('analysisStatus').textContent = 'Ошибка';
+    document.getElementById('analysisStatus').textContent = 'Офлайн';
+    setTimeout(() => speak(localAnalysis, null, 0.82), 300);
   }
 }
 
@@ -2569,8 +2581,14 @@ async function generateAnalysisText() {
     btn.textContent = '✨ Сгенерировать новый текст';
     btn.style.opacity = '1';
   } catch(e) {
-    btn.textContent = '✨ Сгенерировать текст для чтения';
+    // Показать ошибку и запасной текст
+    document.getElementById('analysisReadText').textContent = 
+      'Медленно течёт река, омывая тёплые камни. Солнце опускается за горизонт. Голос звучит спокойно и уверенно. Каждое слово произносится чётко и без спешки.';
+    document.getElementById('analysisReadText').style.display = 'block';
+    document.getElementById('analysisTranscript').textContent = 'Прочитайте текст выше вслух и нажмите кнопку записи...';
+    btn.textContent = '✨ Сгенерировать текст (офлайн)';
     btn.style.opacity = '1';
+    console.error('generateAnalysisText error:', e);
   }
 }
 
