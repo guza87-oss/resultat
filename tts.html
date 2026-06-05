@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTS Test</title>
+</head>
+<body style="font-family:sans-serif;padding:40px;text-align:center;">
+
+<h2>TTS Тест</h2>
+<p id="status" style="color:gray;">Нажмите кнопку</p>
+
+<button onclick="test1()" style="display:block;width:100%;padding:20px;margin:10px 0;font-size:18px;background:#34d399;border:none;border-radius:12px;cursor:pointer;">
+  ▶ Тест 1: простой speak
+</button>
+
+<button onclick="test2()" style="display:block;width:100%;padding:20px;margin:10px 0;font-size:18px;background:#6395ff;color:white;border:none;border-radius:12px;cursor:pointer;">
+  ▶ Тест 2: с cancel() перед speak
+</button>
+
+<button onclick="test3()" style="display:block;width:100%;padding:20px;margin:10px 0;font-size:18px;background:#f59e0b;border:none;border-radius:12px;cursor:pointer;">
+  ▶ Тест 3: как в daf1.html
+</button>
+
+<p id="voices" style="font-size:12px;color:gray;margin-top:20px;"></p>
+
+<script>
+// Показать доступные голоса
+window.speechSynthesis.onvoiceschanged = function() {
+  const voices = window.speechSynthesis.getVoices();
+  const ru = voices.filter(v => v.lang.includes('ru'));
+  document.getElementById('voices').textContent = 
+    'Голосов всего: ' + voices.length + ', русских: ' + ru.length + 
+    (ru.length > 0 ? ' (' + ru[0].name + ')' : '');
+};
+setTimeout(() => {
+  const voices = window.speechSynthesis.getVoices();
+  const ru = voices.filter(v => v.lang.includes('ru'));
+  document.getElementById('voices').textContent = 
+    'Голосов: ' + voices.length + ', русских: ' + ru.length;
+}, 1000);
+
+function log(msg) {
+  document.getElementById('status').textContent = msg;
+  document.getElementById('status').style.color = '#333';
+}
+
+// Тест 1: максимально простой
+function test1() {
+  log('Тест 1...');
+  const utt = new SpeechSynthesisUtterance('Привет, это тест');
+  utt.lang = 'ru-RU';
+  utt.onstart = () => log('✅ Говорит!');
+  utt.onend = () => log('✅ Закончил');
+  utt.onerror = (e) => log('❌ Ошибка: ' + e.error);
+  window.speechSynthesis.speak(utt);
+}
+
+// Тест 2: с cancel
+function test2() {
+  log('Тест 2...');
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    const utt = new SpeechSynthesisUtterance('Тест два, с отменой');
+    utt.lang = 'ru-RU';
+    utt.onstart = () => log('✅ Говорит!');
+    utt.onend = () => log('✅ Закончил');
+    utt.onerror = (e) => log('❌ Ошибка: ' + e.error);
+    window.speechSynthesis.speak(utt);
+  }, 100);
+}
+
+// Тест 3: точно как в daf1.html
+function test3() {
+  log('Тест 3...');
+  const text = 'Один капучино, пожалуйста';
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ru-RU';
+  utterance.rate = 0.75;
+  utterance.pitch = 1.0;
+  utterance.onstart = () => log('✅ Говорит!');
+  utterance.onend = () => log('✅ Закончил');
+  utterance.onerror = (e) => log('❌ Ошибка: ' + e.error);
+  window.speechSynthesis.speak(utterance);
+}
+</script>
+</body>
+</html>
