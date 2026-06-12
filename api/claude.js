@@ -6,23 +6,24 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const apiKey = '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';
+  // Ключ берётся из переменных окружения Vercel — НЕ из кода
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY не настроен в Vercel. Settings → Environment Variables.' });
+  }
 
   try {
     const body = req.body;
 
-    // Поддержка обоих форматов: полный (messages) и упрощённый (user/system)
     let anthropicBody;
     if (body.messages) {
-      // Полный формат от нашего приложения
       anthropicBody = {
-        model: body.model || 'claude-sonnet-4-20250514',
+        model: body.model || 'claude-haiku-4-5-20251001',
         max_tokens: body.max_tokens || 1000,
         messages: body.messages,
       };
       if (body.system) anthropicBody.system = body.system;
     } else {
-      // Упрощённый формат от старого chat.js
       anthropicBody = {
         model: body.model || 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
