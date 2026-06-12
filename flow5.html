@@ -1,0 +1,2689 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLOW AI — Тренажёр плавной речи</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0f1623;
+    --card: #141d2e;
+    --border: rgba(99,149,255,0.15);
+    --border-bright: rgba(99,149,255,0.35);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.15);
+    --green-glow: rgba(52,211,153,0.3);
+    --blue: #6395ff;
+    --blue-dim: rgba(99,149,255,0.12);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.15);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.15);
+    --text: #e8edf8;
+    --text-muted: #6b7a9b;
+    --text-dim: #3a4460;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .app-frame {
+    width: 420px;
+    min-height: 900px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(99,149,255,0.08), 0 0 120px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 20px 14px;
+    background: linear-gradient(180deg, rgba(99,149,255,0.06) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--surface);
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-dot {
+    width: 36px; height: 36px;
+    background: radial-gradient(circle at 35% 35%, #34d399, #059669);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 16px var(--green-glow);
+  }
+  .logo-text { font-size: 20px; font-weight: 700; letter-spacing: 1px; color: var(--text); }
+  .logo-sub { font-size: 10px; color: var(--text-muted); font-weight: 400; letter-spacing: 0.5px; }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { border-color: var(--border-bright); color: var(--text); }
+
+  /* TABS */
+  .tab-bar {
+    display: flex;
+    padding: 8px 12px;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    justify-content: space-between;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+    flex: 1;
+    min-width: 0;
+  }
+  .tab-btn.active {
+    background: var(--green-dim);
+    border-color: rgba(52,211,153,0.3);
+    color: var(--green);
+  }
+  .tab-btn:hover:not(.active) { background: var(--blue-dim); color: var(--text); }
+  .tab-icon { font-size: 18px; line-height: 1; }
+  .tab-label { font-size: 8.5px; letter-spacing: 0; line-height: 1; overflow: hidden; text-overflow: ellipsis; max-width: 44px; text-align: center; }
+
+  /* SCROLL CONTENT */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* TAB PAGES */
+  .tab-page { display: none; }
+  .tab-page.active { display: flex; flex-direction: column; gap: 14px; }
+
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-card.accent { border-color: rgba(52,211,153,0.3); background: var(--green-dim); }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--green); font-family: var(--mono); }
+  .stat-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); }
+  .card-title .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--green-dim);
+    color: var(--green);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 6px;
+    border: 1px solid rgba(52,211,153,0.25);
+  }
+
+  /* TOGGLE SWITCH */
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .toggle { position: relative; width: 40px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #222b3e; border-radius: 22px;
+    transition: 0.25s;
+    border: 1px solid var(--border);
+  }
+  .toggle-track:before {
+    content: ''; position: absolute;
+    width: 16px; height: 16px; left: 2px; bottom: 2px;
+    background: #4b5573; border-radius: 50%; transition: 0.25s;
+  }
+  input:checked + .toggle-track { background: rgba(52,211,153,0.25); border-color: var(--green); }
+  input:checked + .toggle-track:before { background: var(--green); transform: translateX(18px); }
+
+  /* SLIDER */
+  .slider-row { display: flex; flex-direction: column; gap: 6px; }
+  .slider-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+  .slider-label span { color: var(--green); font-family: var(--mono); font-size: 11px; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: #1e2840;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--green-glow);
+    transition: transform 0.1s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  /* CANVAS */
+  #waveCanvas {
+    width: 100%;
+    height: 80px;
+    display: block;
+    border-radius: 10px;
+    background: #0a0f1a;
+    border: 1px solid var(--border);
+  }
+
+  #gameCanvas {
+    width: 100%;
+    height: 130px;
+    display: block;
+    border-radius: 10px;
+    background: #0a0f1a;
+  }
+
+  /* GAME CONTAINER */
+  .game-wrap {
+    position: relative;
+    border-radius: 10px;
+    overflow: visible;
+    border: 1px solid var(--border);
+  }
+  .game-overlay {
+    position: absolute; inset: 0;
+    background: rgba(8,12,20,0.92);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .game-overlay h3 { font-size: 13px; font-weight: 600; color: var(--green); letter-spacing: 0.5px; }
+  .game-overlay p { font-size: 10px; color: var(--text-muted); text-align: center; max-width: 240px; line-height: 1.5; }
+  .game-hud {
+    position: absolute; top: 6px; left: 8px; right: 8px;
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 10px; color: #fff;
+    pointer-events: none;
+  }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(52,211,153,0.4);
+    background: var(--green-dim);
+    color: var(--green);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+    margin-top: 6px;
+  }
+  .btn:hover { background: rgba(52,211,153,0.22); box-shadow: 0 0 14px rgba(52,211,153,0.15); }
+  .btn:active { transform: scale(0.98); }
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--border-bright);
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .btn-ghost:hover { background: var(--blue-dim); color: var(--text); }
+  .btn-sm { padding: 7px 12px; font-size: 11px; margin-top: 4px; width: auto; }
+  .btn-red { background: var(--red-dim); border-color: rgba(248,113,113,0.3); color: var(--red); }
+  .btn-amber { background: var(--amber-dim); border-color: rgba(245,158,11,0.3); color: var(--amber); }
+
+  /* TEXTAREA */
+  textarea, input[type=text] {
+    width: 100%;
+    background: #0a0f1a;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 10px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  textarea:focus, input[type=text]:focus { border-color: var(--border-bright); }
+  textarea { height: 60px; }
+  textarea.tall { height: 90px; }
+
+  /* SELECT */
+  select {
+    background: #0a0f1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 11px;
+    padding: 5px 8px;
+    outline: none;
+    cursor: pointer;
+  }
+  select:focus { border-color: var(--border-bright); }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip {
+    background: #1a2038;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--border-bright); color: var(--text); background: var(--blue-dim); }
+
+  /* AI CHAT */
+  .chat-area {
+    background: #0a0f1a;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    min-height: 160px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .msg {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .msg-bubble {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.6;
+    max-width: 85%;
+  }
+  .msg.ai .msg-bubble { background: var(--green-dim); border-color: rgba(52,211,153,0.25); color: var(--text); border-radius: 4px 10px 10px 10px; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg.user .msg-bubble { background: rgba(99,149,255,0.12); border-color: rgba(99,149,255,0.25); color: var(--text); border-radius: 10px 4px 10px 10px; }
+  .msg-avatar {
+    width: 26px; height: 26px; flex-shrink: 0;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .ai-avatar-icon { background: var(--green-dim); border: 1px solid rgba(52,211,153,0.3); }
+  .ai-avatar-icon.thinking { animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.9)} }
+  .user-avatar-icon { background: var(--blue-dim); border: 1px solid rgba(99,149,255,0.3); }
+
+  .ai-status { font-size: 10px; color: var(--text-muted); font-family: var(--mono); padding: 2px 0; }
+  .ai-status .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 5px; animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .typing-dots span {
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    margin: 0 1px;
+    animation: typingBounce 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-4px)} }
+
+  /* BREATHING */
+  .breath-vis {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--text-muted);
+    transition: all 0.5s ease;
+    position: relative;
+  }
+  .breath-vis::before {
+    content: '';
+    position: absolute; inset: 6px;
+    border-radius: 50%;
+    background: var(--green-dim);
+    transition: all 0.5s ease;
+  }
+  .breath-text { position: relative; z-index: 1; font-weight: 600; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; text-align: center; line-height: 1.4; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 4px;
+    background: #1a2038;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 6px var(--green-glow);
+  }
+
+  /* DIARY */
+  .diary-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .diary-date { font-size: 9px; color: var(--text-dim); margin-bottom: 4px; font-family: var(--mono); }
+  .diary-score { font-size: 10px; color: var(--green); }
+
+  /* TIP BOX */
+  .tip-box {
+    background: var(--amber-dim);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--amber);
+  }
+  .tip-title { font-weight: 600; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+
+  /* WAVE VIS LABEL */
+  .wave-label { font-size: 10px; color: var(--text-muted); margin-top: 4px; font-family: var(--mono); text-align: center; }
+
+  /* WARNING */
+  .warning-text { font-size: 10px; color: var(--red); text-align: center; margin-bottom: 4px; opacity: 0.8; }
+
+  /* ROW */
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .row:last-child { margin-bottom: 0; }
+  .row-label { font-size: 11px; color: var(--text-muted); flex: 1; }
+
+  /* SCENARIO CARD */
+  .scenario-card {
+    display: flex; gap: 10px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 6px;
+  }
+  .scenario-card:hover { border-color: var(--border-bright); }
+  .scenario-card.active { border-color: rgba(52,211,153,0.4); background: var(--green-dim); }
+  .scenario-icon { font-size: 22px; flex-shrink: 0; }
+  .scenario-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .scenario-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* SETTINGS OVERLAY */
+  .overlay {
+    position: absolute; inset: 0;
+    background: var(--surface);
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 28px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .overlay.open { transform: translateX(0); }
+  .overlay-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 18px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .overlay-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .overlay-content { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .settings-section { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin: 8px 0 4px; }
+
+  /* FLUENCY METER */
+  .fluency-meter {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 6px 0;
+  }
+  .fluency-ring {
+    position: relative; width: 100px; height: 100px;
+    margin-bottom: 6px;
+  }
+  .fluency-ring svg { position: absolute; top: 0; left: 0; }
+  .fluency-num {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700; color: var(--green);
+    font-family: var(--mono);
+  }
+  .fluency-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+<div class="app-frame">
+  <!-- SETTINGS OVERLAY -->
+  <div class="overlay" id="settingsOverlay">
+    <div class="overlay-header">
+      <span class="overlay-title">Настройки Flow AI</span>
+      <button class="icon-btn" id="closeSettings">✕</button>
+    </div>
+    <div class="overlay-content">
+      <div class="settings-section">Аудио коррекция</div>
+      <div class="card">
+        <div class="row"><span class="row-label">Бинауральный канал</span>
+          <select id="cfgEar">
+            <option value="both">Оба уха</option>
+            <option value="left">Левое</option>
+            <option value="right">Правое</option>
+          </select>
+        </div>
+        <div class="row"><span class="row-label">Автозапуск DAF при старте</span>
+          <label class="toggle"><input type="checkbox" id="cfgAutoDAF"><span class="toggle-track"></span></label>
+        </div>
+      </div>
+      <div class="settings-section">Метроном</div>
+      <div class="card">
+        <div class="row"><span class="row-label">Паттерн вибрации</span>
+          <select id="cfgHaptic">
+            <option value="single">Одиночный</option>
+            <option value="double">По слогам</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-section">Тренировка</div>
+      <div class="card">
+        <div class="row"><span class="row-label">Чувствительность к паузе</span>
+          <select id="cfgPause">
+            <option value="1.5">1.5 с (высокая)</option>
+            <option value="2.5" selected>2.5 с (норма)</option>
+            <option value="4.0">4.0 с (мягкая)</option>
+          </select>
+        </div>
+        <div class="row"><span class="row-label">Дневник прогресса</span>
+          <label class="toggle"><input type="checkbox" id="cfgDiary" checked><span class="toggle-track"></span></label>
+        </div>
+      </div>
+      <div class="settings-section">Конфиденциальность</div>
+      <div class="card">
+        <div class="row"><span class="row-label">Только локальная обработка</span>
+          <label class="toggle"><input type="checkbox" id="cfgLocal"><span class="toggle-track"></span></label>
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);line-height:1.5;">ИИ-диалог требует подключения. Режим DAF и визуализация работают полностью офлайн.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIC BANNER -->
+  <div id="micBanner" style="background:rgba(99,149,255,0.12);border-bottom:1px solid rgba(99,149,255,0.2);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <span style="font-size:10px;color:#6395ff;">🎙 Нужен доступ к микрофону для работы приложения</span>
+    <button onclick="requestMicNow()" style="background:rgba(99,149,255,0.2);border:1px solid rgba(99,149,255,0.4);border-radius:6px;color:#6395ff;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;white-space:nowrap;">Разрешить</button>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-dot">🌊</div>
+      <div>
+        <div class="logo-text">FLOW AI</div>
+        <div class="logo-sub">Fluency Ecosystem</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="icon-btn" id="openSettings" title="Настройки">⚙</button>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="home"><span class="tab-icon">🏠</span><span class="tab-label">Главная</span></button>
+    <button class="tab-btn" data-tab="daf"><span class="tab-icon">🎧</span><span class="tab-label">DAF</span></button>
+    <button class="tab-btn" data-tab="training"><span class="tab-icon">🎮</span><span class="tab-label">Тренировка</span></button>
+    <button class="tab-btn" data-tab="ai"><span class="tab-icon">🤖</span><span class="tab-label">ИИ-Диалог</span></button>
+    <button class="tab-btn" data-tab="cbt"><span class="tab-icon">🧘</span><span class="tab-label">КПТ</span></button>
+    <button class="tab-btn" data-tab="sos"><span class="tab-icon">🚀</span><span class="tab-label">SOS</span></button>
+    <button class="tab-btn" data-tab="control"><span class="tab-icon">🧬</span><span class="tab-label">Контроль</span></button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ===== HOME TAB ===== -->
+    <div class="tab-page active" id="tab-home">
+      <div class="stats-grid">
+        <div class="stat-card accent">
+          <div class="stat-val" id="fluencyNum">84%</div>
+          <div class="stat-lbl">Fluency Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">🔥 12</div>
+          <div class="stat-lbl">Дней подряд</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="sessCount">27</div>
+          <div class="stat-lbl">Сессий всего</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">+8%</div>
+          <div class="stat-lbl">За неделю</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Индекс плавности<span class="badge">LIVE</span></span>
+        </div>
+        <div class="fluency-meter">
+          <div class="fluency-ring">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#1a2038" stroke-width="8"/>
+              <circle id="fluencyRing" cx="50" cy="50" r="42" fill="none" stroke="#34d399" stroke-width="8"
+                stroke-dasharray="263.9" stroke-dashoffset="42.2" stroke-linecap="round"
+                transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 0.8s ease"/>
+            </svg>
+            <div class="fluency-num" id="fluencyBig">84</div>
+          </div>
+          <div class="fluency-label">Плавность речи сегодня</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="fluencyBar" style="width:84%"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💡 Совет дня</div>
+        <div style="height:8px"></div>
+        <div class="tip-box">
+          <div class="tip-title">Техника мягкого старта</div>
+          Начинайте фразы с лёгкого выдоха, словно вы «нашёптываете» первое слово. Это снижает спазм в голосовых связках и даёт плавный разгон речи.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📈 История сессий</div>
+        <div style="height:8px"></div>
+        <canvas id="historyChart" width="370" height="70" style="width:100%;height:70px;border-radius:6px;"></canvas>
+      </div>
+
+      <!-- АНАЛИЗ РЕЧИ ИИ -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🧠 Анализ речи ИИ</span>
+          <span id="analysisStatus" style="font-size:10px;color:var(--text-muted);font-family:var(--mono);">Готов</span>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;">ИИ сгенерирует текст с нужными буквами — прочитайте его вслух, получите анализ паузы, темпа и проблемных звуков.</p>
+
+        <!-- Чекбоксы звуков -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Включить в текст трудные звуки:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;" id="soundChips">
+            <label style="display:flex;align-items:center;gap:4px;background:#1a2038;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-muted);">
+              <input type="checkbox" id="snd_p" style="accent-color:var(--green);"> П/Б
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;background:#1a2038;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-muted);">
+              <input type="checkbox" id="snd_t" style="accent-color:var(--green);"> Т/Д
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;background:#1a2038;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-muted);">
+              <input type="checkbox" id="snd_k" style="accent-color:var(--green);"> К/Г
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;background:#1a2038;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-muted);">
+              <input type="checkbox" id="snd_r" style="accent-color:var(--green);"> Р
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;background:#1a2038;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-muted);">
+              <input type="checkbox" id="snd_s" style="accent-color:var(--green);"> С/З
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;background:#1a2038;border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-muted);">
+              <input type="checkbox" id="snd_v" style="accent-color:var(--green);"> В/Ф
+            </label>
+          </div>
+        </div>
+
+        <!-- Кнопка генерации текста -->
+        <button onclick="generateAnalysisText()" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);color:#f59e0b;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;margin-bottom:10px;" id="genTextBtn">
+          ✨ Сгенерировать текст для чтения
+        </button>
+
+        <!-- Поле с текстом для чтения -->
+        <div id="analysisReadText" style="display:none;background:#0a0f1a;border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px;margin-bottom:10px;font-size:12px;color:var(--text);line-height:1.8;"></div>
+
+        <!-- Индикатор записи -->
+        <div id="analysisRecBox" style="background:#0a0f1a;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;min-height:50px;display:flex;align-items:center;gap:10px;">
+          <div id="analysisRecDot" style="width:10px;height:10px;border-radius:50%;background:#3a4460;flex-shrink:0;transition:background 0.3s;"></div>
+          <div id="analysisTranscript" style="font-size:11px;color:var(--text-muted);line-height:1.6;font-style:italic;">Нажмите кнопку и читайте текст вслух...</div>
+        </div>
+
+        <!-- Кнопка записи -->
+        <button id="analysisRecBtn" onclick="toggleAnalysisRec()" style="width:100%;padding:12px;border-radius:10px;border:2px solid rgba(52,211,153,0.4);background:var(--green-dim);color:var(--green);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;">
+          🎙 Начать запись речи
+        </button>
+
+        <!-- Кнопка анализа — появляется после записи -->
+        <button id="analysisAIBtn" onclick="runSpeechAnalysis()" style="width:100%;padding:12px;border-radius:10px;border:2px solid rgba(99,149,255,0.4);background:rgba(99,149,255,0.1);color:#6395ff;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;display:none;">
+          🧠 Получить анализ от ИИ
+        </button>
+
+        <!-- Результат анализа -->
+        <div id="analysisResult" style="display:none;margin-top:10px;">
+          <div style="background:rgba(99,149,255,0.08);border:1px solid rgba(99,149,255,0.25);border-radius:10px;padding:12px;">
+            <div style="font-size:10px;font-weight:600;color:#6395ff;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🧠 Анализ ИИ</div>
+            <div id="analysisText" style="font-size:11px;color:var(--text);line-height:1.7;"></div>
+          </div>
+          <!-- Кнопка озвучить анализ -->
+          <button onclick="speak(document.getElementById('analysisText').textContent, null, 0.82)" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-family:var(--sans);font-size:11px;cursor:pointer;margin-top:8px;">
+            🔊 Прослушать анализ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DAF/FAF TAB ===== -->
+    <div class="tab-page" id="tab-daf">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Коррекция звука (DAF)</span>
+          <label class="toggle"><input type="checkbox" id="dafToggle"><span class="toggle-track"></span></label>
+        </div>
+        <div class="warning-text">⚠ Наденьте наушники перед включением!</div>
+        <div class="slider-row">
+          <div class="slider-label">Задержка DAF<span id="dafVal">120 мс</span></div>
+          <input type="range" min="50" max="300" value="120" id="dafDelay">
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim);"><span>50мс</span><span>Оптимально: 100-150мс</span><span>300мс</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Сдвиг частоты (FAF)</span>
+          <label class="toggle"><input type="checkbox" id="fafToggle"><span class="toggle-track"></span></label>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label">Сдвиг вверх<span id="fafVal">0%</span></div>
+          <input type="range" min="0" max="100" value="0" id="fafPitch">
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);line-height:1.5;margin-top:8px;">FAF поднимает воспринимаемую высоту вашего голоса. Комбинация DAF+FAF даёт более сильный эффект торможения на взрывных согласных.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Визуализация речи<span class="badge">LIVE</span></span>
+          <label class="toggle"><input type="checkbox" id="waveToggle"><span class="toggle-track"></span></label>
+        </div>
+        <canvas id="waveCanvas"></canvas>
+        <div class="wave-label" id="waveStatus">Включите для визуализации голоса</div>
+      </div>
+
+      <!-- БЕЛЫЙ ШУМ -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🤍 Белый шум (маскировка)</span>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Когда вы не слышите себя — заикание ослабевает. Белый шум заглушает обратную связь от собственного голоса.</p>
+        <div class="warning-text">⚠ Наденьте наушники! Громкость — умеренная.</div>
+        <div class="slider-row" style="margin-top:8px;">
+          <div class="slider-label">Громкость шума<span id="noiseVal">50%</span></div>
+          <input type="range" min="0" max="100" value="50" id="noiseVolume" oninput="document.getElementById('noiseVal').textContent=this.value+'%'; if(noiseNode) noiseGain.gain.value=this.value/100*0.8;">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-sm" id="noiseBtn" onclick="toggleWhiteNoise()" style="flex:1;">▶ Включить шум</button>
+          <select id="noiseType" style="flex:0.8;font-size:11px;" onchange="if(noiseNode){toggleWhiteNoise();toggleWhiteNoise();}">
+            <option value="white">Белый</option>
+            <option value="pink">Розовый</option>
+            <option value="brown">Коричневый</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📳 Тактильный метроном</span>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label">Темп (BPM)<span id="bpmVal">60</span></div>
+          <input type="range" min="40" max="120" value="60" id="bpmSlider">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-sm" id="hapticStart">▶ Старт метроном</button>
+          <button class="btn btn-sm btn-ghost" id="hapticStop">■ Стоп</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TRAINING TAB ===== -->
+    <div class="tab-page" id="tab-training">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🎮 Речевой раннер</span>
+          <span id="gameStatus" style="font-size:10px;color:var(--green);font-family:var(--mono);">Готов</span>
+        </div>
+        <div class="game-wrap">
+          <canvas id="gameCanvas"></canvas>
+          <div class="game-hud">
+            <div>СЧЁТ: <span id="scoreVal">0</span></div>
+            <div id="livesVal">❤ ❤ ❤</div>
+            <div id="comboVal" style="color:var(--green)">СТАРТ</div>
+          </div>
+          <div class="game-overlay" id="gameOverlay">
+            <h3 id="gameTitle">РЕЧЕВОЙ ТРЕНАЖЁР</h3>
+            <p id="gameDesc">Говорите плавно и медленно → шар держится по центру. Резкий старт или быстрый темп → шар падает и врезается в ворота. Ворота зелёные = широкие (плавная речь), красные = узкие (резкая).</p>
+            <button id="startGameBtn" style="background:var(--green);color:#000;border:none;border-radius:10px;padding:10px 28px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.5px;box-shadow:0 0 20px rgba(52,211,153,0.5);">▶ ИГРАТЬ</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📖 Текст для тренировки</span>
+          <button class="btn btn-sm btn-ghost" onclick="generateText()" style="margin-top:0;width:auto;padding:4px 10px;font-size:10px;">Новый текст ИИ</button>
+        </div>
+        <textarea id="trainingText" readonly class="tall">В тихом синем небе медленно плывут пушистые облака. Ветер мягко касается верхушек деревьев. Каждое слово течёт свободно, без торопливости.</textarea>
+        <div id="aiTextStatus" style="font-size:10px;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎯 Режим «Тень» (Shadowing)</div>
+        <div style="height:8px"></div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Читайте текст синхронно с голосом ИИ. Следуйте за темпом, не опережайте.</p>
+        <div class="row">
+          <span class="row-label">Скорость</span>
+          <select id="shadowSpeed">
+            <option value="0.4">Очень медленно (0.4×)</option>
+            <option value="0.6">Медленно (0.6×)</option>
+            <option value="0.75" selected>Норма (0.75×)</option>
+            <option value="0.9">Быстро (0.9×)</option>
+          </select>
+        </div>
+        <button class="btn" id="shadowBtn">▶ Запустить shadowing</button>
+      </div>
+    </div>
+
+    <!-- ===== AI DIALOG TAB ===== -->
+    <div class="tab-page" id="tab-ai">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">🎭 Выберите сценарий</div>
+        <div class="scenario-card active" data-scenario="cafe" id="sc-cafe">
+          <div class="scenario-icon">☕</div>
+          <div><div class="scenario-title">Заказ в кафе</div><div class="scenario-desc">Сделайте заказ баристе</div></div>
+        </div>
+        <div class="scenario-card" data-scenario="job" id="sc-job">
+          <div class="scenario-icon">💼</div>
+          <div><div class="scenario-title">Собеседование</div><div class="scenario-desc">Ответьте на вопросы HR</div></div>
+        </div>
+        <div class="scenario-card" data-scenario="phone" id="sc-phone">
+          <div class="scenario-icon">📞</div>
+          <div><div class="scenario-title">Звонок в службу</div><div class="scenario-desc">Уточните информацию по телефону</div></div>
+        </div>
+        <div class="scenario-card" data-scenario="free" id="sc-free">
+          <div class="scenario-icon">🗣</div>
+          <div><div class="scenario-title">Свободный диалог</div><div class="scenario-desc">Поговорите о чём угодно</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="msg-avatar ai-avatar-icon" id="aiAvatarStatus">🤖</div>
+            <div>
+              <div style="font-size:12px;font-weight:600;">ИИ-собеседник</div>
+              <div class="ai-status" id="aiStatusText"><span class="dot"></span>Готов к диалогу</div>
+            </div>
+          </div>
+          <button class="btn btn-sm" id="aiToggleBtn" style="margin-top:0;width:auto;">Начать</button>
+        </div>
+        <div class="chat-area" id="chatArea">
+          <div style="text-align:center;font-size:10px;color:var(--text-dim);padding:20px 0;">Выберите сценарий и нажмите «Начать»</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <input type="text" id="userInput" placeholder="Напишите или нажмите 🎙..." style="height:36px;" onkeydown="if(event.key==='Enter')sendUserMsg()">
+          <button id="voiceBtn" onclick="toggleVoiceInput()" style="width:42px;height:36px;flex-shrink:0;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;">🎙</button>
+        </div>
+        <div id="voiceStatus" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:4px;display:none;">🔴 Слушаю... говорите</div>
+      </div>
+    </div>
+
+    <!-- ===== CBT TAB ===== -->
+    <div class="tab-page" id="tab-cbt">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🧘 Дыхание по квадрату</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 0;">
+          <div class="breath-vis" id="breathCircle">
+            <div class="breath-text" id="breathText">Готов</div>
+          </div>
+          <div style="height:12px;"></div>
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;max-width:200px;line-height:1.5;">
+            Нормализует нервную систему перед важным разговором. 4 цикла = 1 минута.
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <span class="row-label">Длина фазы</span>
+          <select id="breathTime">
+            <option value="3">3 сек (начало)</option>
+            <option value="4" selected>4 сек (норма)</option>
+            <option value="5">5 сек (практика)</option>
+          </select>
+        </div>
+        <button class="btn" id="breathBtn">▶ Начать практику</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">🧠 КПТ-упражнение</div>
+        <div id="cbtExercise" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <button class="btn btn-ghost" onclick="loadCBT()" style="font-size:11px;">Следующее упражнение →</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">📝 Дневник прогресса</div>
+        <div id="diaryList"></div>
+        <button class="btn btn-ghost" onclick="logTodaySession()" style="font-size:11px;">+ Записать сессию сегодня</button>
+      </div>
+    </div>
+
+    <!-- ===== SOS TAB ===== -->
+    <div class="tab-page" id="tab-sos">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🚀 SOS — Дублёр речи</span>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Когда слово застряло — введите текст, приложение озвучит его плавно. Используйте готовые фразы или напишите своё.</p>
+        <textarea id="sosText" placeholder="Что нужно сказать?" class="tall"></textarea>
+        <div class="chips">
+          <div class="chip" onclick="setSOS('Один капучино, пожалуйста.')">☕ Капучино</div>
+          <div class="chip" onclick="setSOS('Здравствуйте, я заказывал доставку на этот адрес.')">📦 Доставка</div>
+          <div class="chip" onclick="setSOS('Будьте добры, повторите, пожалуйста.')">🔄 Повторить</div>
+          <div class="chip" onclick="setSOS('Мне нужна помощь.')">🆘 Помощь</div>
+          <div class="chip" onclick="setSOS('Спасибо большое, хорошего дня!')">✅ Спасибо</div>
+          <div class="chip" onclick="setSOS('Один проездной на месяц, пожалуйста.')">🎫 Проездной</div>
+          <div class="chip" onclick="setSOS('Соедините меня с оператором.')">📞 Оператор</div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <span class="row-label">Темп речи</span>
+          <select id="sosRate">
+            <option value="0.6">Очень медленно</option>
+            <option value="0.75" selected>Медленно</option>
+            <option value="0.9">Норма</option>
+          </select>
+        </div>
+        <button class="btn" id="sosBtn" onclick="speakSOS()">🔊 Озвучить</button>
+        <button class="btn btn-ghost" onclick="window.speechSynthesis.cancel()">■ Стоп</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">💬 ИИ-генератор фраз</div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:8px;">Опишите ситуацию — ИИ сгенерирует плавную фразу для вас.</p>
+        <textarea id="aiPhraseInput" placeholder="Например: нужно отменить заказ в ресторане..."></textarea>
+        <button class="btn" onclick="generatePhrase()">✨ Сгенерировать фразу</button>
+        <div id="generatedPhrase" style="display:none;margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <!-- ===== CONTROL TAB ===== -->
+    <div class="tab-page" id="tab-control">
+
+      <div class="card" id="ctrl-checklist">
+        <div class="card-title" style="margin-bottom:10px;">🧬 Модуль осознанного контроля</div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:12px;">Восстанавливает осознанный контроль над речью через триаду: <strong style="color:var(--text);">начало → изменение → остановка</strong>. Повторяйте циклы до собственного озарения — оно может прийти через 10 минут или через 2 часа.</p>
+        <div class="tip-box" style="margin-bottom:12px;">
+          <div class="tip-title">Перед началом убедитесь:</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;"><input type="checkbox" id="chk1" onchange="checkReady()"> Вы сыты и не устали</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;"><input type="checkbox" id="chk2" onchange="checkReady()"> Вы в спокойной обстановке</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;"><input type="checkbox" id="chk3" onchange="checkReady()"> Динамик или наушники готовы</label>
+          </div>
+        </div>
+        <input type="text" id="ctrlName" placeholder="Ваше имя..." style="height:36px;margin-bottom:10px;" oninput="checkReady()">
+        <button class="btn" id="ctrlStartBtn" disabled onclick="startControlProcess()">▶ Начать процесс</button>
+      </div>
+
+      <div class="card" id="ctrl-main" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <div style="font-size:9px;color:var(--text-muted);font-family:var(--mono);" id="ctrlDate"></div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);" id="ctrlNameDisplay"></div>
+          </div>
+          <div style="text-align:center;background:var(--green-dim);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:6px 14px;">
+            <div style="font-size:24px;font-weight:700;color:var(--green);font-family:var(--mono);line-height:1;" id="ctrlCycleCount">0</div>
+            <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Циклов</div>
+          </div>
+        </div>
+
+        <!-- Текст команды ИИ -->
+        <div style="background:#0a0f1a;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;min-height:80px;display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;background:var(--green-dim);border:1px solid rgba(52,211,153,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;" id="ctrlAiAvatar">🎙</div>
+          <div id="ctrlAiText" style="font-size:12px;line-height:1.7;color:var(--text);">Нажмите кнопку чтобы начать...</div>
+        </div>
+
+        <!-- Индикатор фазы -->
+        <div style="display:flex;gap:4px;margin-bottom:14px;">
+          <div id="pd1" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+          <div id="pd2" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+          <div id="pd3" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+          <div id="pd4" style="flex:1;height:3px;border-radius:2px;background:#1a2038;transition:background 0.3s;"></div>
+        </div>
+
+        <!-- ГЛАВНАЯ кнопка — меняется по фазе -->
+        <button id="ctrlActionBtn" onclick="ctrlHandleActionBtn()" style="width:100%;padding:15px;border-radius:12px;border:2px solid rgba(52,211,153,0.5);background:var(--green-dim);color:var(--green);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.3px;margin-bottom:10px;transition:all 0.2s;">
+          ▶ Запустить процесс
+        </button>
+
+        <!-- кнопка озарения управляется через ctrlSetBtn -->
+        <div id="ctrlInsightBtnWrap" style="display:none;"></div>
+
+        <!-- Запись озарения -->
+        <div id="ctrlInsightRecord" style="display:none;margin-top:10px;">
+          <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:12px;margin-bottom:8px;">
+            <div style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">💡 Расскажите об озарении</div>
+            <div id="ctrlInsightText" style="font-size:11px;color:var(--text);min-height:30px;font-style:italic;line-height:1.6;">Говорите или пишите ниже...</div>
+          </div>
+          <textarea id="ctrlInsightEdit" placeholder="Опишите что вы поняли..." style="height:70px;"></textarea>
+          <button class="btn" onclick="ctrlFinishProcess()" style="margin-top:8px;">Завершить процесс →</button>
+        </div>
+      </div>
+
+      <div class="card" id="ctrl-log" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;">📋 Журнал сессии</div>
+        <div id="ctrlLogArea" style="background:#0a0f1a;border:1px solid var(--border);border-radius:8px;padding:8px;max-height:150px;overflow-y:auto;font-size:10px;font-family:var(--mono);color:var(--text-muted);line-height:1.8;scrollbar-width:thin;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px;">📖 Дневник озарений</div>
+        <div id="ctrlInsightsDiary">
+          <div style="font-size:10px;color:var(--text-dim);text-align:center;padding:12px 0;">Озарения появятся здесь после завершения сессий</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+</div>
+
+<script>
+// ====== АВТО-ИНИЦИАЛИЗАЦИЯ КАК В daf1.html ======
+window.addEventListener('click', function onFirstClick() {
+  // Разблокируем AudioContext при первом клике
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  window.removeEventListener('click', onFirstClick);
+}, { once: true });
+
+// ====== TAB NAVIGATION ======
+const tabs = document.querySelectorAll('.tab-btn');
+const pages = document.querySelectorAll('.tab-page');
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    pages.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ====== SETTINGS ======
+document.getElementById('openSettings').addEventListener('click', () => document.getElementById('settingsOverlay').classList.add('open'));
+document.getElementById('closeSettings').addEventListener('click', () => document.getElementById('settingsOverlay').classList.remove('open'));
+
+// ====== AUDIO ENGINE ======
+let audioCtx, analyser, micSource, delayNode, filterNode, scriptProc;
+let audioLevel = 0;      // raw volume (for DAF wave display only)
+let sharpness = 0;       // резкость: скорость изменения звука (спайки = заикание)
+let smoothScore = 100;   // 0–100: плавность речи (100 = идеально плавно)
+let prevLevel = 0;
+let syllableTimer = 0;   // детектор темпа слогов
+let syllableRate = 0;    // слогов в секунду (высокий = торопливость)
+let speechActive = false;
+let silenceFrames = 0;
+let dafActive = false, waveActive = false;
+
+// Скользящий буфер для сглаживания
+let sharpBuf = new Array(20).fill(0);
+let sharpBufIdx = 0;
+
+let micStream = null; // глобальная ссылка на стрим микрофона
+
+async function initAudio() {
+  if (audioCtx) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } });
+    micStream = stream;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    micSource = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.4;
+    micSource.connect(analyser);
+    delayNode = audioCtx.createDelay(1.0);
+    delayNode.delayTime.value = 0.12;
+    filterNode = audioCtx.createBiquadFilter();
+    filterNode.type = 'allpass';
+    scriptProc = audioCtx.createScriptProcessor(512, 1, 1);
+    analyser.connect(scriptProc);
+    scriptProc.connect(audioCtx.destination);
+
+    let syllableCount = 0;
+    let syllableWindow = 0;
+    let inSyllable = false;
+
+    scriptProc.onaudioprocess = () => {
+      const arr = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(arr);
+      // Громкость — только средние частоты (речевые: 300–3000 Гц)
+      const speechBins = arr.slice(8, 80);
+      audioLevel = speechBins.reduce((a,b) => a+b, 0) / speechBins.length;
+
+      // Резкость = абсолютное изменение уровня между кадрами
+      const delta = Math.abs(audioLevel - prevLevel);
+      prevLevel = audioLevel;
+
+      // Буфер резкости — скользящее среднее
+      sharpBuf[sharpBufIdx % 20] = delta;
+      sharpBufIdx++;
+      sharpness = sharpBuf.reduce((a,b) => a+b, 0) / 20;
+
+      // Детектор слогов: считаем пики громкости
+      const SYLL_THRESH = 18;
+      if (audioLevel > SYLL_THRESH && !inSyllable) {
+        inSyllable = true;
+        syllableCount++;
+      }
+      if (audioLevel < SYLL_THRESH * 0.6) inSyllable = false;
+
+      // Каждые ~60 кадров (~1 сек) считаем темп
+      syllableWindow++;
+      if (syllableWindow >= 60) {
+        syllableRate = syllableCount; // слогов за последнюю секунду
+        syllableCount = 0;
+        syllableWindow = 0;
+      }
+
+      // Плавность: штраф за резкость и за быстрый темп
+      const sharpPenalty = Math.min(40, sharpness * 3.5);
+      const ratePenalty = Math.max(0, (syllableRate - 4) * 8); // норма до 4 слогов/сек
+      const target = Math.max(0, 100 - sharpPenalty - ratePenalty);
+      smoothScore += (target - smoothScore) * 0.05; // инерция
+    };
+  } catch(e) { console.log('Mic error', e); }
+}
+
+// DAF toggle
+document.getElementById('dafToggle').addEventListener('change', async function(e) {
+  await initAudio();
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+  dafActive = e.target.checked;
+  if (dafActive) {
+    try { micSource.connect(delayNode); delayNode.connect(filterNode); filterNode.connect(audioCtx.destination); } catch(er){}
+  } else {
+    try { micSource.disconnect(delayNode); delayNode.disconnect(filterNode); filterNode.disconnect(audioCtx.destination); } catch(er){}
+  }
+});
+
+document.getElementById('dafDelay').addEventListener('input', e => {
+  document.getElementById('dafVal').textContent = e.target.value + ' мс';
+  if (delayNode) delayNode.delayTime.value = e.target.value / 1000;
+});
+
+document.getElementById('fafPitch').addEventListener('input', e => {
+  document.getElementById('fafVal').textContent = e.target.value + '%';
+  if (filterNode) filterNode.frequency.value = 1000 + e.target.value * 8;
+});
+
+// Wave visualization
+const waveCanvas = document.getElementById('waveCanvas');
+const waveCtx = waveCanvas.getContext('2d');
+waveCanvas.width = 370; waveCanvas.height = 80;
+let waveAnimId;
+
+// Сглаженная волна для отображения (убираем дрожание)
+let smoothWaveData = null;
+
+function drawWave() {
+  if (!analyser) {
+    waveCtx.fillStyle = '#0a0f1a';
+    waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+    waveCtx.strokeStyle = '#1e2840';
+    waveCtx.lineWidth = 1.5;
+    waveCtx.beginPath();
+    waveCtx.moveTo(0, waveCanvas.height/2);
+    waveCtx.lineTo(waveCanvas.width, waveCanvas.height/2);
+    waveCtx.stroke();
+    return;
+  }
+  const bufLen = analyser.frequencyBinCount;
+  const raw = new Uint8Array(bufLen);
+  analyser.getByteTimeDomainData(raw);
+
+  // Инициализируем сглаженный буфер
+  if (!smoothWaveData || smoothWaveData.length !== bufLen) {
+    smoothWaveData = new Float32Array(bufLen).fill(128);
+  }
+
+  // Сглаживаем волну: быстро следуем за сигналом только при РЕЗКИХ скачках
+  // При плавной речи — почти не двигается → мотивация говорить ровно
+  const followSpeed = sharpness > 4 ? 0.7 : 0.25; // более чувствительно
+  for (let i = 0; i < bufLen; i++) {
+    smoothWaveData[i] += (raw[i] - smoothWaveData[i]) * followSpeed;
+  }
+
+  waveCtx.fillStyle = '#0a0f1a';
+  waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+
+  // Цвет зависит от плавности: зелёный = хорошо, жёлтый = торопливо, красный = запинка
+  let waveColor;
+  if (smoothScore > 75) waveColor = '#34d399';
+  else if (smoothScore > 45) waveColor = '#f59e0b';
+  else waveColor = '#f87171';
+
+  waveCtx.strokeStyle = waveColor;
+  waveCtx.lineWidth = 2;
+  waveCtx.beginPath();
+  const slice = waveCanvas.width / bufLen;
+  let x = 0;
+  const center = waveCanvas.height / 2;
+  for (let i = 0; i < bufLen; i++) {
+    const v = smoothWaveData[i] / 128;
+    const deviation = (v - 1) * 2.8; // усиливаем амплитуду
+    const y = center + deviation * center;
+    if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+    x += slice;
+  }
+  waveCtx.stroke();
+
+  // Подпись
+  const label = document.getElementById('waveStatus');
+  const sc = Math.round(smoothScore);
+  if (audioLevel < 4) {
+    label.textContent = '🎙 Говорите — линия покажет плавность вашей речи';
+    label.style.color = '#6b7a9b';
+  } else if (smoothScore > 75) {
+    label.textContent = `🟢 Отлично! Плавность: ${sc}% — продолжайте в том же темпе`;
+    label.style.color = '#34d399';
+  } else if (smoothScore > 45) {
+    label.textContent = `🟡 Замедлитесь — плавность: ${sc}% — слишком быстро`;
+    label.style.color = '#f59e0b';
+  } else {
+    label.textContent = `🔴 Резкий старт! Плавность: ${sc}% — тяните гласные`;
+    label.style.color = '#f87171';
+  }
+}
+
+document.getElementById('waveToggle').addEventListener('change', async function(e) {
+  if (e.target.checked) {
+    await initAudio();
+    waveActive = true;
+    const loop = () => { drawWave(); waveAnimId = requestAnimationFrame(loop); };
+    loop();
+  } else {
+    waveActive = false;
+    cancelAnimationFrame(waveAnimId);
+    waveCtx.fillStyle = '#0a0f1a';
+    waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+    document.getElementById('waveStatus').textContent = 'Включите для визуализации голоса';
+    document.getElementById('waveStatus').style.color = '#6b7a9b';
+  }
+});
+
+// ====== METRONOME ======
+let metronomeId;
+document.getElementById('hapticStart').addEventListener('click', function() {
+  clearInterval(metronomeId);
+  const bpm = parseInt(document.getElementById('bpmSlider').value);
+  const interval = 60000 / bpm;
+  this.textContent = '⏸ Работает...';
+  metronomeId = setInterval(() => {
+    if ('vibrate' in navigator) navigator.vibrate([60, 20, 60]);
+    const b = document.getElementById('hapticStart');
+    b.style.background = 'rgba(52,211,153,0.35)';
+    setTimeout(() => b.style.background = '', 100);
+  }, interval);
+});
+document.getElementById('hapticStop').addEventListener('click', () => {
+  clearInterval(metronomeId);
+  document.getElementById('hapticStart').textContent = '▶ Старт метроном';
+});
+document.getElementById('bpmSlider').addEventListener('input', e => document.getElementById('bpmVal').textContent = e.target.value);
+
+// ====== GAME ======
+const gc = document.getElementById('gameCanvas');
+const gctx = gc.getContext('2d');
+gc.width = 380; gc.height = 130;
+let playing=false, score=0, lives=3, ball={x:50,y:65,r:7,targetY:65}, obstacles=[], spawnT=0, invT=0, gameId;
+
+function updateHud() {
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('livesVal').textContent = '❤'.repeat(lives) + '🖤'.repeat(Math.max(0,3-lives));
+}
+function drawGame() {
+  gctx.fillStyle = '#0a0f1a';
+  gctx.fillRect(0,0,gc.width,gc.height);
+  // center line
+  gctx.strokeStyle = '#1a2038'; gctx.lineWidth = 1; gctx.setLineDash([4,8]);
+  gctx.beginPath(); gctx.moveTo(0,gc.height/2); gctx.lineTo(gc.width,gc.height/2); gctx.stroke();
+  gctx.setLineDash([]);
+}
+function gameLoop() {
+  if (!playing) return;
+  gameId = requestAnimationFrame(gameLoop);
+  drawGame();
+
+  // Шарик держится по центру когда речь ПЛАВНАЯ (smoothScore высокий)
+  // Падает вниз когда РЕЗКИЙ старт (spikes) или слишком быстро
+  // Логика: чем лучше плавность → тем ближе к центру
+  const centerY = gc.height / 2;
+
+  if (shadowingActive) {
+    // Shadowing активен — шарик по центру, не реагируем на микрофон
+    ball.targetY += (centerY - ball.targetY) * 0.05;
+  } else if (!audioCtx || audioLevel < 3) {
+    // Нет микрофона или тишина — шарик по центру
+    ball.targetY += (centerY - ball.targetY) * 0.04;
+  } else {
+    // Речь есть: позиция = центр + штраф за резкость + штраф за темп
+    const sharpPenalty = Math.min(55, sharpness * 8);
+    const ratePenalty = Math.max(0, (syllableRate - 3.5) * 14);
+    const deviation = sharpPenalty + ratePenalty;
+    ball.targetY = centerY + deviation * (Math.sin(Date.now() * 0.03) * 0.6 + 0.5);
+  }
+
+  ball.y += (ball.targetY - ball.y) * 0.10;
+  ball.y = Math.max(ball.r, Math.min(gc.height - ball.r, ball.y));
+  if (invT > 0) invT--;
+
+  // HUD: показываем реальные метрики
+  const sc = Math.round(smoothScore);
+  if (audioLevel < 3) {
+    document.getElementById('comboVal').textContent = '— ТИШИНА';
+    document.getElementById('comboVal').style.color = '#6b7a9b';
+  } else if (sc > 75) {
+    document.getElementById('comboVal').textContent = `🟢 ${sc}% ПЛАВНО`;
+    document.getElementById('comboVal').style.color = '#34d399';
+  } else if (sc > 45) {
+    document.getElementById('comboVal').textContent = `🟡 ${sc}% — медленнее!`;
+    document.getElementById('comboVal').style.color = '#f59e0b';
+  } else {
+    document.getElementById('comboVal').textContent = `🔴 ${sc}% — резко!`;
+    document.getElementById('comboVal').style.color = '#f87171';
+  }
+  gctx.beginPath(); gctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  const ballColor = smoothScore > 75 ? '#34d399' : smoothScore > 45 ? '#f59e0b' : '#f87171';
+  if (invT>0 && Math.floor(Date.now()/80)%2===0) gctx.fillStyle='transparent';
+  else gctx.fillStyle = ballColor;
+  gctx.fill();
+  gctx.shadowColor = ballColor; gctx.shadowBlur = 8;
+  gctx.fill(); gctx.shadowBlur = 0;
+  spawnT++;
+  if (spawnT > 110) {
+    // Ворота ВСЕГДА по центру. Ширина зависит от плавности речи:
+    // говоришь плавно → ворота шире → легче пройти
+    const gateBonus = Math.round(smoothScore * 0.28); // 0–28px
+    const gh = 36 + gateBonus;
+    const gy = gc.height/2 - gh/2; // строго по центру
+    obstacles.push({x:gc.width, top:gy, bot:gy+gh, w:10, passed:false, gh});
+    spawnT = 0;
+  }
+  for (let i=obstacles.length-1;i>=0;i--) {
+    let o=obstacles[i]; o.x -= 1.5;
+    gctx.fillStyle='#1a2240';
+    gctx.fillRect(o.x, 0, o.w, o.top);
+    gctx.fillRect(o.x, o.bot, o.w, gc.height - o.bot);
+    // Цвет ворот: зелёный = широкие (плавная речь), красный = узкие (резкая)
+    const gateColor = o.gh > 55 ? '#34d399' : o.gh > 46 ? '#f59e0b' : '#f87171';
+    gctx.fillStyle = gateColor;
+    gctx.fillRect(o.x, o.top - 2, o.w, 3);
+    gctx.fillRect(o.x, o.bot, o.w, 3);
+    // Коллизия
+    if (invT === 0 && o.x <= ball.x + ball.r && o.x + o.w >= ball.x - ball.r) {
+      if (ball.y - ball.r < o.top || ball.y + ball.r > o.bot) {
+        lives--; updateHud(); invT = 60;
+        if (lives <= 0) { playing=false; cancelAnimationFrame(gameId); showGameOver(); return; }
+      }
+    }
+    if (!o.passed && o.x + o.w < ball.x) { o.passed=true; score++; document.getElementById('scoreVal').textContent=score; }
+    if (o.x + o.w < 0) obstacles.splice(i, 1);
+  }
+}
+function showGameOver() {
+  document.getElementById('gameTitle').textContent = '💥 Тренировка завершена';
+  document.getElementById('gameDesc').textContent = `Счёт: ${score}. Сбавьте темп речи — слишком много резких звуков!`;
+  document.getElementById('startGameBtn').textContent = '↺ Повторить';
+  document.getElementById('gameOverlay').style.display='flex';
+}
+document.getElementById('startGameBtn').addEventListener('click', async function() {
+  // Пробуем инициализировать аудио, но игра работает и без него
+  if (!audioCtx) initAudio().catch(()=>{});
+  if (audioCtx && audioCtx.state==='suspended') try { await audioCtx.resume(); } catch(e) {}
+  score=0; lives=3; invT=0; obstacles=[]; spawnT=0; ball.y=65; ball.targetY=65;
+  updateHud();
+  document.getElementById('gameOverlay').style.display='none';
+  playing=true;
+  cancelAnimationFrame(gameId);
+  gameLoop();
+});
+
+// ====== TRAINING TEXTS ======
+const texts = [
+  "В тихом синем небе медленно плывут пушистые облака. Ветер мягко касается верхушек деревьев. Каждое слово течёт свободно, без торопливости.",
+  "Медленно течёт река, омывая тёплые камни. Солнце опускается за горизонт. Голос звучит спокойно и уверенно.",
+  "Каждое слово — маленький шаг вперёд. Иди уверенно, не спеши. Воздуха достаточно для любой красивой фразы.",
+  "Ритм сердца выравнивается на глубоком вдохе. Моя речь — чистый непрерывный поток, текущий легко.",
+  "Звуки соединяются вместе мягко, как капли утренней росы. Я полностью контролирую свой темп и дыхание."
+];
+
+async function generateText() {
+  const status = document.getElementById('aiTextStatus');
+  status.textContent = '✨ Генерирую текст...';
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Напиши короткий (2-3 предложения) расслабляющий текст для тренировки плавной речи. Текст должен содержать много мягких согласных (л, м, н, в, р), протяжных гласных и плавных переходов. Без приветствий, только текст.'
+        }]
+      })
+    });
+    const data = await res.json();
+    if (data.content && data.content[0]) {
+      document.getElementById('trainingText').value = data.content[0].text;
+      status.textContent = '✅ Новый текст от ИИ готов';
+    } else { throw new Error('no content'); }
+  } catch(e) {
+    const t = texts[Math.floor(Math.random()*texts.length)];
+    document.getElementById('trainingText').value = t;
+    status.textContent = 'Использован локальный текст';
+  }
+  setTimeout(() => status.textContent='', 2000);
+}
+
+// Shadowing
+// Флаг: shadowing активен — игнорировать микрофон для игры и волны
+let shadowingActive = false;
+
+document.getElementById('shadowBtn').addEventListener('click', function() {
+  const text = document.getElementById('trainingText').value;
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ru-RU';
+  utt.rate = parseFloat(document.getElementById('shadowSpeed').value);
+  utt.pitch = 0.95;
+  shadowingActive = true; // отключаем анализ микрофона
+  this.textContent = '⏹ Остановить shadowing';
+  this.onclick = () => {
+    window.speechSynthesis.cancel();
+    shadowingActive = false;
+    this.textContent='▶ Запустить shadowing';
+    this.onclick=null;
+  };
+  utt.onend = () => {
+    shadowingActive = false;
+    this.textContent='▶ Запустить shadowing';
+    this.onclick=null;
+  };
+  window.speechSynthesis.speak(utt);
+});
+
+// ====== AI DIALOG ======
+let aiActive = false;
+let chatHistory = [];
+let currentScenario = 'cafe';
+const scenarioPrompts = {
+  cafe: 'Ты — добродушный бариста в кафе. Говори очень медленно, делай паузы между предложениями. Если пользователь молчит или делает паузы — жди, не торопи. Не прерывай. Начни с приветствия. Отвечай только по-русски.',
+  job: 'Ты — терпеливый HR-менеджер на собеседовании. Задавай простые вопросы о прошлом опыте. Говори мягко, медленно. Если пользователь делает паузы — жди. Начни с тёплого приветствия. Отвечай только по-русски.',
+  phone: 'Ты — оператор службы поддержки. Говори чётко и медленно. Если пользователь делает паузы — жди терпеливо. Начни с приветствия и спроси чем помочь. Отвечай только по-русски.',
+  free: 'Ты — понимающий собеседник. Говори спокойно и медленно. Поддерживай разговор мягко. Если пользователь делает паузы — жди спокойно. Начни с дружелюбного приветствия. Отвечай только по-русски.'
+};
+
+document.querySelectorAll('.scenario-card').forEach(card => {
+  card.addEventListener('click', function() {
+    document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    currentScenario = this.dataset.scenario;
+    if (aiActive) stopAISession();
+  });
+});
+
+document.getElementById('aiToggleBtn').addEventListener('click', function() {
+  if (aiActive) stopAISession(); else startAISession();
+});
+
+function stopAISession() {
+  aiActive = false;
+  chatHistory = [];
+  document.getElementById('aiToggleBtn').textContent = 'Начать';
+  document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Готов к диалогу';
+  document.getElementById('aiAvatarStatus').classList.remove('thinking');
+}
+
+async function startAISession() {
+  aiActive = true;
+  chatHistory = [];
+  document.getElementById('chatArea').innerHTML = '';
+  document.getElementById('aiToggleBtn').textContent = 'Завершить';
+  document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Соединяю...';
+  appendMsg('ai', '<span class="typing-dots"><span></span><span></span><span></span></span>');
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: scenarioPrompts[currentScenario],
+        messages: [{ role: 'user', content: 'Начни сессию.' }]
+      })
+    });
+    const data = await res.json();
+    const aiMsg = data.content?.[0]?.text || 'Здравствуйте! Чем могу помочь?';
+    document.getElementById('chatArea').lastChild?.remove();
+    appendMsg('ai', aiMsg, true);
+    chatHistory.push({ role: 'assistant', content: aiMsg });
+    document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+  } catch(e) {
+    document.getElementById('chatArea').lastChild?.remove();
+    const fallback = 'Здравствуйте! Я слушаю вас, не торопитесь. Говорите в своём темпе.';
+    appendMsg('ai', fallback, true);
+    chatHistory.push({ role: 'assistant', content: fallback });
+    document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+  }
+}
+
+async function sendUserMsg() {
+  if (!aiActive) { startAISession(); return; }
+  const input = document.getElementById('userInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendMsg('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+  document.getElementById('aiAvatarStatus').classList.add('thinking');
+  document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Думаю...';
+  appendMsg('ai', '<span class="typing-dots"><span></span><span></span><span></span></span>');
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: scenarioPrompts[currentScenario] + ' Отвечай коротко (1-3 предложения), терпеливо, без спешки.',
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    const aiMsg = data.content?.[0]?.text || 'Понятно, продолжайте пожалуйста.';
+    document.getElementById('chatArea').lastChild?.remove();
+    appendMsg('ai', aiMsg, true);
+    chatHistory.push({ role: 'assistant', content: aiMsg });
+    document.getElementById('aiAvatarStatus').classList.remove('thinking');
+    document.getElementById('aiStatusText').innerHTML = '<span class="dot"></span>Слушаю вас...';
+  } catch(e) {
+    document.getElementById('chatArea').lastChild?.remove();
+    appendMsg('ai', 'Не торопитесь, я жду столько, сколько нужно.');
+    document.getElementById('aiAvatarStatus').classList.remove('thinking');
+  }
+}
+
+// ====== TTS: простая реализация как в daf1.html ======
+function speak(text, onEnd, rate) {
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ru-RU';
+  utt.rate = rate || 0.80;
+  utt.pitch = 1.0;
+  utt.volume = 1.0;
+  if (onEnd) utt.onend = () => { setTimeout(onEnd, 300); };
+  window.speechSynthesis.speak(utt);
+}
+
+function speakAI(text) { speak(text, null, 0.78); }
+function unlockTTS() {}
+
+// Голосовой ввод в диалоге
+let voiceInputActive = false;
+let voiceInputRec = null;
+function toggleVoiceInput() {
+  if (voiceInputActive) {
+    voiceInputActive = false;
+    if (voiceInputRec) { try { voiceInputRec.stop(); } catch(e){} }
+    document.getElementById('voiceBtn').textContent = '🎙';
+    document.getElementById('voiceBtn').style.background = 'var(--card)';
+    document.getElementById('voiceStatus').style.display = 'none';
+    return;
+  }
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Распознавание речи не поддерживается в этом браузере. Используйте Chrome.');
+    return;
+  }
+  voiceInputActive = true;
+  if (typeof releaseMicForRecognition === 'function') releaseMicForRecognition();
+  document.getElementById('voiceBtn').textContent = '⏹';
+  document.getElementById('voiceBtn').style.background = 'rgba(248,113,113,0.2)';
+  document.getElementById('voiceStatus').style.display = 'block';
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  voiceInputRec = new SR();
+  voiceInputRec.lang = 'ru-RU';
+  voiceInputRec.continuous = false;
+  voiceInputRec.interimResults = true;
+  voiceInputRec.onresult = (e) => {
+    let t = '';
+    for (let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+    document.getElementById('userInput').value = t;
+    if (e.results[e.results.length-1].isFinal) {
+      voiceInputActive = false;
+      document.getElementById('voiceBtn').textContent = '🎙';
+      document.getElementById('voiceBtn').style.background = 'var(--card)';
+      document.getElementById('voiceStatus').style.display = 'none';
+      setTimeout(() => sendUserMsg(), 300);
+    }
+  };
+  voiceInputRec.onerror = () => {
+    voiceInputActive = false;
+    document.getElementById('voiceBtn').textContent = '🎙';
+    document.getElementById('voiceStatus').style.display = 'none';
+  };
+  voiceInputRec.start();
+}
+
+function appendMsg(role, text, autoSpeak) {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  const avatarClass = role === 'ai' ? 'ai-avatar-icon' : 'user-avatar-icon';
+  const avatarIcon = role === 'ai' ? '🤖' : '👤';
+  const speakBtn = role === 'ai' && !text.includes('<span')
+    ? `<button onclick="speak(this.dataset.t, null, 0.78)" data-t="${text.replace(/"/g,'&quot;')}" style="background:none;border:none;cursor:pointer;font-size:16px;opacity:0.7;padding:2px 6px;flex-shrink:0;" title="Озвучить">🔊</button>`
+    : '';
+  div.innerHTML = `<div class="msg-avatar ${avatarClass}">${avatarIcon}</div><div class="msg-bubble" style="flex:1;">${text}</div>${speakBtn}`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  // Нажимаем кнопку 🔊 автоматически для новых AI сообщений
+  if (autoSpeak && role === 'ai' && !text.includes('<span')) {
+    const btn = div.querySelector('button');
+    if (btn) setTimeout(() => btn.click(), 300);
+  }
+}
+
+// ====== BREATHING ======
+let breathActive=false, breathId;
+const breathStates = [
+  {text:'Вдох', color:'#34d399', scale:1.15, time:null},
+  {text:'Задержка', color:'#f59e0b', scale:1.15, time:null},
+  {text:'Выдох', color:'#6395ff', scale:0.85, time:null},
+  {text:'Задержка', color:'#f59e0b', scale:0.85, time:null}
+];
+let bStep=0;
+
+document.getElementById('breathBtn').addEventListener('click', function() {
+  const secs = parseInt(document.getElementById('breathTime').value);
+  breathStates.forEach(s => s.time = secs * 1000);
+  if (breathActive) {
+    breathActive=false; clearTimeout(breathId);
+    document.getElementById('breathCircle').style.transform='';
+    document.getElementById('breathCircle').style.borderColor='var(--border)';
+    document.getElementById('breathText').textContent='Готов';
+    this.textContent='▶ Начать практику';
+    return;
+  }
+  breathActive=true;
+  this.textContent='■ Остановить';
+  bStep=0;
+  function nextBreath() {
+    if (!breathActive) return;
+    const s = breathStates[bStep%4];
+    document.getElementById('breathText').textContent=s.text;
+    document.getElementById('breathCircle').style.borderColor=s.color;
+    document.getElementById('breathCircle').style.transform=`scale(${s.scale})`;
+    breathId=setTimeout(() => { bStep++; nextBreath(); }, s.time);
+  }
+  nextBreath();
+});
+
+// ====== CBT EXERCISES ======
+const cbtExercises = [
+  {
+    title: 'Дефузия от мыслей',
+    body: 'Когда появляется мысль «Я заикнусь», скажите себе: «У меня есть мысль о том, что я могу заикнуться». Вы — наблюдатель своих мыслей, а не сами мысли.',
+    q: 'Какая мысль о речи вас тревожит прямо сейчас?'
+  },
+  {
+    title: 'Экспозиция через образ',
+    body: 'Представьте предстоящий разговор в деталях. Допустите, что вы можете запнуться. Визуализируйте, как продолжаете говорить несмотря на это.',
+    q: 'Какой разговор вы избегаете из-за страха заикания?'
+  },
+  {
+    title: 'Принятие неопределённости',
+    body: 'Невозможно гарантировать абсолютную плавность. Попробуйте принять, что небольшие паузы — нормальная часть любой речи.',
+    q: 'Что произойдёт, если вы запнётесь в этом разговоре?'
+  }
+];
+let cbtIdx=0;
+function loadCBT() {
+  const ex = cbtExercises[cbtIdx % cbtExercises.length];
+  cbtIdx++;
+  document.getElementById('cbtExercise').innerHTML = `
+    <div class="tip-box"><div class="tip-title">${ex.title}</div>${ex.body}</div>
+    <textarea placeholder="${ex.q}" style="height:55px;margin-top:6px;"></textarea>
+  `;
+}
+loadCBT();
+
+// ====== DIARY ======
+const diaryData = [
+  {date:'03.06.2025', score:'87%', note:'Хорошая сессия с DAF. Звонок по телефону прошёл без запинок.'},
+  {date:'02.06.2025', score:'82%', note:'Немного тревожился перед. После дыхания стало лучше.'},
+  {date:'01.06.2025', score:'79%', note:'Трудно давались слова на «п» и «б». Нужно больше shadowing.'}
+];
+function renderDiary() {
+  const list = document.getElementById('diaryList');
+  list.innerHTML = diaryData.slice(-3).reverse().map(e => `
+    <div class="diary-entry">
+      <div class="diary-date">${e.date}</div>
+      <div class="diary-score">${e.score} плавности</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${e.note}</div>
+    </div>
+  `).join('');
+}
+renderDiary();
+
+function logTodaySession() {
+  const today = new Date().toLocaleDateString('ru-RU');
+  const s = Math.floor(75 + Math.random()*20) + '%';
+  diaryData.push({date:today, score:s, note:'Записано сегодня.'});
+  renderDiary();
+}
+
+// ====== SOS ======
+function setSOS(txt) { document.getElementById('sosText').value = txt; }
+function speakSOS() {
+  const text = document.getElementById('sosText').value.trim();
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ru-RU';
+  utt.rate = parseFloat(document.getElementById('sosRate').value);
+  utt.pitch = 0.95;
+  window.speechSynthesis.speak(utt);
+}
+
+async function generatePhrase() {
+  const ctx = document.getElementById('aiPhraseInput').value.trim();
+  if (!ctx) return;
+  const box = document.getElementById('generatedPhrase');
+  box.style.display='block';
+  box.innerHTML = '<div class="tip-box" style="color:var(--text-muted);">✨ Генерирую...</div>';
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: 'Ты помогаешь людям с заиканием формулировать фразы. Каждый раз давай РАЗНЫЙ вариант фразы — другие слова, другая структура, другое начало. Никогда не повторяй предыдущие варианты.',
+        messages: [{
+          role: 'user',
+          content: `Ситуация: ${ctx}. Вариант #${Math.floor(Math.random()*9000)+1000}. Напиши одну плавную вежливую фразу с мягкими согласными. Только фраза, без пояснений.`
+        }]
+      })
+    });
+    const data = await res.json();
+    const phrase = data.content?.[0]?.text || 'Будьте добры, помогите мне пожалуйста.';
+    box.innerHTML = `<div class="tip-box">${phrase}<br><button class="btn btn-sm" onclick="document.getElementById('sosText').value='${phrase.replace(/'/g,"\\'")}';speakSOS()" style="margin-top:8px;width:auto;">🔊 Озвучить</button></div>`;
+  } catch(e) {
+    box.innerHTML = '<div class="tip-box" style="color:var(--red-dim);">Ошибка. Используйте готовые фразы.</div>';
+  }
+}
+
+// ====== HISTORY CHART ======
+const hc = document.getElementById('historyChart');
+const hctx = hc.getContext('2d');
+hc.width = 370; hc.height = 70;
+const histData = [72,75,68,80,84,79,86,84];
+function drawHistory() {
+  hctx.fillStyle='#0a0f1a'; hctx.fillRect(0,0,hc.width,hc.height);
+  const max=100, min=60, pad=10;
+  const w=(hc.width-pad*2)/( histData.length-1);
+  const h=hc.height-pad*2;
+  hctx.strokeStyle='#34d399'; hctx.lineWidth=2;
+  hctx.beginPath();
+  histData.forEach((v,i) => {
+    const x=pad+i*w, y=pad+h*(1-(v-min)/(max-min));
+    if(i===0) hctx.moveTo(x,y); else hctx.lineTo(x,y);
+  });
+  hctx.stroke();
+  histData.forEach((v,i) => {
+    const x=pad+i*w, y=pad+h*(1-(v-min)/(max-min));
+    hctx.beginPath(); hctx.arc(x,y,3,0,Math.PI*2);
+    hctx.fillStyle= i===histData.length-1 ? '#34d399' : '#1e2840';
+    hctx.strokeStyle='#34d399'; hctx.lineWidth=1.5;
+    hctx.fill(); hctx.stroke();
+  });
+  const days=['Пн','Вт','Ср','Чт','Пт','Сб','Вс','Пн'];
+  hctx.font='9px Space Grotesk'; hctx.fillStyle='#3a4460'; hctx.textAlign='center';
+  histData.forEach((v,i) => { hctx.fillText(days[i],pad+i*w,hc.height-2); });
+}
+drawHistory();
+
+// ====== FLUENCY RING UPDATE ======
+function updateFluency(val) {
+  const circumference = 263.9;
+  const offset = circumference * (1 - val/100);
+  document.getElementById('fluencyRing').style.strokeDashoffset = offset;
+  document.getElementById('fluencyBig').textContent = val;
+  document.getElementById('fluencyNum').textContent = val + '%';
+  document.getElementById('fluencyBar').style.width = val + '%';
+}
+
+// Simulate slight changes
+setInterval(() => {
+  const base = 84;
+  const jitter = Math.sin(Date.now()/8000)*2 + (waveActive ? (smoothScore - 84) * 0.15 : 0);
+  updateFluency(Math.round(Math.max(60, Math.min(99, 84 + jitter))));
+}, 1500);
+
+// ====== МОДУЛЬ ОСОЗНАННОГО КОНТРОЛЯ ======
+let ctrlState = 'idle';
+let ctrlCycles = 0;
+let ctrlStopTimer = null;
+let ctrlInsightLog = [];
+let ctrlRec = null; // speech recognition
+
+function requestMicNow() {
+  initAudio().then(() => {
+    document.getElementById('micBanner').style.display = 'none';
+    unlockTTS();
+  }).catch(() => {
+    document.getElementById('micBanner').querySelector('span').textContent = '⚠ Доступ к микрофону запрещён. Проверьте настройки браузера.';
+  });
+}
+
+// Авто-запрос при первом взаимодействии
+document.addEventListener('click', function onFirstClick() {
+  unlockTTS();
+  document.removeEventListener('click', onFirstClick);
+}, { once: true });
+
+function checkReady() {
+  const c1 = document.getElementById('chk1').checked;
+  const c2 = document.getElementById('chk2').checked;
+  const c3 = document.getElementById('chk3').checked;
+  const name = document.getElementById('ctrlName').value.trim();
+  document.getElementById('ctrlStartBtn').disabled = !(c1 && c2 && c3 && name.length > 0);
+}
+
+function ctrlLog(msg, color) {
+  const area = document.getElementById('ctrlLogArea');
+  if (!area) return;
+  const t = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const col = color || '#6b7a9b';
+  area.innerHTML += '<span style="color:' + col + '">[' + t + ']</span> ' + msg + '<br>';
+  area.scrollTop = area.scrollHeight;
+}
+
+function ctrlSetPhase(n) {
+  ['pd1','pd2','pd3','pd4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (i < n - 1) el.style.background = 'var(--green)';
+    else if (i === n - 1) el.style.background = '#f59e0b';
+    else el.style.background = '#1a2038';
+  });
+}
+
+function ctrlSetAI(text, emoji) {
+  const el = document.getElementById('ctrlAiText');
+  const av = document.getElementById('ctrlAiAvatar');
+  if (el) el.textContent = text;
+  if (av) av.textContent = emoji || 'ℹ';
+}
+
+function ctrlShow(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+
+function ctrlSpeak(text, onEnd) {
+  // Показываем текст на экране
+  ctrlSetAI(text, document.getElementById('ctrlAiAvatar')?.textContent || '🎙');
+  // Озвучиваем только если это прямой user-gesture (проверяем через флаг)
+  if (window._ctrlDirectClick) {
+    speak(text, onEnd, 0.82);
+  } else {
+    // Не прямой клик - просто показываем текст, onEnd вызываем через паузу
+    if (onEnd) setTimeout(onEnd, 1500);
+  }
+  window._ctrlDirectClick = false;
+}
+
+// Распознавание одного ответа голосом
+function ctrlListenFor(keywords, onMatch, timeoutMs) {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    // нет распознавания — показываем кнопки как запасной вариант
+    return false;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  ctrlRec = new SR();
+  ctrlRec.lang = 'ru-RU';
+  ctrlRec.continuous = false;
+  ctrlRec.interimResults = false;
+  ctrlRec.onresult = (e) => {
+    const text = e.results[0][0].transcript.toLowerCase();
+    ctrlLog('Услышано: «' + text + '»', '#3a4460');
+    onMatch(text);
+  };
+  ctrlRec.onerror = () => { if (onMatch) onMatch(''); };
+  ctrlRec.onend = () => {};
+  try { ctrlRec.start(); } catch(e){}
+  if (timeoutMs) setTimeout(() => { try { ctrlRec.stop(); } catch(e){} }, timeoutMs);
+  return true;
+}
+
+// ====== КОНТРОЛЬ: ГОЛОС ГЛАВНЫЙ, КНОПКИ — СТРАХОВКА ======
+let ctrlActionState = 'idle';
+let ctrlVoiceLoop = null;   // активный слушатель
+let ctrlStopFired = false;
+
+// ---------- утилиты ----------
+function ctrlSetActionBtn(text, color) {
+  const btn = document.getElementById('ctrlActionBtn');
+  if (!btn) return;
+  btn.textContent = text;
+  const styles = {
+    green: ['rgba(52,211,153,0.5)', 'var(--green-dim)', 'var(--green)'],
+    amber: ['rgba(245,158,11,0.5)', 'rgba(245,158,11,0.12)', '#f59e0b'],
+    blue:  ['rgba(99,149,255,0.4)', 'rgba(99,149,255,0.1)', '#6395ff'],
+    red:   ['rgba(248,113,113,0.4)', 'rgba(248,113,113,0.1)', '#f87171'],
+  };
+  const [bc, bg, col] = styles[color] || styles.green;
+  btn.style.borderColor = bc;
+  btn.style.background  = bg;
+  btn.style.color       = col;
+}
+
+// ctrlSetBtn определён выше
+
+// Показать/скрыть кнопку страховки внизу
+function ctrlBackupBtn(text, fn) {
+  let wrap = document.getElementById('ctrlBackupWrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'ctrlBackupWrap';
+    wrap.style.cssText = 'margin-top:8px;';
+    document.getElementById('ctrl-main').appendChild(wrap);
+  }
+  if (!text) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  wrap.innerHTML = '<button onclick="ctrlBackupAction()" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-family:var(--sans);font-size:11px;cursor:pointer;">👆 ' + text + ' (кнопка)</button>';
+  wrap._fn = fn;
+}
+function ctrlBackupAction() {
+  const wrap = document.getElementById('ctrlBackupWrap');
+  if (wrap && wrap._fn) wrap._fn();
+}
+
+function ctrlStopVoice() {
+  if (ctrlVoiceLoop) { try { ctrlVoiceLoop.stop(); } catch(e){} ctrlVoiceLoop = null; }
+}
+
+// Запустить постоянный голосовой слушатель
+// keywords: массив слов-триггеров, onMatch(transcript) → вызывается при совпадении
+// Глобальный реестр активных распознаваний — Chrome Android позволяет только ОДНО
+let activeRecognitions = [];
+function stopAllRecognition() {
+  activeRecognitions.forEach(r => { try { r.abort(); } catch(e){} });
+  activeRecognitions = [];
+}
+
+// КРИТИЧНО для Android: getUserMedia и SpeechRecognition не работают одновременно.
+// Перед распознаванием освобождаем микрофон от аудио-стрима.
+function releaseMicForRecognition() {
+  if (micStream) {
+    micStream.getTracks().forEach(t => { try { t.stop(); } catch(e){} });
+    micStream = null;
+  }
+  if (audioCtx) {
+    try { audioCtx.close(); } catch(e){}
+    audioCtx = null;
+    analyser = null;
+    micSource = null;
+  }
+}
+
+function ctrlStartListening(keywords, onMatch) {
+  ctrlStopVoice();
+  stopAllRecognition();
+  releaseMicForRecognition(); // Android: освобождаем микрофон от аудио-стрима
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SR();
+  ctrlVoiceLoop = rec;
+  activeRecognitions.push(rec);
+  rec.lang = 'ru-RU';
+  rec.continuous = true;
+  rec.interimResults = false;
+  let matched = false;
+  rec.onresult = (e) => {
+    if (matched) return;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (!e.results[i].isFinal) continue;
+      const text = e.results[i][0].transcript.toLowerCase().trim();
+      ctrlLog('🎙 «' + text + '»', '#3a4460');
+      if (keywords.some(k => text.includes(k))) {
+        matched = true;
+        try { rec.stop(); } catch(ex) {}
+        ctrlVoiceLoop = null;
+        onMatch(text);
+        return;
+      }
+    }
+  };
+  rec.onerror = (e) => {
+    if (e.error === 'network') {
+      // Android: network = слишком быстрый перезапуск. Пробуем ещё раз через секунду.
+      setTimeout(() => { try { rec.start(); } catch(ex){} }, 1000);
+    } else if (e.error !== 'aborted' && e.error !== 'no-speech') {
+      ctrlLog('mic err: ' + e.error, '#f87171');
+    }
+  };
+  setTimeout(() => { try { rec.stop(); } catch(e){} }, 30000);
+  // Пауза 500мс перед стартом — Android не даёт запустить сразу после остановки предыдущего
+  setTimeout(() => {
+    try { rec.start(); } catch(ex) { ctrlLog('rec start fail', '#f87171'); }
+  }, 500);
+}
+
+// ---------- главный поток ----------
+
+// Роутер кнопки — вызывает текущий обработчик
+let ctrlCurrentBtnFn = null;
+function ctrlHandleActionBtn() {
+  // Прямой onclick — разрешаем TTS
+  window._ctrlDirectClick = true;
+  if (ctrlCurrentBtnFn) ctrlCurrentBtnFn();
+}
+function ctrlSetBtn(text, color, fn) {
+  ctrlCurrentBtnFn = fn;
+  ctrlSetActionBtn(text, color);
+}
+
+function startControlProcess() {
+  const name = document.getElementById('ctrlName').value.trim();
+  ctrlCycles = 0; ctrlState = 'idle'; ctrlActionState = 'idle';
+  ctrlStopFired = false;
+  document.getElementById('ctrl-checklist').style.display = 'none';
+  document.getElementById('ctrl-main').style.display = 'block';
+  document.getElementById('ctrl-log').style.display = 'block';
+  const now = new Date();
+  document.getElementById('ctrlDate').textContent = now.toLocaleDateString('ru-RU', {day:'2-digit', month:'long', year:'numeric'});
+  document.getElementById('ctrlNameDisplay').textContent = name;
+  document.getElementById('ctrlCycleCount').textContent = '0';
+  ctrlLog('Сессия начата: ' + name, '#34d399');
+  ctrlSetAI('Нажмите кнопку ниже — дальше всё голосом.', '🎙');
+
+  // Первое нажатие — разблокирует TTS на мобильном (user gesture!)
+  ctrlSetBtn('▶ Запустить процесс', 'green', () => {
+    speak('Добро пожаловать, ' + name + '. Сейчас начнём.', null, 0.82);
+    // Запускаем цикл сразу, не ждём конца речи
+    setTimeout(() => runCtrlCycle(), 800);
+  });
+  ctrlBackupBtn(null, null);
+}
+
+function runCtrlCycle() {
+  ctrlStopVoice();
+  ctrlState = 'cmd1';
+  ctrlActionState = 'cmd1_ready';
+  ctrlSetPhase(1);
+  ctrlShow('ctrlInsightRecord', false);
+  ctrlShow('ctrlInsightBtnWrap', false);
+
+  const cmd1 = 'Я хочу, чтобы вы начали считать вслух с единицы. В какой-то момент я скажу стоп, и вы прекратите говорить. Хорошо?';
+  ctrlSetAI(cmd1, '🎙');
+  ctrlLog('Цикл ' + (ctrlCycles + 1) + ' — Команда 1');
+
+  // Кнопку показываем СРАЗУ
+  ctrlSetBtn('✓ Понял — начинаю считать вслух', 'green', () => {
+    ctrlStopVoice();
+    ctrlLog('Подтверждение кнопкой — начинаем счёт', '#6395ff');
+    startCounting();
+  });
+
+  // Говорим команду, слушатель запускаем ПОСЛЕ окончания речи
+  // Запускаем слушатель через фикс. время — НЕ зависим от onend (ненадёжен на Android)
+  let listenStarted = false;
+  const startListen = () => {
+    if (listenStarted || ctrlState !== 'cmd1') return;
+    listenStarted = true;
+    ctrlSetAI('Скажите «да» или «хорошо»...', '👂');
+    ctrlStartListening(['да','хорошо','ладно','начинаю','начну','готов'], () => {
+      ctrlStopVoice();
+      ctrlLog('Голос: подтверждение получено', '#6395ff');
+      startCounting();
+    });
+  };
+  speak(cmd1, () => setTimeout(startListen, 600), 0.82);
+  // Страховка: если onend не сработал — запускаем через 9 сек (длина фразы ~8с)
+  setTimeout(startListen, 9000);
+}
+
+function startCounting() {
+  if (ctrlState !== 'cmd1') return;
+  ctrlStopVoice();
+  ctrlState = 'counting';
+  ctrlStopFired = false;
+  ctrlSetPhase(2);
+  ctrlSetAI('Считайте вслух: один, два, три...', '👂');
+  ctrlLog('Счёт начат', '#6395ff');
+
+  // Показываем кнопку озарения (основной путь для инсайта)
+  ctrlSetBtn('💡 Я ПОНЯЛ! — Озарение', 'amber', () => triggerInsight());
+  ctrlBackupBtn(null, null);
+
+  // СТОП через рандом 5–14 сек
+  const delay = 5000 + Math.random() * 9000;
+  ctrlLog('«Стоп» через ~' + Math.round(delay/1000) + ' сек', '#3a4460');
+  ctrlStopTimer = setTimeout(() => {
+    if (ctrlState === 'counting') ctrlFireStop();
+  }, delay);
+}
+
+function ctrlStartInsightBackground() {
+  // Фоновый слушатель «я понял» — continuous, без перезапусков
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SR();
+  rec.lang = 'ru-RU';
+  rec.continuous = true;   // один запуск — нет колокольчиков при перезапуске
+  rec.interimResults = false;
+  rec.onresult = (e) => {
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (!e.results[i].isFinal) continue;
+      const text = e.results[i][0].transcript.toLowerCase();
+      if (text.includes('понял') || text.includes('осознал') || text.includes('озарение')) {
+        try { rec.stop(); } catch(ex) {}
+        if (ctrlState === 'counting') {
+          if (ctrlStopTimer) clearTimeout(ctrlStopTimer);
+          triggerInsight();
+        }
+      }
+    }
+  };
+  rec.onerror = () => {};
+  // Останавливаем когда счёт заканчивается
+  setTimeout(() => { try { rec.stop(); } catch(e){} }, 60000);
+  try { rec.start(); } catch(ex) {}
+}
+
+function ctrlFireStop() {
+  if (ctrlStopFired) return;
+  ctrlStopFired = true;
+  ctrlStopVoice();
+  ctrlState = 'stop_wait';
+  ctrlShow('ctrlInsightBtnWrap', false);
+  ctrlSetPhase(3);
+  ctrlSetAI('СТОП! Прекратите говорить.', '✋');
+  ctrlLog('Команда 2: «Стоп!»', '#f87171');
+
+  speak('Стоп!', null, 0.82);
+
+  // Кнопка сразу
+  ctrlSetBtn('✋ Я замолчал — продолжить', 'amber', () => {
+    ctrlStopVoice();
+    fireCmd3();
+  });
+
+  // Детектор тишины параллельно
+  detectCtrlSilence(() => {
+    if (ctrlState === 'stop_wait') fireCmd3();
+  });
+}
+
+function detectCtrlSilence(onSilence) {
+  if (!analyser) { setTimeout(onSilence, 1500); return; }
+  const THRESH = 10, REQ_MS = 800;
+  let silStart = Date.now(), checking = true;
+  const chk = setInterval(() => {
+    if (!checking) { clearInterval(chk); return; }
+    const arr = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(arr);
+    const avg = arr.slice(8,80).reduce((a,b)=>a+b,0)/72;
+    if (avg < THRESH) {
+      if (Date.now() - silStart > REQ_MS) { checking=false; clearInterval(chk); onSilence(); }
+    } else { silStart = Date.now(); }
+  }, 80);
+  setTimeout(() => { checking=false; clearInterval(chk); onSilence(); }, 5000);
+}
+
+function fireCmd3() {
+  ctrlStopVoice();
+  ctrlState = 'cmd3';
+  ctrlSetPhase(4);
+  const q = 'Вы сами остановили свою речь?';
+  ctrlSetAI(q + ' Скажите да или нет.', '🤔');
+  ctrlLog('Команда 3: «' + q + '»', '#f59e0b');
+
+  // Кнопка сразу
+  ctrlSetBtn('✓ Да, я сам остановил речь', 'green', () => {
+    ctrlStopVoice();
+    ctrlAnswer('да');
+  });
+
+  // Сначала говорим вопрос, слушатель запускаем ПОСЛЕ окончания речи
+  // чтобы TTS не распознал сам себя
+  let listen3Started = false;
+  const startListen3 = () => {
+    if (listen3Started || ctrlState !== 'cmd3') return;
+    listen3Started = true;
+    ctrlSetAI('Слушаю ваш ответ...', '👂');
+    ctrlStartListening(['да','нет','не знаю','не уверен','наверное','конечно','само','остановил'], (text) => {
+      ctrlLog('Голос: «' + text + '»', '#34d399');
+      ctrlAnswer(text);
+    });
+  };
+  speak(q + '. Скажите да или нет.', () => setTimeout(startListen3, 600), 0.82);
+  // Страховка если onend не сработал
+  setTimeout(startListen3, 6000);
+}
+
+function ctrlAnswer(answer) {
+  ctrlStopVoice();
+  ctrlCycles++;
+  document.getElementById('ctrlCycleCount').textContent = ctrlCycles;
+  ctrlLog('Ответ: «' + answer + '» — Цикл ' + ctrlCycles + ' ✓', '#34d399');
+  ctrlState = 'idle';
+  ctrlShow('ctrlInsightBtnWrap', false);
+  ctrlBackupBtn(null, null);
+
+  // Авто-переход через 2 сек
+  ctrlSetAI('Цикл ' + ctrlCycles + ' завершён. Начинаю следующий...', '✅');
+  // Объявляем переменную ДО использования
+  let ctrlAutoNext = null;
+  ctrlSetBtn('▶ Следующий цикл', 'green', () => {
+    if (ctrlAutoNext) clearTimeout(ctrlAutoNext);
+    runCtrlCycle();
+  });
+  ctrlAutoNext = setTimeout(() => {
+    if (ctrlState === 'idle') runCtrlCycle();
+  }, 2000);
+}
+
+function triggerInsight() {
+  if (ctrlState === 'insight' || ctrlState === 'final') return;
+  ctrlStopVoice();
+  window.speechSynthesis.cancel();
+  if (ctrlStopTimer) clearTimeout(ctrlStopTimer);
+  ctrlState = 'insight';
+  ctrlShow('ctrlInsightBtnWrap', false);
+  ctrlBackupBtn(null, null);
+  ctrlLog('💡 ОЗАРЕНИЕ!', '#34d399');
+
+  const thankText = 'Спасибо за озарение. Расскажите подробнее — что именно вы поняли?';
+  ctrlSetAI(thankText, '💡');
+  let insightRecStarted = false;
+  const startInsightRec = () => {
+    if (insightRecStarted) return;
+    insightRecStarted = true;
+    ctrlShow('ctrlInsightRecord', true);
+    document.getElementById('ctrlInsightText').textContent = '🎙 Слушаю...';
+    setTimeout(() => {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        stopAllRecognition();
+        releaseMicForRecognition();
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const rec = new SR();
+        activeRecognitions.push(rec);
+        rec.lang = 'ru-RU'; rec.continuous = true; rec.interimResults = true;
+        // Android выдаёт нарастающий полный текст в каждом результате —
+        // берём только ПОСЛЕДНИЙ результат, он содержит всё
+        let insightArchive = ''; // текст из предыдущих сессий распознавания
+        let insightCurrent = '';
+        rec.onresult = (e) => {
+          insightCurrent = e.results[e.results.length - 1][0].transcript;
+          const display = (insightArchive + insightCurrent).trim();
+          document.getElementById('ctrlInsightText').textContent = display;
+          document.getElementById('ctrlInsightEdit').value = display;
+        };
+        rec.onend = () => {
+          if (insightCurrent) { insightArchive += insightCurrent + ' '; insightCurrent = ''; }
+        };
+        rec.onerror = (e) => {
+          if (e.error !== 'aborted') {
+            document.getElementById('ctrlInsightText').textContent = 
+              '🎙 Говорите... (или напишите ниже)';
+          }
+        };
+        try { rec.start(); } catch(e){}
+        setTimeout(() => { try { rec.stop(); } catch(e){} }, 40000);
+      }
+    }, 1000);
+  };
+  ctrlSpeak(thankText, () => startInsightRec());
+  // Страховка: запись стартует через 5 сек даже если onend не сработал
+  setTimeout(startInsightRec, 5000);
+}
+
+function ctrlFinishProcess() {
+  ctrlStopVoice();
+  ctrlState = 'final';
+  const insight = document.getElementById('ctrlInsightEdit').value.trim()
+    || document.getElementById('ctrlInsightText').textContent;
+  const name = document.getElementById('ctrlNameDisplay').textContent;
+  ctrlShow('ctrlInsightRecord', false);
+  ctrlSetAI('Завершаем процесс...', '✅');
+  ctrlLog('Озарение: «' + insight + '»', '#34d399');
+  ctrlSpeak('Мы сейчас будем заканчивать процесс. Хотите вы что-то добавить или сказать?', () => {
+    setTimeout(() => {
+      ctrlSpeak('Мы закончили этот процесс. Спасибо!', () => {
+        ctrlSetAI('Завершено. ' + ctrlCycles + ' циклов. Отличная работа, ' + name + '!', '✅');
+        ctrlLog('Завершено. Циклов: ' + ctrlCycles, '#34d399');
+        ctrlInsightLog.push({ date: new Date().toLocaleDateString('ru-RU'), name, cycles: ctrlCycles, insight });
+        renderInsightsDiary();
+        ctrlSetBtn('↺ Новая сессия', 'blue', () => ctrlRestart());
+      });
+    }, 3000);
+  });
+}
+
+function ctrlRestart() {
+  ctrlStopVoice();
+  ctrlCycles = 0; ctrlState = 'idle'; ctrlActionState = 'idle';
+  document.getElementById('ctrl-main').style.display = 'none';
+  document.getElementById('ctrl-log').style.display = 'none';
+  document.getElementById('ctrl-checklist').style.display = 'block';
+  ['chk1','chk2','chk3'].forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
+  const ni = document.getElementById('ctrlName');
+  if (ni) ni.value = '';
+  const sb = document.getElementById('ctrlStartBtn');
+  if (sb) sb.disabled = true;
+}
+
+function renderInsightsDiary() {
+  const diary = document.getElementById('ctrlInsightsDiary');
+  if (!diary || ctrlInsightLog.length === 0) return;
+  diary.innerHTML = ctrlInsightLog.slice().reverse().map(e =>
+    '<div style="background:var(--surface);border:1px solid rgba(52,211,153,0.2);border-radius:10px;padding:10px 12px;margin-bottom:6px;">' +
+    '<div style="font-size:9px;color:var(--text-dim);font-family:var(--mono);">' + e.date + ' · ' + e.name + ' · ' + e.cycles + ' циклов</div>' +
+    '<div style="font-size:11px;color:var(--text);margin-top:5px;line-height:1.6;font-style:italic;">"' + e.insight + '"</div>' +
+    '</div>'
+  ).join('');
+}
+
+// ====== АНАЛИЗ РЕЧИ ИИ ======
+let analysisRec = null;
+let analysisRecording = false;
+let analysisTranscriptFull = '';
+let analysisSessions = []; // история сессий для сравнения
+
+function toggleAnalysisRec() {
+  if (analysisRecording) {
+    // Останавливаем запись
+    if (analysisRec) { try { analysisRec.stop(); } catch(e){} }
+    analysisRecording = false;
+    document.getElementById('analysisRecBtn').textContent = '🎙 Начать запись речи';
+    document.getElementById('analysisRecBtn').style.borderColor = 'rgba(52,211,153,0.4)';
+    document.getElementById('analysisRecBtn').style.color = 'var(--green)';
+    document.getElementById('analysisRecBtn').style.background = 'var(--green-dim)';
+    document.getElementById('analysisRecDot').style.background = '#3a4460';
+    document.getElementById('analysisStatus').textContent = 'Готов к анализу';
+    if (analysisTranscriptFull.trim()) {
+      document.getElementById('analysisAIBtn').style.display = 'block';
+    }
+    return;
+  }
+
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Распознавание речи не поддерживается. Используйте Chrome.');
+    return;
+  }
+
+  analysisTranscriptFull = '';
+  analysisRecording = true;
+  document.getElementById('analysisAIBtn').style.display = 'none';
+  document.getElementById('analysisResult').style.display = 'none';
+  document.getElementById('analysisTranscript').textContent = 'Слушаю... говорите';
+  document.getElementById('analysisTranscript').style.color = 'var(--text)';
+  document.getElementById('analysisRecDot').style.background = '#f87171';
+  document.getElementById('analysisRecBtn').textContent = '⏹ Остановить запись';
+  document.getElementById('analysisRecBtn').style.borderColor = 'rgba(248,113,113,0.4)';
+  document.getElementById('analysisRecBtn').style.color = '#f87171';
+  document.getElementById('analysisRecBtn').style.background = 'rgba(248,113,113,0.1)';
+  document.getElementById('analysisStatus').textContent = '● REC';
+
+  if (typeof stopAllRecognition === 'function') stopAllRecognition();
+  releaseMicForRecognition();
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  analysisRec = new SR();
+  activeRecognitions.push(analysisRec);
+  analysisRec.lang = 'ru-RU';
+  analysisRec.continuous = true;
+  analysisRec.interimResults = true;
+
+  // Android выдаёт нарастающий полный текст — берём последний результат
+  let analysisArchive = '';
+  let analysisCurrent = '';
+  analysisRec.onresult = (e) => {
+    analysisCurrent = e.results[e.results.length - 1][0].transcript;
+    const display = (analysisArchive + analysisCurrent).trim();
+    analysisTranscriptFull = display;
+    if (display) {
+      document.getElementById('analysisTranscript').textContent = display;
+      document.getElementById('analysisTranscript').style.color = 'var(--text)';
+    }
+  };
+
+  analysisRec.onerror = (e) => {
+    if (e.error === 'not-allowed') {
+      document.getElementById('analysisTranscript').textContent = '⚠ Микрофон запрещён. Разрешите в настройках браузера.';
+    } else if (e.error !== 'aborted' && e.error !== 'no-speech') {
+      document.getElementById('analysisTranscript').textContent = '⚠ Ошибка микрофона: ' + e.error;
+    }
+  };
+  analysisRec.onend = () => {
+    if (analysisCurrent) { analysisArchive += analysisCurrent + ' '; analysisCurrent = ''; }
+    if (analysisRecording) {
+      setTimeout(() => { try { analysisRec.start(); } catch(e) {} }, 400);
+    }
+  };
+
+  try { analysisRec.start(); } catch(e) {}
+}
+
+async function runSpeechAnalysis() {
+  const transcript = analysisTranscriptFull.trim();
+  if (!transcript) {
+    alert('Нет записи. Сначала запишите речь.');
+    return;
+  }
+
+  document.getElementById('analysisAIBtn').textContent = '⏳ Анализирую...';
+  document.getElementById('analysisAIBtn').style.opacity = '0.6';
+  document.getElementById('analysisStatus').textContent = 'Анализ...';
+
+  // Предыдущая сессия для сравнения
+  const prevSession = analysisSessions.length > 0 ? analysisSessions[analysisSessions.length - 1] : null;
+  const prevText = prevSession ? `
+
+Для сравнения — предыдущая запись пользователя:
+"${prevSession.transcript}"` : '';
+
+  const systemPrompt = `Ты логопед и специалист по работе с заиканием. Анализируй транскрипт речи пользователя и давай конкретную, поддерживающую обратную связь. 
+
+Структура ответа (кратко, 4-5 пунктов):
+1. Темп речи — был ли темп плавным или торопливым
+2. Проблемные звуки — какие согласные/слоги могли вызвать трудности (по тексту)
+3. Паузы — где были естественные паузы, помогли ли они
+4. Прогресс — если есть предыдущая запись, сравни
+5. Главный совет — одна конкретная рекомендация на следующую тренировку
+
+Тон: тёплый, поддерживающий, конкретный. Не более 150 слов.`;
+
+  const userPrompt = `Транскрипт речи:
+"${transcript}"${prevText}`;
+
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    const data = await res.json();
+    const analysis = data.content?.[0]?.text || 'Не удалось получить анализ.';
+
+    // Сохраняем сессию
+    analysisSessions.push({
+      date: new Date().toLocaleDateString('ru-RU'),
+      transcript,
+      analysis
+    });
+
+    document.getElementById('analysisText').textContent = analysis;
+    document.getElementById('analysisResult').style.display = 'block';
+    document.getElementById('analysisAIBtn').textContent = '🧠 Получить анализ от ИИ';
+    document.getElementById('analysisAIBtn').style.opacity = '1';
+    document.getElementById('analysisStatus').textContent = '✓ Готово';
+
+    // Автоматически озвучиваем анализ
+    setTimeout(() => speak(analysis, null, 0.82), 300);
+
+  } catch(e) {
+    // Локальный анализ если нет сети
+    const wordCount = transcript.split(' ').length;
+    const localAnalysis = `Запись получена (${wordCount} слов). Анализ без сети:
+
+` +
+      `• Темп: попробуйте говорить на 20% медленнее чем сейчас
+` +
+      `• Совет: делайте паузу перед каждым предложением — глубокий вдох
+` +
+      `• Следующий шаг: повторите текст ещё раз, растягивая первый слог каждого слова`;
+    document.getElementById('analysisText').textContent = localAnalysis;
+    document.getElementById('analysisResult').style.display = 'block';
+    document.getElementById('analysisAIBtn').textContent = '🧠 Получить анализ от ИИ';
+    document.getElementById('analysisAIBtn').style.opacity = '1';
+    document.getElementById('analysisStatus').textContent = 'Офлайн';
+    setTimeout(() => speak(localAnalysis, null, 0.82), 300);
+  }
+}
+
+// ====== БЕЛЫЙ ШУМ ======
+let noiseNode = null, noiseGain = null;
+
+function toggleWhiteNoise() {
+  const btn = document.getElementById('noiseBtn');
+  if (noiseNode) {
+    noiseNode.stop();
+    noiseNode = null;
+    noiseGain = null;
+    btn.textContent = '▶ Включить шум';
+    btn.style.background = 'var(--green-dim)';
+    btn.style.color = 'var(--green)';
+    return;
+  }
+  // Создаём AudioContext если нет
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const type = document.getElementById('noiseType').value;
+  const bufferSize = audioCtx.sampleRate * 2;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  if (type === 'white') {
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  } else if (type === 'pink') {
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const w = Math.random() * 2 - 1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
+    }
+  } else { // brown
+    let last = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const w = Math.random() * 2 - 1;
+      data[i] = (last + 0.02 * w) / 1.02;
+      last = data[i]; data[i] *= 3.5;
+    }
+  }
+
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  noiseGain = audioCtx.createGain();
+  noiseGain.gain.value = document.getElementById('noiseVolume').value / 100 * 0.8;
+  source.connect(noiseGain);
+  noiseGain.connect(audioCtx.destination);
+  source.start();
+  noiseNode = source;
+
+  btn.textContent = '■ Выключить шум';
+  btn.style.background = 'rgba(248,113,113,0.15)';
+  btn.style.color = '#f87171';
+}
+
+// ====== ГЕНЕРАЦИЯ ТЕКСТА ДЛЯ АНАЛИЗА ======
+async function generateAnalysisText() {
+  const sounds = [];
+  if (document.getElementById('snd_p').checked) sounds.push('П и Б');
+  if (document.getElementById('snd_t').checked) sounds.push('Т и Д');
+  if (document.getElementById('snd_k').checked) sounds.push('К и Г');
+  if (document.getElementById('snd_r').checked) sounds.push('Р');
+  if (document.getElementById('snd_s').checked) sounds.push('С и З');
+  if (document.getElementById('snd_v').checked) sounds.push('В и Ф');
+
+  const btn = document.getElementById('genTextBtn');
+  btn.textContent = '⏳ Генерирую...';
+  btn.style.opacity = '0.6';
+
+  const soundsStr = sounds.length > 0
+    ? 'Обязательно включи слова со звуками: ' + sounds.join(', ') + '.'
+    : 'Используй плавные звуки Л, М, Н, В.';
+
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content:
+          'Напиши короткий связный текст (3-4 предложения, 40-50 слов) для тренировки речи. ' +
+          soundsStr +
+          ' Текст должен быть спокойным, повествовательным, без диалогов. Только текст, без пояснений.'
+        }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      // Показать реальную ошибку API для диагностики
+      const errMsg = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));
+      document.getElementById('analysisReadText').textContent = '⚠ API: ' + errMsg;
+      document.getElementById('analysisReadText').style.display = 'block';
+      btn.textContent = '✨ Сгенерировать текст для чтения';
+      btn.style.opacity = '1';
+      return;
+    }
+    const text = data.content?.[0]?.text || 'Пустой ответ от API';
+    document.getElementById('analysisReadText').textContent = text;
+    document.getElementById('analysisReadText').style.display = 'block';
+    document.getElementById('analysisTranscript').textContent = 'Прочитайте текст выше вслух и нажмите кнопку записи...';
+    btn.textContent = '✨ Сгенерировать новый текст';
+    btn.style.opacity = '1';
+  } catch(e) {
+    // Показать ошибку и запасной текст
+    document.getElementById('analysisReadText').textContent = 
+      'Медленно течёт река, омывая тёплые камни. Солнце опускается за горизонт. Голос звучит спокойно и уверенно. Каждое слово произносится чётко и без спешки.';
+    document.getElementById('analysisReadText').style.display = 'block';
+    document.getElementById('analysisTranscript').textContent = 'Прочитайте текст выше вслух и нажмите кнопку записи...';
+    btn.textContent = '✨ Сгенерировать текст (офлайн)';
+    btn.style.opacity = '1';
+    console.error('generateAnalysisText error:', e);
+  }
+}
+
+// ====== TIPS ROTATION ======
+const tips = [
+  {t:'Мягкий старт', b:'Начинайте фразы с лёгкого выдоха, словно вы нашёптываете первое слово. Это снижает спазм голосовых связок.'},
+  {t:'Растяжка гласных', b:'На трудных словах намеренно тяните гласные: не «пойдём», а «пооойдём». Это разрывает спазм.'},
+  {t:'Диафрагмальное дыхание', b:'Вдыхайте животом, не грудью. Рука на животе — она должна двигаться, а не грудная клетка.'},
+  {t:'Снижение темпа', b:'Говорите на 30% медленнее, чем вам кажется естественным. Слушатели воспринимают это как уверенность.'}
+];
+let tipIdx=0;
+setInterval(() => {
+  tipIdx=(tipIdx+1)%tips.length;
+  const box=document.querySelector('.tip-box');
+  if(box){ box.querySelector('.tip-title').textContent=tips[tipIdx].t; box.lastChild.textContent=tips[tipIdx].b; }
+}, 12000);
+</script>
+</body>
+</html>
